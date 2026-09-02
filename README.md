@@ -13,9 +13,16 @@ they made while keeping it.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # typecheck + production build
+npm run dev            # http://localhost:5173
+npm run build          # typecheck + production build
+npm run build:static   # single-file build for static hosting
 ```
+
+`build:static` routes on the hash and emits pure-ASCII output, so the bundle can
+be inlined into one self-contained HTML file and served from anywhere — a host
+that can't rewrite deep links to `index.html`, or a page whose charset it does
+not control. The default build keeps clean paths and is what a real deployment
+should use.
 
 Mobile-first: open it on a phone, or narrow the browser. On a wide screen it
 renders inside a centred device frame.
