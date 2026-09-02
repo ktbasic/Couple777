@@ -2,7 +2,7 @@
   min-height: 100dvh;
   display: flex;
   justify-content: center;
-  background: var(--c-page-deep);
+  background: var(--g-page);
 }
 
 .app {
@@ -90,11 +90,12 @@
 .markGlyph {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  background: var(--c-accent);
+  border-radius: 13px;
+  background: var(--g-accent);
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--c-on-accent);
+  box-shadow: var(--e-accent);
   font-family: var(--f-display);
   font-size: 15px;
   font-weight: 600;
@@ -113,15 +114,15 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--c-accent);
+  color: var(--c-accent-ink);
 }
 
 .title {
   margin-top: var(--s-3);
   font-family: var(--f-display);
   font-size: var(--t-display-xl);
-  font-weight: 500;
-  letter-spacing: -0.028em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1.12;
   color: var(--c-ink);
   text-wrap: balance;
@@ -141,6 +142,7 @@
 .rules {
   margin-top: var(--s-7);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 
@@ -167,9 +169,9 @@
   font-weight: 600;
   letter-spacing: -0.02em;
 }
-.rule[data-tier='day'] .ruleNum { background: var(--c-day-wash); color: var(--c-day); }
-.rule[data-tier='week'] .ruleNum { background: var(--c-week-wash); color: var(--c-week); }
-.rule[data-tier='month'] .ruleNum { background: var(--c-month-wash); color: var(--c-month); }
+.rule[data-tier='day'] .ruleNum { background: var(--c-day-wash); color: var(--c-day-ink); }
+.rule[data-tier='week'] .ruleNum { background: var(--c-week-wash); color: var(--c-week-ink); }
+.rule[data-tier='month'] .ruleNum { background: var(--c-month-wash); color: var(--c-month-ink); }
 
 .ruleTitle {
   font-size: var(--t-body);
@@ -190,6 +192,7 @@
 .fields {
   margin-top: var(--s-7);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-5);
 }
 
@@ -216,8 +219,8 @@
   margin-top: var(--s-3);
   font-family: var(--f-display);
   font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--c-ink);
 }
 
@@ -231,6 +234,7 @@
 .privacy {
   margin-top: var(--s-6);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 

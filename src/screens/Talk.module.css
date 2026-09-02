@@ -1,5 +1,6 @@
 .rows {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 
@@ -42,7 +43,7 @@
 .rowTitle {
   font-family: var(--f-display);
   font-size: var(--t-title);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--c-ink);
   letter-spacing: -0.01em;
 }
@@ -89,6 +90,7 @@
 
 .recent {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 
@@ -116,7 +118,6 @@
   margin-top: 2px;
   font-size: var(--t-small);
   color: var(--c-ink-3);
-  font-style: italic;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

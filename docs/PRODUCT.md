@@ -117,25 +117,37 @@ never named before its reveal.
 
 `src/styles/tokens.css` — everything else consumes tokens.
 
-**Colour.** Warm cream surfaces (`#FCFAF7`), deep charcoal ink (`#221E1B`), one
-restrained clay-rose accent (`#B4573F`). No pink, no hearts as decoration, no
-cursive. Each ritual tier owns a hue so the rhythm is legible at a glance:
-clay for 7 days, sage `#5C7A63` for 7 weeks, dusk blue `#47597C` for 7 months.
-A full dark palette redefines the same tokens.
+**Colour.** Soft blush surfaces (`#FFFCFC` page, white cards), warm plum-charcoal
+ink (`#2C2430`), and one rose accent (`#E4598A`). The signature is the pink →
+peach gradient (`#EE5D91 → #F79C7B`) carried by every primary action — it is the
+one loud thing in the interface, so nothing else competes with it. Each ritual
+tier owns a hue from a warm, soft triad so the rhythm stays legible at a glance:
+rose for 7 days, coral `#D2705A` for 7 weeks, mauve `#9A72C0` for 7 months.
+Light only — there is no dark theme.
 
-**Type.** Fraunces (display, editorial warmth) over Inter (UI), with real
-fallback stacks. Display sizes for anything emotional; UI sizes for anything
-functional.
+Every brand tone exists twice: `--c-day` and friends paint dots, rings and
+fills, while `--c-day-ink` carries the small uppercase labels. The soft tones
+sit around 3.5:1 on white, which is fine for a 3px ring and not fine for 11px
+type, so text always takes the `-ink` variant, all of which clear 4.5:1.
 
-**Space & shape.** A 4px scale, radii 8→34, three soft warm shadows. Generous
-padding — the app should feel unhurried.
+**Type.** San Francisco on Apple platforms (`-apple-system` → SF Pro Display /
+SF Pro Text), Inter everywhere else, with real fallback stacks. No serif and no
+italics in the display type — sans carries emphasis through weight (700 for
+display, 600 for titles) and tighter tracking instead.
+
+**Space & shape.** A 4px scale, radii 10→36, and three diffuse pink-tinted
+shadows plus a coloured glow under the gradient CTA. Generous padding — the app
+should feel unhurried.
+
+Inputs use a notched floating label sitting in a gap in the field's own border,
+which is the detail that most defines the reference screens.
 
 **Motion.** `cubic-bezier(.32,.72,0,1)`, 160/260/420ms. Entrance rises with
 per-item stagger. Everything collapses under `prefers-reduced-motion`.
 
 **Primitives** (`src/components/ui/`): Button, Card, Chip, Avatar, Photo,
 Pill, Field, Segmented, Sheet, ProgressRing, Toast, EmptyState, SectionHeader,
-FloatingAction.
+FloatingAction, HeartToggle.
 **Layout** (`src/components/layout/`): AppShell (phone frame on desktop), TabBar,
 Screen / ScreenHeader / BackBar / Section.
 **Feature components** (`src/features/`): RitualCard, DailyCard, MemoryCard,
@@ -152,7 +164,7 @@ in with each other", not "🔥 25 day streak".
 date idea generator with six filters and Surprise Me · mini adventure generator ·
 big adventure wishlist with secret matching · trip planning space · memory
 timeline, detail, and capture · Relationship Room (12 topics) · notes with
-send-later and private reflections · relationship profile · settings, theme,
+send-later and private reflections · relationship profile · settings and
 notification preference.
 
 **Deliberately out:** real accounts and sync, push delivery, photo upload

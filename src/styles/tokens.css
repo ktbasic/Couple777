@@ -1,58 +1,73 @@
 /* =========================================================
    Couple777 — Design tokens
-   Warm, calm, intimate, premium. Not Valentine's Day.
+   Soft pinks, warm neutrals, SF Pro / Inter. Light only.
    ========================================================= */
 
 :root {
   color-scheme: light;
 
-  /* ---- Surfaces: warm cream, not white ---- */
-  --c-page:        #FCFAF7;
-  --c-page-deep:   #F5EFE7;
+  /* ---- Surfaces: warm blush neutrals, never cold grey ---- */
+  --c-page:        #FFFCFC;
+  --c-page-deep:   #FBF0F1;
   --c-surface:     #FFFFFF;
-  --c-surface-2:   #F7F2EB;
-  --c-surface-3:   #EFE7DC;
-  --c-hairline:    #E7DED2;
-  --c-hairline-soft: #EFE8DE;
+  --c-surface-2:   #FDF5F6;
+  --c-surface-3:   #F9EBEE;
+  --c-hairline:    #F2E3E7;
+  --c-hairline-soft: #F7EEF0;
 
-  /* ---- Ink ---- */
-  --c-ink:         #221E1B;
-  --c-ink-2:       #4A423B;
-  --c-ink-3:       #7B6F65;
-  --c-ink-4:       #A2958A;
-  --c-ink-on-dark: #FCFAF7;
+  /* ---- Ink: warm charcoal with a plum cast ---- */
+  --c-ink:         #2C2430;
+  --c-ink-2:       #574B58;
+  --c-ink-3:       #7A6B7A;
+  --c-ink-4:       #9E8E9D;
+  --c-on-accent:   #FFFFFF;
 
-  /* ---- Accent: restrained clay-rose ---- */
-  --c-accent:      #B4573F;
-  --c-accent-soft: #C97A62;
-  --c-accent-wash: #F8E9E2;
-  --c-accent-edge: #EBD2C7;
+  /* ---- Accent: soft rose, and the pink → peach gradient ---- */
+  /* `accent` is the brand tone for fills and dots; `accent-ink` is the
+     text-safe version, used wherever the colour carries small type. */
+  --c-accent:      #E4598A;
+  --c-accent-ink:  #C93A6F;
+  --c-accent-deep: #D14577;
+  --c-accent-soft: #F3A0A9;
+  --c-accent-wash: #FDEDF2;
+  --c-accent-edge: #F8DAE3;
 
-  /* ---- Ritual tiers ---- */
-  --c-day:         #B4573F;   /* 7 days   — date */
-  --c-day-wash:    #F8E9E2;
-  --c-day-edge:    #EBD2C7;
+  /* The signature CTA. Used for every primary action. */
+  --g-accent:       linear-gradient(103deg, #EE5D91 0%, #F79C7B 100%);
+  --g-accent-hover: linear-gradient(103deg, #F16C9B 0%, #FCA98A 100%);
+  --g-page:         linear-gradient(168deg, #FDEEF0 0%, #FBF3EE 100%);
 
-  --c-week:        #5C7A63;   /* 7 weeks  — mini adventure */
-  --c-week-wash:   #E7EFE7;
-  --c-week-edge:   #D2E0D3;
+  /* ---- Ritual tiers: a warm, soft triad ----
+     Each has a soft tone for dots, rings and fills, and a darker `-ink`
+     for the small uppercase labels, which need 4.5:1 to stay readable. */
+  --c-day:         #DD4E80;   /* 7 days   — rose */
+  --c-day-ink:     #C43569;
+  --c-day-wash:    #FDECF2;
+  --c-day-edge:    #F8D8E3;
 
-  --c-month:       #47597C;   /* 7 months — big adventure */
-  --c-month-wash:  #E5EAF2;
-  --c-month-edge:  #D0D9E7;
+  --c-week:        #D2705A;   /* 7 weeks  — warm coral */
+  --c-week-ink:    #AD5540;
+  --c-week-wash:   #FCF0EC;
+  --c-week-edge:   #F4DCD4;
+
+  --c-month:       #9A72C0;   /* 7 months — soft mauve */
+  --c-month-ink:   #7E54A4;
+  --c-month-wash:  #F5EFFA;
+  --c-month-edge:  #E6DAF1;
 
   /* ---- Signals ---- */
-  --c-gold:        #A98431;
-  --c-gold-wash:   #F5EDDA;
-  --c-positive:    #4F7A5E;
+  --c-gold:        #C1913F;
+  --c-gold-ink:    #8F6524;
+  --c-gold-wash:   #FBF2E1;
+  --c-positive:    #478061;
 
-  /* ---- Radius ---- */
-  --r-xs: 8px;
-  --r-sm: 12px;
-  --r-md: 16px;
-  --r-lg: 22px;
-  --r-xl: 28px;
-  --r-2xl: 34px;
+  /* ---- Radius: rounder than default, per the references ---- */
+  --r-xs: 10px;
+  --r-sm: 14px;
+  --r-md: 18px;
+  --r-lg: 24px;
+  --r-xl: 30px;
+  --r-2xl: 36px;
   --r-full: 999px;
 
   /* ---- Spacing ---- */
@@ -67,22 +82,25 @@
   --s-9: 56px;
   --s-10: 72px;
 
-  /* ---- Type ---- */
-  --f-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-  --f-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  /* ---- Type: San Francisco on Apple, Inter everywhere else ---- */
+  --f-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --f-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+    'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
 
-  --t-display-xl: 2.125rem;  /* 34 */
-  --t-display-l:  1.75rem;   /* 28 */
-  --t-display-m:  1.375rem;  /* 22 */
+  --t-display-xl: 2rem;      /* 32 */
+  --t-display-l:  1.625rem;  /* 26 */
+  --t-display-m:  1.3125rem; /* 21 */
   --t-title:      1.0625rem; /* 17 */
   --t-body:       0.9375rem; /* 15 */
   --t-small:      0.8125rem; /* 13 */
   --t-micro:      0.6875rem; /* 11 */
 
-  /* ---- Elevation: soft, warm, never harsh ---- */
-  --e-1: 0 1px 2px rgba(45, 33, 24, 0.04), 0 2px 8px rgba(45, 33, 24, 0.04);
-  --e-2: 0 2px 4px rgba(45, 33, 24, 0.05), 0 8px 20px rgba(45, 33, 24, 0.06);
-  --e-3: 0 4px 10px rgba(45, 33, 24, 0.07), 0 18px 44px rgba(45, 33, 24, 0.10);
+  /* ---- Elevation: diffuse and pink-tinted, never grey ---- */
+  --e-1: 0 1px 2px rgba(180, 110, 130, 0.05), 0 2px 8px rgba(180, 110, 130, 0.05);
+  --e-2: 0 2px 4px rgba(180, 110, 130, 0.06), 0 8px 22px rgba(180, 110, 130, 0.08);
+  --e-3: 0 4px 10px rgba(168, 92, 118, 0.10), 0 18px 44px rgba(168, 92, 118, 0.14);
+  --e-accent: 0 6px 18px rgba(232, 94, 142, 0.30);
   --e-inset: inset 0 0 0 1px var(--c-hairline);
 
   /* ---- Motion ---- */
@@ -97,46 +115,4 @@
   --tabbar-h: 62px;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
-}
-
-[data-theme='dark'] {
-  color-scheme: dark;
-
-  --c-page:        #151311;
-  --c-page-deep:   #100E0D;
-  --c-surface:     #201C19;
-  --c-surface-2:   #262119;
-  --c-surface-3:   #2E2823;
-  --c-hairline:    #342D27;
-  --c-hairline-soft: #2B251F;
-
-  --c-ink:         #F6F1EA;
-  --c-ink-2:       #D6CCC1;
-  --c-ink-3:       #A2958A;
-  --c-ink-4:       #7B6F65;
-
-  --c-accent:      #E08468;
-  --c-accent-soft: #C97A62;
-  --c-accent-wash: #33221C;
-  --c-accent-edge: #4A3229;
-
-  --c-day:         #E08468;
-  --c-day-wash:    #33221C;
-  --c-day-edge:    #4A3229;
-
-  --c-week:        #8FB396;
-  --c-week-wash:   #1E2820;
-  --c-week-edge:   #2C3A2E;
-
-  --c-month:       #8AA2C9;
-  --c-month-wash:  #1C2230;
-  --c-month-edge:  #2A3242;
-
-  --c-gold:        #D9B45F;
-  --c-gold-wash:   #2B2416;
-  --c-positive:    #7FAE8C;
-
-  --e-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
-  --e-2: 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.28);
-  --e-3: 0 4px 10px rgba(0, 0, 0, 0.35), 0 18px 44px rgba(0, 0, 0, 0.4);
 }

@@ -8,16 +8,16 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
-.eyebrow[data-tier='day'] { color: var(--c-day); }
-.eyebrow[data-tier='week'] { color: var(--c-week); }
-.eyebrow[data-tier='month'] { color: var(--c-month); }
+.eyebrow[data-tier='day'] { color: var(--c-day-ink); }
+.eyebrow[data-tier='week'] { color: var(--c-week-ink); }
+.eyebrow[data-tier='month'] { color: var(--c-month-ink); }
 
 .title {
   margin-top: var(--s-2);
   font-family: var(--f-display);
   font-size: var(--t-display-l);
-  font-weight: 500;
-  letter-spacing: -0.022em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1.15;
   color: var(--c-ink);
   text-wrap: balance;
@@ -47,11 +47,13 @@
 
 .form {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-5);
   margin-top: var(--s-6);
 }
 
 .emojiRow {
+  min-width: 0;
   display: flex;
   gap: var(--s-2);
   overflow-x: auto;
@@ -150,6 +152,7 @@
 .actions {
   margin-top: var(--s-8);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 
@@ -161,5 +164,5 @@
   padding: var(--s-3);
 }
 .delete:hover {
-  color: var(--c-accent);
+  color: var(--c-accent-ink);
 }

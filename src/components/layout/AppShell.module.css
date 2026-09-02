@@ -2,7 +2,7 @@
   min-height: 100dvh;
   display: flex;
   justify-content: center;
-  background: var(--c-page-deep);
+  background: var(--g-page);
 }
 
 .app {

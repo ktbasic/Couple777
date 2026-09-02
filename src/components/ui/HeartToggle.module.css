@@ -1,0 +1,26 @@
+.button {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--s-3);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--e-1);
+  color: var(--c-accent-ink);
+  transition:
+    transform var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease);
+  z-index: 2;
+}
+
+.button:active {
+  transform: scale(0.88);
+}
+
+.on {
+  color: var(--c-accent);
+}

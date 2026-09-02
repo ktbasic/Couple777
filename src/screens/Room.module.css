@@ -8,13 +8,14 @@
 .introTitle {
   font-family: var(--f-display);
   font-size: var(--t-title);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--c-ink);
   margin-bottom: var(--s-3);
 }
 
 .steps {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-2);
 }
 
@@ -42,6 +43,7 @@
 
 .grid {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 
@@ -85,7 +87,7 @@
 .topicTitle {
   font-family: var(--f-display);
   font-size: var(--t-title);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--c-ink);
 }
@@ -121,5 +123,5 @@
 
 .tag[data-depth='deep'] {
   background: var(--c-accent-wash);
-  color: var(--c-accent);
+  color: var(--c-accent-ink);
 }

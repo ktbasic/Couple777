@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BackBar, Screen, ScreenHeader } from '@/components/layout/Screen';
-import { Segmented } from '@/components/ui/Segmented';
 import { Avatar } from '@/components/ui/Avatar';
 import { Input } from '@/components/ui/Field';
 import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { useStore } from '@/context/store';
-import type { AppState } from '@/lib/types';
 import s from './Settings.module.css';
 
 export default function SettingsScreen() {
@@ -78,19 +76,6 @@ export default function SettingsScreen() {
               />
             </button>
           </div>
-        </section>
-
-        <section className={s.group}>
-          <p className={s.groupLabel}>Appearance</p>
-          <Segmented<AppState['theme']>
-            value={state.theme}
-            onChange={(theme) => dispatch({ type: 'setTheme', theme })}
-            options={[
-              { value: 'system', label: 'System' },
-              { value: 'light', label: 'Light' },
-              { value: 'dark', label: 'Dark' },
-            ]}
-          />
         </section>
 
         <section className={s.group}>

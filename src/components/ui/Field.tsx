@@ -20,12 +20,14 @@ function Wrapper({
 }) {
   return (
     <div className={s.field}>
-      {label ? (
-        <label className={s.label} htmlFor={htmlFor}>
-          {label}
-        </label>
-      ) : null}
-      {children}
+      <div className={s.shell}>
+        {label ? (
+          <label className={s.label} htmlFor={htmlFor}>
+            {label}
+          </label>
+        ) : null}
+        {children}
+      </div>
       {hint ? <p className={s.hint}>{hint}</p> : null}
     </div>
   );

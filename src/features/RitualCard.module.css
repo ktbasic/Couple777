@@ -1,16 +1,21 @@
-/* Tier colour is resolved once, then everything below uses --tint. */
+/* Tier colour is resolved once, then everything below uses these.
+   --tint paints dots, rings and fills; --tint-ink carries the small
+   uppercase type, which needs the darker tone to stay readable. */
 .card[data-tier='day'] {
   --tint: var(--c-day);
+  --tint-ink: var(--c-day-ink);
   --wash: var(--c-day-wash);
   --edge: var(--c-day-edge);
 }
 .card[data-tier='week'] {
   --tint: var(--c-week);
+  --tint-ink: var(--c-week-ink);
   --wash: var(--c-week-wash);
   --edge: var(--c-week-edge);
 }
 .card[data-tier='month'] {
   --tint: var(--c-month);
+  --tint-ink: var(--c-month-ink);
   --wash: var(--c-month-wash);
   --edge: var(--c-month-edge);
 }
@@ -58,7 +63,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--tint);
+  color: var(--tint-ink);
 }
 
 .compactTitle {
@@ -118,7 +123,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--tint);
+  color: var(--tint-ink);
 }
 
 .ring {
@@ -128,7 +133,7 @@
 .ringNum {
   font-size: 12px;
   font-weight: 700;
-  color: var(--tint);
+  color: var(--tint-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -136,7 +141,7 @@
   margin-top: var(--s-4);
   font-family: var(--f-display);
   font-size: 2.5rem;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
   color: var(--c-ink);
@@ -208,7 +213,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--tint);
+  color: var(--tint-ink);
   margin-left: auto;
   flex: none;
 }

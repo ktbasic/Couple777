@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Photo } from '@/components/ui/Photo';
 import { Button } from '@/components/ui/Button';
+import { HeartToggle } from '@/components/ui/HeartToggle';
 import { useStore } from '@/context/store';
 import { useToast } from '@/components/ui/Toast';
 import type { Destination } from '@/lib/types';
@@ -23,20 +24,16 @@ export function DestinationCard({ destination }: { destination: Destination }) {
 
       {isMatch ? <span className={s.match}>✦ Match</span> : null}
 
-      <button
-        type="button"
-        className={s.save}
-        aria-pressed={savedByMe}
-        aria-label={savedByMe ? 'Remove from your list' : 'Add to your list, privately'}
-        onClick={() => {
+      <HeartToggle
+        saved={savedByMe}
+        label={savedByMe ? 'Remove from your list' : 'Add to your list, privately'}
+        onToggle={() => {
           dispatch({ type: 'toggleDestination', id: destination.id, personId: me.id });
           if (!savedByMe) {
             toast.show({ emoji: '🤫', message: `${destination.name} added, privately` });
           }
         }}
-      >
-        {savedByMe ? '❤️' : '🤍'}
-      </button>
+      />
 
       <div className={s.body}>
         <h3 className={s.name}>{destination.name}</h3>

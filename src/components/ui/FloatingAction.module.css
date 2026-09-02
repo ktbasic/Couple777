@@ -25,9 +25,9 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--c-ink);
-  color: var(--c-page);
-  box-shadow: var(--e-3);
+  background: var(--g-accent);
+  color: var(--c-on-accent);
+  box-shadow: var(--e-accent);
   transition: transform var(--d-fast) var(--ease);
 }
 

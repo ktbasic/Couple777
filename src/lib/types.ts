@@ -251,7 +251,6 @@ export interface RoomSession {
 
 export interface AppState {
   onboarded: boolean;
-  theme: 'system' | 'light' | 'dark';
   couple: Couple;
   plans: Plan[];
   memories: Memory[];

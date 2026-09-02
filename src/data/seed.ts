@@ -237,7 +237,6 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Sam'): AppState {
 
   return {
     onboarded: false,
-    theme: 'system',
     couple: {
       id: 'c-1',
       people: [

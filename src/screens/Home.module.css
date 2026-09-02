@@ -30,8 +30,8 @@
 .heroTitle {
   font-family: var(--f-display);
   font-size: var(--t-display-l);
-  font-weight: 500;
-  letter-spacing: -0.022em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--c-ink);
   margin-bottom: var(--s-1);
 }
@@ -45,6 +45,7 @@
 
 .rituals {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 
@@ -67,20 +68,21 @@
   text-align: center;
 }
 
+/* A short rule reads better than a giant sans quote glyph. */
 .inspireMark {
-  font-family: var(--f-display);
-  font-size: 2rem;
-  line-height: 0.6;
-  color: var(--c-accent-edge);
   display: block;
-  margin-bottom: var(--s-3);
+  width: 28px;
+  height: 3px;
+  border-radius: var(--r-full);
+  background: var(--g-accent);
+  margin: 0 auto var(--s-5);
+  font-size: 0;
 }
 
 .inspireText {
   font-family: var(--f-display);
   font-size: var(--t-title);
-  font-weight: 400;
-  font-style: italic;
+  font-weight: 600;
   line-height: 1.5;
   color: var(--c-ink-2);
   max-width: 32ch;
@@ -132,6 +134,7 @@
 /* ---------- Recently ---------- */
 
 .recent {
+  min-width: 0;
   display: flex;
   gap: var(--s-3);
   overflow-x: auto;
@@ -170,6 +173,6 @@
 .waitingLink {
   font-size: var(--t-small);
   font-weight: 700;
-  color: var(--c-accent);
+  color: var(--c-accent-ink);
   flex: none;
 }

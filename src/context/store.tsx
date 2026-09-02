@@ -28,7 +28,6 @@ type Action =
   | { type: 'hydrate'; state: AppState }
   | { type: 'completeOnboarding'; nameA: string; nameB: string; since: string; city: string }
   | { type: 'switchPerson'; id: ID }
-  | { type: 'setTheme'; theme: AppState['theme'] }
   | { type: 'setNotifications'; enabled: boolean }
   | { type: 'upsertPlan'; plan: Plan }
   | { type: 'removePlan'; id: ID }
@@ -72,9 +71,6 @@ function reducer(state: AppState, action: Action): AppState {
 
     case 'switchPerson':
       return { ...state, couple: { ...state.couple, currentPersonId: action.id } };
-
-    case 'setTheme':
-      return { ...state, theme: action.theme };
 
     case 'setNotifications':
       return { ...state, notificationsEnabled: action.enabled };
@@ -243,23 +239,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       /* Private mode, quota — the prototype still works in memory. */
     }
   }, [state]);
-
-  // Theme is applied at the document level so tokens cascade everywhere.
-  useEffect(() => {
-    const root = document.documentElement;
-    const apply = () => {
-      const dark =
-        state.theme === 'dark' ||
-        (state.theme === 'system' &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches);
-      root.dataset.theme = dark ? 'dark' : 'light';
-    };
-    apply();
-    if (state.theme !== 'system') return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, [state.theme]);
 
   const reset = useCallback(() => {
     try {

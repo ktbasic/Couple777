@@ -10,6 +10,7 @@
 
 .filters {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-4);
   margin-bottom: var(--s-6);
 }
@@ -39,6 +40,7 @@
 
 .results {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-5);
 }
 
@@ -58,7 +60,7 @@
 .regen {
   font-size: var(--t-small);
   font-weight: 600;
-  color: var(--c-accent);
+  color: var(--c-accent-ink);
 }
 
 .grid {

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Photo } from '@/components/ui/Photo';
+import { HeartToggle } from '@/components/ui/HeartToggle';
 import { useStore } from '@/context/store';
 import { useToast } from '@/components/ui/Toast';
 import type { DateIdea } from '@/lib/types';
@@ -26,21 +27,16 @@ export function IdeaCard({ idea, index = 0 }: { idea: DateIdea; index?: number }
     <article className={s.card} style={{ animationDelay: `${index * 70}ms` }}>
       <div className={s.hero}>
         <Photo src={idea.image} seed={idea.id} ratio="16 / 9" className={s.img} alt="" />
-        <button
-          type="button"
-          className={s.save}
-          aria-pressed={saved}
-          aria-label={saved ? 'Saved' : 'Save this idea'}
-          onClick={() => {
+        <HeartToggle
+          saved={saved}
+          label={saved ? 'Saved' : 'Save this idea'}
+          onToggle={() => {
             dispatch({ type: 'toggleSavedIdea', id: idea.id });
             toast.show({
-              emoji: saved ? '' : '❤️',
               message: saved ? 'Removed from saved' : 'Saved to your ideas',
             });
           }}
-        >
-          {saved ? '❤️' : '🤍'}
-        </button>
+        />
       </div>
 
       <div className={s.body}>

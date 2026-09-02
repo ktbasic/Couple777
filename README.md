@@ -70,6 +70,10 @@ layer. State is a reducer in context, persisted to `localStorage` — no backend
 by design. Sample data is generated relative to today, so the prototype never
 goes stale.
 
+Type is San Francisco on Apple platforms and Inter everywhere else. The palette
+is soft blush and warm neutrals with a single rose accent, and every primary
+action carries the pink → peach gradient. Light only, by design.
+
 ```
 src/
   components/ui/       design-system primitives

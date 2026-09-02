@@ -1,5 +1,6 @@
 .kinds {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-2);
   margin-bottom: var(--s-6);
 }

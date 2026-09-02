@@ -14,8 +14,8 @@
   white-space: nowrap;
 }
 
-.day { background: var(--c-day-wash); color: var(--c-day); }
-.week { background: var(--c-week-wash); color: var(--c-week); }
-.month { background: var(--c-month-wash); color: var(--c-month); }
-.gold { background: var(--c-gold-wash); color: var(--c-gold); }
+.day { background: var(--c-day-wash); color: var(--c-day-ink); }
+.week { background: var(--c-week-wash); color: var(--c-week-ink); }
+.month { background: var(--c-month-wash); color: var(--c-month-ink); }
+.gold { background: var(--c-gold-wash); color: var(--c-gold-ink); }
 .solid { background: var(--c-ink); color: var(--c-page); }
