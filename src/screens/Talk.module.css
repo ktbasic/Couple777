@@ -1,0 +1,123 @@
+.rows {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
+  box-shadow: var(--e-1);
+  transition:
+    transform var(--d-fast) var(--ease),
+    box-shadow var(--d-base) var(--ease);
+}
+.row:active {
+  transform: scale(0.985);
+}
+.row:hover {
+  box-shadow: var(--e-2);
+}
+
+.rowEmoji {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  background: var(--c-surface-2);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowTitle {
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 500;
+  color: var(--c-ink);
+  letter-spacing: -0.01em;
+}
+
+.rowBody {
+  margin-top: 2px;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.rowMeta {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--c-ink-4);
+}
+
+.badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--r-full);
+  background: var(--c-accent);
+  color: #fff;
+  font-size: var(--t-micro);
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.disclaimer {
+  margin-top: var(--s-7);
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--c-ink-3);
+  text-wrap: pretty;
+}
+
+.recent {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+}
+
+.sessionMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.sessionTitle {
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.sessionCommit {
+  margin-top: 2px;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

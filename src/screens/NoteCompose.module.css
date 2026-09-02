@@ -1,0 +1,96 @@
+.kinds {
+  display: grid;
+  gap: var(--s-2);
+  margin-bottom: var(--s-6);
+}
+
+.kind {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  text-align: left;
+  transition:
+    border-color var(--d-fast) var(--ease),
+    background-color var(--d-fast) var(--ease);
+}
+
+.kindOn {
+  border-color: var(--c-ink);
+  background: var(--c-surface-2);
+  box-shadow: inset 0 0 0 1px var(--c-ink);
+}
+
+.kindEmoji {
+  flex: none;
+  font-size: 18px;
+}
+
+.kindMain {
+  min-width: 0;
+}
+
+.kindLabel {
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.kindBlurb {
+  margin-top: 1px;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  line-height: 1.45;
+}
+
+.area {
+  width: 100%;
+  min-height: 176px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--c-ink);
+  resize: vertical;
+  font-family: var(--f-ui);
+}
+.area:focus {
+  outline: none;
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 3px var(--c-accent-wash);
+}
+
+.label {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+  margin-bottom: var(--s-2);
+}
+
+.section {
+  margin-top: var(--s-6);
+}
+
+.when {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.actions {
+  margin-top: var(--s-8);
+}
+
+.privacyNote {
+  margin-top: var(--s-4);
+  display: flex;
+  gap: var(--s-2);
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+  line-height: 1.5;
+}

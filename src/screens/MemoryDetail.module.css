@@ -1,0 +1,151 @@
+.gallery {
+  margin: 0 calc(-1 * var(--s-5));
+  display: flex;
+  gap: 3px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+.slide {
+  flex: none;
+  width: 88%;
+  scroll-snap-align: center;
+}
+
+.single {
+  width: 100%;
+}
+
+.head {
+  padding: var(--s-6) 0 0;
+}
+
+.date {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+}
+
+.title {
+  margin-top: var(--s-3);
+  font-family: var(--f-display);
+  font-size: var(--t-display-l);
+  font-weight: 500;
+  letter-spacing: -0.024em;
+  line-height: 1.15;
+  color: var(--c-ink);
+  text-wrap: balance;
+}
+
+.meta {
+  margin-top: var(--s-3);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.shared {
+  margin-top: var(--s-6);
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--c-ink-2);
+  text-align: center;
+  text-wrap: pretty;
+}
+
+.notes {
+  margin-top: var(--s-7);
+  display: grid;
+  gap: var(--s-3);
+}
+
+.note {
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
+}
+
+.noteHead {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+}
+
+.noteName {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+}
+
+.noteBody {
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--c-ink);
+  text-wrap: pretty;
+}
+
+.noteEmpty {
+  color: var(--c-ink-4);
+  font-style: italic;
+}
+
+.privateNote {
+  border-style: dashed;
+  background: var(--c-surface-2);
+}
+
+.privateLabel {
+  margin-left: auto;
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+}
+
+.editArea {
+  width: 100%;
+  min-height: 92px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--c-ink);
+  resize: vertical;
+  font-family: var(--f-ui);
+}
+.editArea:focus {
+  outline: none;
+}
+.editArea::placeholder {
+  color: var(--c-ink-4);
+  font-style: italic;
+}
+
+.actions {
+  margin-top: var(--s-8);
+  display: grid;
+  gap: var(--s-3);
+}
+
+.delete {
+  text-align: center;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-4);
+  padding: var(--s-3);
+}
+.delete:hover {
+  color: var(--c-accent);
+}

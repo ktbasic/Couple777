@@ -1,0 +1,21 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--r-full);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--c-surface-2);
+  color: var(--c-ink-3);
+  white-space: nowrap;
+}
+
+.day { background: var(--c-day-wash); color: var(--c-day); }
+.week { background: var(--c-week-wash); color: var(--c-week); }
+.month { background: var(--c-month-wash); color: var(--c-month); }
+.gold { background: var(--c-gold-wash); color: var(--c-gold); }
+.solid { background: var(--c-ink); color: var(--c-page); }

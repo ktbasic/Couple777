@@ -1,0 +1,319 @@
+import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Screen, ScreenHeader, Section } from '@/components/layout/Screen';
+import { Segmented } from '@/components/ui/Segmented';
+import { Chip, ChipRow } from '@/components/ui/Chip';
+import { Button } from '@/components/ui/Button';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { IdeaCard } from '@/features/IdeaCard';
+import { AdventureCard } from '@/features/AdventureCard';
+import { DestinationCard, MatchReveal } from '@/features/DestinationCard';
+import { DATE_IDEAS } from '@/data/dateIdeas';
+import {
+  BUDGET_OPTIONS,
+  DISTANCE_OPTIONS,
+  DURATION_OPTIONS,
+  EMPTY_FILTERS,
+  ENERGY_OPTIONS,
+  MOOD_OPTIONS,
+  SETTING_OPTIONS,
+  VIBE_OPTIONS,
+  WEATHER_OPTIONS,
+  generateAdventures,
+  generateDateIdeas,
+} from '@/lib/generator';
+import { useStore } from '@/context/store';
+import { matches, newMatch } from '@/lib/selectors';
+import type { AdventureMood, Distance, IdeaFilters } from '@/lib/types';
+import s from './Explore.module.css';
+
+type Tab = 'day' | 'week' | 'month';
+
+export default function ExploreScreen() {
+  const [params, setParams] = useSearchParams();
+  const tierParam = params.get('tier');
+  const tab: Tab = tierParam === 'week' || tierParam === 'month' ? tierParam : 'day';
+
+  const setTab = (t: Tab) => {
+    params.set('tier', t);
+    setParams(params, { replace: true });
+  };
+
+  return (
+    <Screen>
+      <ScreenHeader
+        eyebrow="Explore"
+        title="What should we do?"
+        sub="Answer as much or as little as you like. The more you say, the better the suggestions."
+      />
+
+      <div className={s.tabs}>
+        <Segmented<Tab>
+          value={tab}
+          onChange={setTab}
+          options={[
+            { value: 'day', label: 'Dates' },
+            { value: 'week', label: 'Nearby' },
+            { value: 'month', label: 'Big trips' },
+          ]}
+        />
+      </div>
+
+      {tab === 'day' ? <DateIdeasTab /> : null}
+      {tab === 'week' ? <MiniAdventuresTab /> : null}
+      {tab === 'month' ? <BigAdventuresTab /> : null}
+    </Screen>
+  );
+}
+
+/* ------------------------------ 7 days ---------------------------------- */
+
+function DateIdeasTab() {
+  const { state } = useStore();
+  const [filters, setFilters] = useState<IdeaFilters>(EMPTY_FILTERS);
+  const [seed, setSeed] = useState(1);
+
+  const ideas = useMemo(() => generateDateIdeas(filters, seed), [filters, seed]);
+  const saved = DATE_IDEAS.filter((i) => state.savedIdeaIds.includes(i.id));
+
+  // Selecting the value that is already set clears it, so filters stay escapable.
+  const set = <K extends keyof IdeaFilters>(key: K, value: IdeaFilters[K]) =>
+    setFilters((f) => ({ ...f, [key]: f[key] === value ? null : value }));
+
+  return (
+    <>
+      <div className={s.filters}>
+        <div className={s.filterGroup}>
+          <p className={s.filterLabel}>How long have you got?</p>
+          <ChipRow>
+            {DURATION_OPTIONS.map((o) => (
+              <Chip key={o.value} selected={filters.duration === o.value} onClick={() => set('duration', o.value)}>
+                {o.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        </div>
+
+        <div className={s.filterGroup}>
+          <p className={s.filterLabel}>Budget</p>
+          <ChipRow>
+            {BUDGET_OPTIONS.map((o) => (
+              <Chip key={o.value} selected={filters.budget === o.value} onClick={() => set('budget', o.value)}>
+                {o.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        </div>
+
+        <div className={s.filterGroup}>
+          <p className={s.filterLabel}>What kind of evening?</p>
+          <ChipRow>
+            {VIBE_OPTIONS.map((o) => (
+              <Chip key={o.value} emoji={o.emoji} selected={filters.vibe === o.value} onClick={() => set('vibe', o.value)}>
+                {o.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        </div>
+
+        <div className={s.filterGroup}>
+          <p className={s.filterLabel}>Where, and how much energy?</p>
+          <ChipRow>
+            {SETTING_OPTIONS.map((o) => (
+              <Chip key={o.value} emoji={o.emoji} selected={filters.setting === o.value} onClick={() => set('setting', o.value)}>
+                {o.label}
+              </Chip>
+            ))}
+            {ENERGY_OPTIONS.map((o) => (
+              <Chip key={o.value} emoji={o.emoji} selected={filters.energy === o.value} onClick={() => set('energy', o.value)}>
+                {o.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        </div>
+
+        <div className={s.filterGroup}>
+          <p className={s.filterLabel}>What is it doing outside?</p>
+          <ChipRow>
+            {WEATHER_OPTIONS.map((o) => (
+              <Chip key={o.value} emoji={o.emoji} selected={filters.weather === o.value} onClick={() => set('weather', o.value)}>
+                {o.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        </div>
+      </div>
+
+      <div className={s.surprise}>
+        <Button variant="accent" onClick={() => { setFilters(EMPTY_FILTERS); setSeed((n) => n + 7); }}>
+          Surprise me
+        </Button>
+        <Button variant="quiet" onClick={() => setFilters(EMPTY_FILTERS)}>
+          Clear
+        </Button>
+      </div>
+
+      <div className={s.resultHead}>
+        <p className={s.count}>{ideas.length} ideas for you</p>
+        <button type="button" className={s.regen} onClick={() => setSeed((n) => n + 1)}>
+          Show me others
+        </button>
+      </div>
+
+      <div className={s.results}>
+        {ideas.map((idea, i) => (
+          <IdeaCard key={`${seed}-${idea.id}`} idea={idea} index={i} />
+        ))}
+      </div>
+
+      {saved.length ? (
+        <Section>
+          <SectionHeader title="Saved" sub="Ideas you both liked the look of." />
+          <div className={s.results}>
+            {saved.map((idea, i) => (
+              <IdeaCard key={idea.id} idea={idea} index={i} />
+            ))}
+          </div>
+        </Section>
+      ) : null}
+    </>
+  );
+}
+
+/* ------------------------------ 7 weeks --------------------------------- */
+
+function MiniAdventuresTab() {
+  const { state } = useStore();
+  const [distance, setDistance] = useState<Distance | null>(null);
+  const [mood, setMood] = useState<AdventureMood | null>(null);
+  const [seed, setSeed] = useState(1);
+
+  const ideas = useMemo(() => generateAdventures(distance, mood, seed), [distance, mood, seed]);
+
+  return (
+    <>
+      <div className={s.filters}>
+        <div className={s.filterGroup}>
+          <p className={s.filterLabel}>How far do you want to go?</p>
+          <ChipRow>
+            {DISTANCE_OPTIONS.map((o) => (
+              <Chip
+                key={o.value}
+                emoji={o.emoji}
+                selected={distance === o.value}
+                onClick={() => setDistance((d) => (d === o.value ? null : o.value))}
+              >
+                {o.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        </div>
+
+        <div className={s.filterGroup}>
+          <p className={s.filterLabel}>What mood?</p>
+          <ChipRow>
+            {MOOD_OPTIONS.map((o) => (
+              <Chip
+                key={o.value}
+                emoji={o.emoji}
+                selected={mood === o.value}
+                onClick={() => setMood((m) => (m === o.value ? null : o.value))}
+              >
+                {o.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        </div>
+      </div>
+
+      <div className={s.surprise}>
+        <Button variant="accent" onClick={() => { setDistance(null); setMood(null); setSeed((n) => n + 5); }}>
+          Surprise me
+        </Button>
+        <Button variant="quiet" onClick={() => setSeed((n) => n + 1)}>
+          Show me others
+        </Button>
+      </div>
+
+      <p className={s.secretNote}>
+        <span aria-hidden>📍</span>
+        <span>Suggestions are from around {state.couple.homeCity}. Change that in Us → Settings.</span>
+      </p>
+
+      <div className={s.results}>
+        {ideas.map((idea, i) => (
+          <AdventureCard key={`${seed}-${idea.id}`} idea={idea} index={i} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ------------------------------ 7 months -------------------------------- */
+
+function BigAdventuresTab() {
+  const { state, me, partner } = useStore();
+  const matched = matches(state);
+  // Saving something they already saved is a moment — show it here and now,
+  // not only the next time they open Home.
+  const pending = newMatch(state);
+  const mine = state.destinations.filter((d) => d.savedBy.includes(me.id));
+  const rest = state.destinations.filter((d) => !d.savedBy.includes(me.id));
+
+  return (
+    <>
+      <p className={s.secretNote}>
+        <span aria-hidden>🤫</span>
+        <span>
+          What you save here is private. {partner.name} only finds out if they save the same
+          place — and then you both do, at once.
+        </span>
+      </p>
+
+      {pending ? (
+        <Section>
+          <MatchReveal destination={pending} />
+        </Section>
+      ) : null}
+
+      {matched.length ? (
+        <div className={s.matchStrip}>
+          <span aria-hidden>✦</span>
+          <p className={s.matchText}>
+            <span className={s.matchNames}>
+              {matched.length} {matched.length === 1 ? 'match' : 'matches'}
+            </span>{' '}
+            — {matched.map((m) => m.name).join(', ')}. You both want to go.
+          </p>
+        </div>
+      ) : null}
+
+      {mine.length ? (
+        <Section>
+          <SectionHeader title="On your list" sub="Only you can see this." />
+          <div className={s.grid}>
+            {mine.map((d) => (
+              <DestinationCard key={d.id} destination={d} />
+            ))}
+          </div>
+        </Section>
+      ) : (
+        <EmptyState
+          emoji="🧭"
+          title="Nothing on your list yet"
+          body="Save anywhere that pulls at you. Nobody sees it unless they want it too."
+        />
+      )}
+
+      <Section>
+        <SectionHeader title="Somewhere new" sub="Tap the heart to add it, quietly." />
+        <div className={s.grid}>
+          {rest.map((d) => (
+            <DestinationCard key={d.id} destination={d} />
+          ))}
+        </div>
+      </Section>
+    </>
+  );
+}

@@ -1,0 +1,40 @@
+.frame {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  background: var(--c-page-deep);
+}
+
+.app {
+  position: relative;
+  width: 100%;
+  max-width: var(--app-max);
+  /* A fixed height, not a minimum: the inner <main> owns the scroll so the
+     tab bar stays pinned instead of scrolling away with the content. */
+  height: 100dvh;
+  background: var(--c-page);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 520px) {
+  .frame {
+    padding: var(--s-6) 0;
+    align-items: flex-start;
+  }
+  .app {
+    height: min(920px, calc(100dvh - var(--s-8)));
+    border-radius: var(--r-2xl);
+    box-shadow: var(--e-3);
+    overflow: hidden;
+  }
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}

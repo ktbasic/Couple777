@@ -1,0 +1,66 @@
+.stats {
+  display: flex;
+  gap: var(--s-3);
+  margin-bottom: var(--s-6);
+}
+
+.stat {
+  flex: 1;
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  text-align: center;
+}
+
+.statValue {
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 500;
+  color: var(--c-ink);
+  line-height: 1.1;
+}
+
+.statLabel {
+  margin-top: 3px;
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+}
+
+.filters {
+  margin-bottom: var(--s-6);
+}
+
+.month {
+  margin-bottom: var(--s-7);
+}
+
+.monthLabel {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: inline-block;
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+  background: var(--c-page);
+  padding: var(--s-2) 0 var(--s-4);
+}
+
+.rows {
+  display: grid;
+  gap: var(--s-6);
+}
+
+.row {
+  animation: rise var(--d-slow) var(--ease) both;
+}
+
+/* Clearance for the pinned action button. */
+.tail {
+  height: var(--s-9);
+}

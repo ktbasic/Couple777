@@ -1,0 +1,27 @@
+.wrap {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--c-surface-2);
+  border-radius: var(--r-full);
+}
+
+.item {
+  flex: 1;
+  height: 36px;
+  border-radius: var(--r-full);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-3);
+  transition:
+    background-color var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease);
+  white-space: nowrap;
+  padding: 0 var(--s-3);
+}
+
+.on {
+  background: var(--c-surface);
+  color: var(--c-ink);
+  box-shadow: var(--e-1);
+}

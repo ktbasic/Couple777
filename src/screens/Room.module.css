@@ -1,0 +1,125 @@
+.intro {
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+  margin-bottom: var(--s-6);
+}
+
+.introTitle {
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 500;
+  color: var(--c-ink);
+  margin-bottom: var(--s-3);
+}
+
+.steps {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.step {
+  display: flex;
+  gap: var(--s-3);
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  line-height: 1.5;
+}
+
+.stepNum {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--c-surface);
+  color: var(--c-ink-2);
+  font-size: 10px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  margin-top: 1px;
+}
+
+.grid {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.topic {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
+  box-shadow: var(--e-1);
+  transition:
+    transform var(--d-fast) var(--ease),
+    box-shadow var(--d-base) var(--ease);
+  animation: rise var(--d-slow) var(--ease) both;
+}
+.topic:active {
+  transform: scale(0.985);
+}
+.topic:hover {
+  box-shadow: var(--e-2);
+}
+
+.topicEmoji {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  background: var(--c-surface-2);
+}
+
+.topicMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.topicTitle {
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+
+.topicBlurb {
+  margin-top: 3px;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.topicMeta {
+  margin-top: var(--s-3);
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--r-full);
+  background: var(--c-surface-2);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+}
+
+.tag[data-depth='deep'] {
+  background: var(--c-accent-wash);
+  color: var(--c-accent);
+}

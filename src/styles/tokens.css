@@ -1,0 +1,142 @@
+/* =========================================================
+   Couple777 — Design tokens
+   Warm, calm, intimate, premium. Not Valentine's Day.
+   ========================================================= */
+
+:root {
+  color-scheme: light;
+
+  /* ---- Surfaces: warm cream, not white ---- */
+  --c-page:        #FCFAF7;
+  --c-page-deep:   #F5EFE7;
+  --c-surface:     #FFFFFF;
+  --c-surface-2:   #F7F2EB;
+  --c-surface-3:   #EFE7DC;
+  --c-hairline:    #E7DED2;
+  --c-hairline-soft: #EFE8DE;
+
+  /* ---- Ink ---- */
+  --c-ink:         #221E1B;
+  --c-ink-2:       #4A423B;
+  --c-ink-3:       #7B6F65;
+  --c-ink-4:       #A2958A;
+  --c-ink-on-dark: #FCFAF7;
+
+  /* ---- Accent: restrained clay-rose ---- */
+  --c-accent:      #B4573F;
+  --c-accent-soft: #C97A62;
+  --c-accent-wash: #F8E9E2;
+  --c-accent-edge: #EBD2C7;
+
+  /* ---- Ritual tiers ---- */
+  --c-day:         #B4573F;   /* 7 days   — date */
+  --c-day-wash:    #F8E9E2;
+  --c-day-edge:    #EBD2C7;
+
+  --c-week:        #5C7A63;   /* 7 weeks  — mini adventure */
+  --c-week-wash:   #E7EFE7;
+  --c-week-edge:   #D2E0D3;
+
+  --c-month:       #47597C;   /* 7 months — big adventure */
+  --c-month-wash:  #E5EAF2;
+  --c-month-edge:  #D0D9E7;
+
+  /* ---- Signals ---- */
+  --c-gold:        #A98431;
+  --c-gold-wash:   #F5EDDA;
+  --c-positive:    #4F7A5E;
+
+  /* ---- Radius ---- */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-2xl: 34px;
+  --r-full: 999px;
+
+  /* ---- Spacing ---- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-9: 56px;
+  --s-10: 72px;
+
+  /* ---- Type ---- */
+  --f-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --f-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+
+  --t-display-xl: 2.125rem;  /* 34 */
+  --t-display-l:  1.75rem;   /* 28 */
+  --t-display-m:  1.375rem;  /* 22 */
+  --t-title:      1.0625rem; /* 17 */
+  --t-body:       0.9375rem; /* 15 */
+  --t-small:      0.8125rem; /* 13 */
+  --t-micro:      0.6875rem; /* 11 */
+
+  /* ---- Elevation: soft, warm, never harsh ---- */
+  --e-1: 0 1px 2px rgba(45, 33, 24, 0.04), 0 2px 8px rgba(45, 33, 24, 0.04);
+  --e-2: 0 2px 4px rgba(45, 33, 24, 0.05), 0 8px 20px rgba(45, 33, 24, 0.06);
+  --e-3: 0 4px 10px rgba(45, 33, 24, 0.07), 0 18px 44px rgba(45, 33, 24, 0.10);
+  --e-inset: inset 0 0 0 1px var(--c-hairline);
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --d-fast: 160ms;
+  --d-base: 260ms;
+  --d-slow: 420ms;
+
+  /* ---- Layout ---- */
+  --app-max: 480px;
+  --tabbar-h: 62px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --c-page:        #151311;
+  --c-page-deep:   #100E0D;
+  --c-surface:     #201C19;
+  --c-surface-2:   #262119;
+  --c-surface-3:   #2E2823;
+  --c-hairline:    #342D27;
+  --c-hairline-soft: #2B251F;
+
+  --c-ink:         #F6F1EA;
+  --c-ink-2:       #D6CCC1;
+  --c-ink-3:       #A2958A;
+  --c-ink-4:       #7B6F65;
+
+  --c-accent:      #E08468;
+  --c-accent-soft: #C97A62;
+  --c-accent-wash: #33221C;
+  --c-accent-edge: #4A3229;
+
+  --c-day:         #E08468;
+  --c-day-wash:    #33221C;
+  --c-day-edge:    #4A3229;
+
+  --c-week:        #8FB396;
+  --c-week-wash:   #1E2820;
+  --c-week-edge:   #2C3A2E;
+
+  --c-month:       #8AA2C9;
+  --c-month-wash:  #1C2230;
+  --c-month-edge:  #2A3242;
+
+  --c-gold:        #D9B45F;
+  --c-gold-wash:   #2B2416;
+  --c-positive:    #7FAE8C;
+
+  --e-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --e-2: 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.28);
+  --e-3: 0 4px 10px rgba(0, 0, 0, 0.35), 0 18px 44px rgba(0, 0, 0, 0.4);
+}

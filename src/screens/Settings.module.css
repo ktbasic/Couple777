@@ -1,0 +1,133 @@
+.group {
+  margin-top: var(--s-7);
+}
+
+.groupLabel {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+  margin-bottom: var(--s-3);
+}
+
+.rows {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
+  width: 100%;
+  text-align: left;
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowTitle {
+  font-size: var(--t-body);
+  font-weight: 500;
+  color: var(--c-ink);
+}
+
+.rowBody {
+  margin-top: 2px;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.switch {
+  flex: none;
+  width: 46px;
+  height: 28px;
+  border-radius: var(--r-full);
+  background: var(--c-hairline);
+  position: relative;
+  transition: background-color var(--d-base) var(--ease);
+}
+.switchOn {
+  background: var(--c-accent);
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--e-1);
+  transition: transform var(--d-base) var(--ease);
+}
+.switchOn::after {
+  transform: translateX(18px);
+}
+
+.code {
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--c-ink-2);
+}
+
+.privacy {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+}
+
+.privacyRow {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--c-ink-3);
+}
+
+.privacyIcon {
+  flex: none;
+  font-size: 14px;
+  margin-top: 1px;
+}
+
+.privacyStrong {
+  color: var(--c-ink);
+  font-weight: 600;
+}
+
+.danger {
+  margin-top: var(--s-8);
+  text-align: center;
+}
+
+.dangerBtn {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-4);
+  padding: var(--s-3);
+}
+.dangerBtn:hover {
+  color: var(--c-accent);
+}
+
+.dangerNote {
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+}

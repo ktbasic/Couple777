@@ -1,0 +1,36 @@
+.wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+}
+
+.titles {
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: var(--t-display-m);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--c-ink);
+}
+
+.sub {
+  margin-top: 2px;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+}
+
+.action {
+  flex: none;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-accent);
+}
+.action:hover {
+  text-decoration: underline;
+}

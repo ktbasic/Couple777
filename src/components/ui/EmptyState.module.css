@@ -1,0 +1,32 @@
+.wrap {
+  text-align: center;
+  padding: var(--s-8) var(--s-5);
+  border-radius: var(--r-lg);
+  border: 1px dashed var(--c-hairline);
+  background: var(--c-surface-2);
+}
+
+.emoji {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: var(--s-3);
+}
+
+.title {
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 500;
+  color: var(--c-ink);
+}
+
+.body {
+  margin: var(--s-2) auto 0;
+  max-width: 30ch;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  line-height: 1.5;
+}
+
+.action {
+  margin-top: var(--s-5);
+}

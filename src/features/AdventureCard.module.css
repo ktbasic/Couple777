@@ -1,0 +1,78 @@
+.card {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--c-hairline-soft);
+  background: var(--c-surface);
+  box-shadow: var(--e-1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: rise var(--d-slow) var(--ease) both;
+}
+
+.body {
+  padding: var(--s-5);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.place {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-week);
+}
+
+.title {
+  margin-top: 6px;
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--c-ink);
+  text-wrap: pretty;
+}
+
+.desc {
+  margin-top: var(--s-3);
+  font-size: var(--t-body);
+  line-height: 1.55;
+  color: var(--c-ink-2);
+  text-wrap: pretty;
+}
+
+.why {
+  margin-top: var(--s-3);
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--c-ink-3);
+  font-style: italic;
+  text-wrap: pretty;
+}
+
+.facts {
+  margin-top: var(--s-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-full);
+  background: var(--c-week-wash);
+  color: var(--c-week);
+  font-size: var(--t-small);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.actions {
+  margin-top: var(--s-5);
+}

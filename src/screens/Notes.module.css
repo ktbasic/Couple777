@@ -1,0 +1,16 @@
+.tabs {
+  margin-bottom: var(--s-6);
+}
+
+.list {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.item {
+  animation: rise var(--d-slow) var(--ease) both;
+}
+
+.tail {
+  height: var(--s-9);
+}

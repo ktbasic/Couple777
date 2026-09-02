@@ -1,0 +1,141 @@
+.card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--c-hairline-soft);
+  background: var(--c-surface);
+  box-shadow: var(--e-1);
+  padding: var(--s-5);
+}
+
+.kind {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+}
+
+.quote {
+  margin-top: var(--s-4);
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-style: italic;
+  line-height: 1.45;
+  color: var(--c-ink-2);
+  padding-left: var(--s-4);
+  border-left: 2px solid var(--c-accent-edge);
+}
+
+.attrib {
+  display: block;
+  margin-top: var(--s-2);
+  font-family: var(--f-ui);
+  font-style: normal;
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+}
+
+.prompt {
+  margin-top: var(--s-3);
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 500;
+  line-height: 1.32;
+  letter-spacing: -0.015em;
+  color: var(--c-ink);
+  text-wrap: pretty;
+}
+
+.status {
+  margin-top: var(--s-4);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-ink-4);
+  flex: none;
+}
+.statusDot[data-on='true'] {
+  background: var(--c-positive);
+}
+
+.cta {
+  margin-top: var(--s-5);
+}
+
+/* ---- Answers ---- */
+
+.answers {
+  margin-top: var(--s-5);
+  display: grid;
+  gap: var(--s-3);
+}
+
+.answer {
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  padding: var(--s-4);
+}
+
+.answerHead {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+}
+
+.answerName {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+}
+
+.answerBody {
+  font-size: var(--t-body);
+  line-height: 1.55;
+  color: var(--c-ink);
+  text-wrap: pretty;
+}
+
+/* ---- Locked ---- */
+
+.locked {
+  margin-top: var(--s-5);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  border-radius: var(--r-md);
+  border: 1px dashed var(--c-hairline);
+  background: var(--c-surface-2);
+  padding: var(--s-4);
+}
+
+.lockedIcon {
+  font-size: 17px;
+  flex: none;
+}
+
+.lockedText {
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  line-height: 1.45;
+}
+
+.streak {
+  margin-top: var(--s-4);
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}

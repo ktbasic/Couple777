@@ -1,0 +1,30 @@
+.wrap {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+
+.svg {
+  transform: rotate(-90deg);
+  display: block;
+}
+
+.track {
+  stroke: currentColor;
+  opacity: 0.16;
+}
+
+.value {
+  stroke: currentColor;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--d-slow) var(--ease);
+}
+
+.center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}

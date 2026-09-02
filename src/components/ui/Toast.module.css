@@ -1,0 +1,51 @@
+.host {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--tabbar-h) + var(--safe-b) + var(--s-4));
+  width: min(100%, var(--app-max));
+  padding: 0 var(--s-5);
+  z-index: 70;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  background: var(--c-ink);
+  color: var(--c-page);
+  border-radius: var(--r-full);
+  padding: 12px var(--s-5);
+  font-size: var(--t-small);
+  font-weight: 500;
+  box-shadow: var(--e-3);
+  animation: toastIn var(--d-base) var(--ease) both;
+}
+
+.emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.action {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--c-accent-soft);
+  white-space: nowrap;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

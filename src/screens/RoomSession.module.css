@@ -1,0 +1,192 @@
+.progress {
+  display: flex;
+  gap: 4px;
+  padding: var(--s-2) 0 var(--s-6);
+}
+
+.tick {
+  height: 3px;
+  flex: 1;
+  border-radius: var(--r-full);
+  background: var(--c-hairline);
+  transition: background-color var(--d-base) var(--ease);
+}
+
+.tickOn {
+  background: var(--c-accent);
+}
+
+.stage {
+  animation: rise var(--d-base) var(--ease) both;
+}
+
+.who {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 5px 12px 5px 6px;
+  border-radius: var(--r-full);
+  background: var(--c-surface-2);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+  margin-bottom: var(--s-5);
+}
+
+.prompt {
+  font-family: var(--f-display);
+  font-size: var(--t-display-l);
+  font-weight: 500;
+  letter-spacing: -0.024em;
+  line-height: 1.22;
+  color: var(--c-ink);
+  text-wrap: balance;
+}
+
+.hint {
+  margin-top: var(--s-3);
+  font-size: var(--t-body);
+  color: var(--c-ink-3);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.area {
+  margin-top: var(--s-6);
+  width: 100%;
+  min-height: 180px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--c-ink);
+  resize: vertical;
+  font-family: var(--f-ui);
+}
+.area:focus {
+  outline: none;
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 3px var(--c-accent-wash);
+}
+
+.actions {
+  margin-top: var(--s-6);
+  display: grid;
+  gap: var(--s-3);
+}
+
+/* ---------- Handover ---------- */
+
+.handover {
+  text-align: center;
+  padding: var(--s-9) var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+  border: 1px dashed var(--c-hairline);
+}
+
+.handoverAvatar {
+  margin-bottom: var(--s-4);
+  display: flex;
+  justify-content: center;
+}
+
+.handoverTitle {
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 500;
+  color: var(--c-ink);
+}
+
+.handoverBody {
+  margin: var(--s-3) auto 0;
+  max-width: 28ch;
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--c-ink-3);
+}
+
+/* ---------- Reveal ---------- */
+
+.answers {
+  margin-top: var(--s-6);
+  display: grid;
+  gap: var(--s-3);
+}
+
+.answer {
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
+  box-shadow: var(--e-1);
+  animation: rise var(--d-slow) var(--ease) both;
+}
+
+.answerHead {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+
+.answerName {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+}
+
+.answerBody {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--c-ink);
+  text-wrap: pretty;
+}
+
+.talkNow {
+  margin-top: var(--s-5);
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-md);
+  background: var(--c-accent-wash);
+  border: 1px solid var(--c-accent-edge);
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--c-ink-2);
+  text-wrap: pretty;
+}
+
+/* ---------- Done ---------- */
+
+.done {
+  text-align: center;
+  padding: var(--s-8) var(--s-5);
+}
+
+.doneEmoji {
+  font-size: 34px;
+  display: block;
+  margin-bottom: var(--s-4);
+}
+
+.doneTitle {
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 500;
+  color: var(--c-ink);
+}
+
+.doneCommit {
+  margin: var(--s-5) auto 0;
+  padding: var(--s-5);
+  max-width: 34ch;
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--c-ink);
+  text-wrap: pretty;
+}

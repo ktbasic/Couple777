@@ -1,0 +1,32 @@
+.card {
+  background: var(--c-surface);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--c-hairline-soft);
+  box-shadow: var(--e-1);
+  overflow: hidden;
+}
+
+.pad {
+  padding: var(--s-5);
+}
+
+.flat {
+  box-shadow: none;
+  background: var(--c-surface-2);
+  border-color: transparent;
+}
+
+.tappable {
+  display: block;
+  width: 100%;
+  text-align: left;
+  transition:
+    transform var(--d-fast) var(--ease),
+    box-shadow var(--d-fast) var(--ease);
+}
+.tappable:active {
+  transform: scale(0.985);
+}
+.tappable:hover {
+  box-shadow: var(--e-2);
+}

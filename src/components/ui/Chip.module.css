@@ -1,0 +1,55 @@
+.row {
+  display: flex;
+  gap: var(--s-2);
+  overflow-x: auto;
+  padding: 2px var(--s-5);
+  margin: 0 calc(-1 * var(--s-5));
+  scroll-padding: var(--s-5);
+}
+
+.wrapRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 36px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-full);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  color: var(--c-ink-2);
+  font-size: var(--t-small);
+  font-weight: 500;
+  transition:
+    background-color var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease),
+    border-color var(--d-fast) var(--ease),
+    transform var(--d-fast) var(--ease);
+}
+
+.chip:active {
+  transform: scale(0.95);
+}
+
+.chip:hover {
+  border-color: var(--c-ink-4);
+}
+
+.on {
+  background: var(--c-ink);
+  border-color: var(--c-ink);
+  color: var(--c-page);
+}
+.on:hover {
+  border-color: var(--c-ink);
+}
+
+.emoji {
+  font-size: 0.95em;
+}

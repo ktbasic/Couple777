@@ -1,0 +1,22 @@
+.wrap {
+  position: relative;
+  overflow: hidden;
+  background: var(--c-surface-3);
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--d-slow) var(--ease-soft);
+}
+
+.loaded {
+  opacity: 1;
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+}
