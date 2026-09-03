@@ -1,11 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<!--
+  The Couple777 mark on its own warm ground: the three 7s, the two overlapping
+  rings, the heart sitting on the lower crossing. Kept as one asset rather than
+  a light/dark pair because the ground travels with it, so it reads on a light
+  home screen and a dark one alike. Ring weight and digit size are the "dense"
+  cut from src/components/ui/Logo777.tsx — the regular weight silts up small.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Couple777">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#EE5D91"/>
-      <stop offset="1" stop-color="#F79C7B"/>
+    <linearGradient id="bg" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#FFFDFC"/>
+      <stop offset="1" stop-color="#FFEEEB"/>
+    </linearGradient>
+    <linearGradient id="d0" x1="0" y1="0.15" x2="1" y2="0.85">
+      <stop offset="0" stop-color="#EE4B8D"/><stop offset="1" stop-color="#F26580"/>
+    </linearGradient>
+    <linearGradient id="d1" x1="0" y1="0.15" x2="1" y2="0.85">
+      <stop offset="0" stop-color="#F26580"/><stop offset="1" stop-color="#F58A78"/>
+    </linearGradient>
+    <linearGradient id="d2" x1="0" y1="0.15" x2="1" y2="0.85">
+      <stop offset="0" stop-color="#F58A78"/><stop offset="1" stop-color="#FBAE72"/>
+    </linearGradient>
+    <linearGradient id="ra" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#F6A2BE"/><stop offset="1" stop-color="#EF6E9B"/>
+    </linearGradient>
+    <linearGradient id="rb" x1="0.1" y1="1" x2="0.9" y2="0">
+      <stop offset="0" stop-color="#F79C7B"/><stop offset="1" stop-color="#FBC79C"/>
+    </linearGradient>
+    <linearGradient id="ht" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F1638F"/><stop offset="1" stop-color="#F5837F"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="17" fill="url(#g)"/>
-  <circle cx="25" cy="32" r="11" fill="none" stroke="#FFFFFF" stroke-width="3.5"/>
-  <circle cx="39" cy="32" r="11" fill="none" stroke="#FFFFFF" stroke-width="3.5" opacity="0.72"/>
+
+  <rect width="512" height="512" rx="118" fill="url(#bg)"/>
+
+  <!-- The mark sits in the logo's own 220x120 space, scaled into the square. -->
+  <g transform="translate(256 256) scale(2.75) translate(-110 -60)">
+    <g fill="none" stroke-width="3.8" stroke-linecap="round">
+      <circle cx="82" cy="60" r="47" stroke="url(#ra)"/>
+      <circle cx="138" cy="60" r="47" stroke="url(#rb)"/>
+    </g>
+    <g transform="translate(110 60) scale(0.92) skewX(-6)">
+      <g transform="translate(-53 -22.5)">
+        <path fill="url(#d0)" d="M2 0H28.5C29.9 0 30.7 1.5 30.1 2.8L15.6 43.6C15.2 44.5 14.4 45 13.4 45H7.6C6.1 45 5.1 43.5 5.6 42.1L18.8 8.6H2C0.9 8.6 0 7.7 0 6.6V2C0 0.9 0.9 0 2 0Z"/>
+      </g>
+      <g transform="translate(-15 -22.5)">
+        <path fill="url(#d1)" d="M2 0H28.5C29.9 0 30.7 1.5 30.1 2.8L15.6 43.6C15.2 44.5 14.4 45 13.4 45H7.6C6.1 45 5.1 43.5 5.6 42.1L18.8 8.6H2C0.9 8.6 0 7.7 0 6.6V2C0 0.9 0.9 0 2 0Z"/>
+      </g>
+      <g transform="translate(23 -22.5)">
+        <path fill="url(#d2)" d="M2 0H28.5C29.9 0 30.7 1.5 30.1 2.8L15.6 43.6C15.2 44.5 14.4 45 13.4 45H7.6C6.1 45 5.1 43.5 5.6 42.1L18.8 8.6H2C0.9 8.6 0 7.7 0 6.6V2C0 0.9 0.9 0 2 0Z"/>
+      </g>
+    </g>
+    <path fill="url(#ht)" transform="translate(110 98)"
+      d="M0 7C-1.2 5.6 -8 1.4 -8 -3.2C-8 -6.2 -5.8 -8 -3.4 -8C-1.7 -8 -0.5 -7 0 -6.1C0.5 -7 1.7 -8 3.4 -8C5.8 -8 8 -6.2 8 -3.2C8 1.4 1.2 5.6 0 7Z"/>
+  </g>
 </svg>

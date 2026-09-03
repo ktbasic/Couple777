@@ -1,39 +1,43 @@
 import { useEffect, useState } from 'react';
+import { Logo777 } from '../components/ui/Logo777';
 import s from './Splash.module.css';
 
-const SEVENS = ['7', '7', '7'];
-
 /**
- * The opening moment: 7 → 77 → 777, then out. Total is about 2.2s, which is
- * long enough to land and short enough not to be in the way on the second run
- * — so it plays once per browser session, not on every route change.
+ * The opening moment. The mark assembles — 7, 77, 777, the two rings drawing
+ * themselves around it, then the heart — and the wordmark settles underneath.
+ *
+ * Timings here are the *handoff* only; the choreography inside the mark lives
+ * in Logo777.module.css. LEAVE_AT is when the splash starts lifting away and
+ * the app underneath begins fading up, so the two overlap into one move rather
+ * than cutting. It plays once per browser session, not on every route change.
  */
-export function Splash({ onDone }: { onDone: () => void }) {
-  const [shown, setShown] = useState(1);
+const LEAVE_AT = 2380;
+const HANDOFF = 460;
+
+export function Splash({ onLeave, onDone }: { onLeave?: () => void; onDone: () => void }) {
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     const timers = [
-      window.setTimeout(() => setShown(2), 430),
-      window.setTimeout(() => setShown(3), 860),
-      window.setTimeout(() => setLeaving(true), 1900),
-      window.setTimeout(onDone, 2320),
+      window.setTimeout(() => {
+        setLeaving(true);
+        onLeave?.();
+      }, LEAVE_AT),
+      window.setTimeout(onDone, LEAVE_AT + HANDOFF),
     ];
     return () => timers.forEach(window.clearTimeout);
-  }, [onDone]);
+  }, [onDone, onLeave]);
 
   return (
-    <div className={[s.frame, leaving ? s.leaving : ''].filter(Boolean).join(' ')}>
+    <div
+      className={[s.frame, leaving ? s.leaving : ''].filter(Boolean).join(' ')}
+      aria-hidden={leaving}
+    >
+      <div className={s.glow} />
       <div className={s.inner}>
-        <p className={s.digits} aria-label="777">
-          {SEVENS.slice(0, shown).map((d, i) => (
-            <span key={i} className={s.digit}>
-              {d}
-            </span>
-          ))}
-        </p>
-        <p className={s.mark}>Couple777</p>
-        <p className={s.tag}>A private space for two</p>
+        <Logo777 animated className={s.mark} />
+        <p className={s.wordmark}>Couple777</p>
+        <p className={s.tag}>Make time for us.</p>
       </div>
     </div>
   );

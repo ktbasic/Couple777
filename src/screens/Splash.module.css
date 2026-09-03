@@ -4,15 +4,30 @@
   z-index: 200;
   display: grid;
   place-items: center;
-  background: var(--g-page);
-  animation: splashIn var(--d-base) var(--ease-soft) both;
+  padding: 0 var(--s-6);
+  /* Warmer and deeper than the app's page wash — this is the one screen that
+     gets to be all atmosphere. Light cream at the top falling to blush. */
+  background: linear-gradient(178deg, #FFFAF6 0%, #FDF0EE 44%, #FBDCDD 100%);
+}
+
+/* A single soft bloom behind the mark, in place of a shadow. */
+.glow {
+  position: absolute;
+  width: min(84vw, 460px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 68%);
+  animation: glowIn 1100ms var(--ease-soft) 240ms both;
+  pointer-events: none;
 }
 
 .leaving {
+  /* Lifts and fades while the app fades up underneath, so the two moves
+     overlap into one instead of cutting. */
   animation: splashOut 460ms var(--ease) forwards;
 }
 
-@keyframes splashIn {
+@keyframes glowIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
@@ -20,71 +35,45 @@
 @keyframes splashOut {
   to {
     opacity: 0;
-    transform: scale(1.04);
+    transform: translateY(-14px) scale(1.02);
   }
 }
 
 .inner {
+  position: relative;
   text-align: center;
 }
 
-/* The counter: 7 → 77 → 777, each digit dropping in. */
-.digits {
-  display: flex;
-  justify-content: center;
-  align-items: baseline;
-  gap: 2px;
-  font-family: var(--f-display);
-  font-size: 4.5rem;
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  line-height: 1;
-  background: var(--g-accent);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  min-height: 4.5rem;
-}
-
-.digit {
-  display: inline-block;
-  animation: dropIn 420ms var(--ease) both;
-}
-
-@keyframes dropIn {
-  from {
-    opacity: 0;
-    transform: translateY(-16px) scale(0.72);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 .mark {
+  width: min(66vw, 268px);
+  margin: 0 auto;
+}
+
+.wordmark {
   margin-top: var(--s-5);
   font-family: var(--f-display);
-  font-size: var(--t-display-m);
+  font-size: clamp(1.75rem, 8.5vw, 2.25rem);
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   color: var(--c-ink);
   opacity: 0;
-  animation: riseIn 520ms var(--ease) 900ms both;
+  animation: riseIn 520ms var(--ease-out-logo) 1580ms both;
 }
 
 .tag {
   margin-top: var(--s-2);
   font-size: var(--t-small);
-  color: var(--c-ink-3);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--c-accent-ink);
   opacity: 0;
-  animation: riseIn 520ms var(--ease) 1080ms both;
+  animation: riseIn 520ms var(--ease-out-logo) 1760ms both;
 }
 
 @keyframes riseIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(9px);
   }
   to {
     opacity: 1;
@@ -94,10 +83,17 @@
 
 /* Reduced motion: show the finished state, skip the choreography. */
 @media (prefers-reduced-motion: reduce) {
-  .digit,
-  .mark,
+  .frame,
+  .glow,
+  .wordmark,
   .tag {
     animation: none;
     opacity: 1;
+  }
+  .leaving {
+    animation: splashFade 240ms linear forwards;
+  }
+  @keyframes splashFade {
+    to { opacity: 0; }
   }
 }

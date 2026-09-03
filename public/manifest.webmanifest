@@ -1,0 +1,14 @@
+{
+  "name": "Couple777",
+  "short_name": "Couple777",
+  "description": "A private space for two, built around the 777 rhythm.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFAF6",
+  "theme_color": "#FFFAF6",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

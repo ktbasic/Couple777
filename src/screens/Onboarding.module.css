@@ -108,16 +108,7 @@
 
 .markGlyph {
   width: 42px;
-  height: 42px;
-  border-radius: 13px;
-  background: var(--g-accent);
-  display: grid;
-  place-items: center;
-  color: var(--c-on-accent);
-  font-family: var(--f-display);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  flex: none;
   box-shadow: var(--e-accent);
 }
 

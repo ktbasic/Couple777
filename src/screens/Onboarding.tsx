@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AppIcon } from '@/components/ui/Logo777';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Field';
 import { useToast } from '@/components/ui/Toast';
@@ -196,7 +197,7 @@ function Welcome() {
   return (
     <div className={s.step}>
       <div className={s.mark}>
-        <span className={s.markGlyph}>777</span>
+        <AppIcon tone="on-accent" className={s.markGlyph} />
         <span className={s.markWord}>Couple777</span>
       </div>
       <p className={s.eyebrow}>A private space for two</p>

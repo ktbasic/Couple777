@@ -1,0 +1,22 @@
+/* The app's half of the splash handoff: it fades and rises the last few pixels
+   while the splash lifts away above it. Runs once, at boot. */
+.entering {
+  animation: appEnter 560ms var(--ease-out-logo) both;
+}
+
+@keyframes appEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entering {
+    animation: none;
+  }
+}

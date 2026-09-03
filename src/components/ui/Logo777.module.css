@@ -1,0 +1,140 @@
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Static by default: the finished lockup, which is what every non-splash use
+   (app icon, empty states, About) wants. .animated opts into the choreography. */
+/* Only the parts CSS actually transforms get a fill-box origin. The rings are
+   deliberately excluded: they carry an SVG `transform` attribute placing them
+   in user space, and a CSS transform-origin would re-base that and slide them
+   off the mark. They animate on stroke-dashoffset alone. */
+.digit1,
+.digit2,
+.digit3,
+.heart {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* --- The opening sequence -------------------------------------------------
+   7 -> 77 -> 777, then the rings draw around them, then the heart, and the
+   wordmark follows in Splash.module.css. Everything is opacity + translate on
+   a single ease-out curve so it reads calm rather than bouncy. */
+
+.animated .digit1 {
+  animation: sevenFirst 420ms var(--ease-out-logo) both;
+}
+.animated .digit2 {
+  animation: sevenJoin 420ms var(--ease-out-logo) 220ms both;
+}
+.animated .digit3 {
+  animation: sevenJoin 420ms var(--ease-out-logo) 440ms both;
+}
+
+.animated .ringA,
+.animated .ringB {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: ringDraw 780ms var(--ease-out-logo) 720ms both;
+}
+.animated .ringB {
+  animation-delay: 840ms;
+}
+
+.animated .heart {
+  animation: heartIn 420ms var(--ease-out-logo) 1420ms both;
+}
+
+@keyframes sevenFirst {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The later 7s slide in from the left, as if joining the one already there. */
+@keyframes sevenJoin {
+  from {
+    opacity: 0;
+    transform: translateX(-11px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ringDraw {
+  from {
+    stroke-dashoffset: 100;
+    opacity: 0.35;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes heartIn {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Reduced motion: land on the finished mark, no choreography. */
+@media (prefers-reduced-motion: reduce) {
+  .animated .digit1,
+  .animated .digit2,
+  .animated .digit3,
+  .animated .heart,
+  .animated .ringA,
+  .animated .ringB {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* --- App icon ------------------------------------------------------------- */
+
+.icon {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  /* iOS's squircle proportion, so it sits right next to real app icons. */
+  border-radius: 23%;
+  background: linear-gradient(160deg, #FFFDFC 0%, #FFF4F2 100%);
+  overflow: hidden;
+}
+
+.iconMark {
+  width: 84%;
+}
+
+/* The mark in white on the brand gradient, for the icon at small sizes. CSS
+   `fill`/`stroke` outrank the presentation attributes the mark sets inline, so
+   this needs no second copy of the drawing. */
+.iconOnAccent {
+  background: var(--g-accent);
+}
+
+.iconOnAccent svg path {
+  fill: #ffffff;
+}
+
+.iconOnAccent svg circle {
+  stroke: rgba(255, 255, 255, 0.78);
+}
