@@ -173,6 +173,19 @@ export const CYCLE_NOUN: Record<RitualTier, string> = {
   month: 'big adventure',
 };
 
+/** How a cycle is named when the app is explaining the rhythm itself. */
+export const CYCLE_CADENCE: Record<RitualTier, string> = {
+  day: '7-day',
+  week: '7-week',
+  month: '7-month',
+};
+
+/** "a", "a and b", "a, b and c" — for naming what a moment just covered. */
+export function listOut(items: string[]): string {
+  if (items.length < 2) return items[0] ?? '';
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+}
+
 /** Gentle, never a scold. */
 export function cycleHeadline(view: CycleView): string {
   const noun = CYCLE_NOUN[view.cycle.tier];

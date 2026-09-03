@@ -10,7 +10,7 @@ import { InviteSheet } from '@/features/InviteSheet';
 import { PlanningHelpers } from '@/features/PlanningHelpers';
 import { useStore } from '@/context/store';
 import { TIER_META, countdownLabel, formatPlanDate, today } from '@/lib/dates';
-import { CYCLE_NOUN, cycleStatus } from '@/lib/cycles';
+import { CYCLE_CADENCE, CYCLE_NOUN, completeCycle, cycleStatus, listOut } from '@/lib/cycles';
 import { uid } from '@/lib/id';
 import type { Plan, TripItem } from '@/lib/types';
 import s from './PlanDetail.module.css';
@@ -45,12 +45,17 @@ export default function PlanDetailScreen() {
   const destination = plan.trip?.destination ?? plan.place ?? plan.title;
 
   const complete = () => {
+    // The engine closes the smaller cycles this one overlapped, so say which.
+    // Asking it rather than assuming from the tier matters: a 7-week moment
+    // already completed this turn is not closed again, and claiming it was
+    // would be a lie on the one screen that is meant to explain itself.
+    const alsoClosed = completeCycle(state.cycles, cycle.id).closed.slice(1);
     dispatch({ type: 'completeCycle', cycleId: cycle.id });
-    // The engine closes overlapped smaller cycles too; say so plainly.
-    const alsoClosed = tier === 'month' ? 'your 7-week and 7-day moments' : tier === 'week' ? 'your 7-day moment' : null;
+    const covered = listOut(alsoClosed.map((c) => CYCLE_CADENCE[c.tier]));
+    const noun = alsoClosed.length > 1 ? 'moments' : 'moment';
     toast.show({
       emoji: '✓',
-      message: alsoClosed ? `Made — this covered ${alsoClosed} too` : 'Another memory made',
+      message: covered ? `Made — this covered your ${covered} ${noun} too` : 'Another memory made',
     });
     navigate(`/memories/new?cycle=${cycle.id}`);
   };
