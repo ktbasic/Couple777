@@ -40,15 +40,21 @@ the SQL did not run completely — run it again.
 
 ## 3. Copy your two keys
 
-1. Sidebar → **Project Settings** → **API**.
+1. Sidebar → **Project Settings** → **API** (newer dashboards: **API Keys**).
 2. Copy the **Project URL**. It looks like
    `https://abcdefghijklm.supabase.co`.
-3. Copy the **anon public** key. It is a long string starting `eyJ...`.
+3. Copy the browser key. Supabase renamed it partway through 2025, so your
+   dashboard shows one of two things and either is fine:
+   - **Publishable key** — looks like `sb_publishable_...`
+   - **anon public** — a long string starting `eyJ...`
 
-> **The `service_role` key on that same page must never go in the app.** It
-> bypasses every security rule. The `anon` key is designed to be public — the
-> rules you installed in step 2, not the key, are what keep one couple's data
-> away from another's.
+   The app accepts both, under the names `VITE_SUPABASE_PUBLISHABLE_KEY` and
+   `VITE_SUPABASE_ANON_KEY`. Use whichever matches what you copied.
+
+> **The `service_role` / `sb_secret_...` key on that same page must never go in
+> the app.** It bypasses every security rule. The publishable key is designed
+> to be public — the rules you installed in step 2, not the key, are what keep
+> one couple's data away from another's.
 
 ## 4. Tell the app
 
@@ -57,19 +63,36 @@ and fill in the two values:
 
 ```
 VITE_SUPABASE_URL=https://abcdefghijklm.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-If you deploy the app somewhere (see §7), add the same two as environment
-variables there, plus:
+(or `VITE_SUPABASE_ANON_KEY=eyJhbGciOi...` if that is what your dashboard
+gave you — the app reads either.)
 
-```
-VITE_PUBLIC_APP_URL=https://your-app-address
+If you deploy the app somewhere, add the same two as environment variables
+there **before the first build**, because Vite compiles them into the bundle
+rather than reading them when the page opens. Step by step, for Vercel:
+**`docs/DEPLOY_VERCEL.md`**.
+
+You should not need `VITE_PUBLIC_APP_URL`. Without it the app takes its address
+from the browser's address bar, which is right locally and right on a normal
+deployment. Set it only if the app is served from a different address than the
+one people open.
+
+## 4a. Check it actually works
+
+Once the variables are set, from the project folder:
+
+```bash
+npm install
+npm run test:hosted
 ```
 
-That last one is what makes invite links point at the right place. Without it
-the app guesses from the browser's address bar, which is right locally and
-usually right in production.
+It signs up two throwaway accounts against your real project and drives the
+whole flow — space, invite code, join, plan, invitation, acceptance — then, for
+anything that fails, tells you whether it is a bug in the code, a Supabase
+setting, or an auth step still to do. Delete the two test users afterwards in
+**Authentication → Users**.
 
 ## 5. Turn off email confirmation while you test
 
@@ -142,7 +165,8 @@ it.
 | Variable | Where it comes from | Needed? |
 | --- | --- | --- |
 | `VITE_SUPABASE_URL` | Project Settings → API → Project URL | Yes |
-| `VITE_SUPABASE_ANON_KEY` | Project Settings → API → anon public | Yes |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Project Settings → API Keys → publishable | Yes* |
+| `VITE_SUPABASE_ANON_KEY` | Project Settings → API → anon public (older projects) | Yes* |
 | `VITE_PUBLIC_APP_URL` | The address you deploy to | Only when deployed |
 
 Never add `SUPABASE_SERVICE_ROLE_KEY` to this app.

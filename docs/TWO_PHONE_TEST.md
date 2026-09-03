@@ -82,24 +82,14 @@ browser tab.
 The single-file preview cannot do this one. It is served from a sandbox that
 blocks the app from reaching Supabase, so accounts cannot work there.
 
-Any static host will do. The quickest:
+Deploy it. **`docs/DEPLOY_VERCEL.md`** is the five-minute version, and covers
+the two things that catch people out: the environment variables have to exist
+*before* the build, and the Vercel address has to be added to Supabase's
+redirect list or sign-in bounces.
 
-```
-npm run build
-```
-
-then drag the `dist` folder onto **netlify.com/drop**, or run `npx vercel` in
-the project. Wherever you land, set these in the host's environment settings:
-
-```
-VITE_SUPABASE_URL=...
-VITE_SUPABASE_ANON_KEY=...
-VITE_PUBLIC_APP_URL=https://whatever-address-you-got
-```
-
-and rebuild. Then open that address on both phones and, on iPhone, use
-**Share → Add to Home Screen** — the app is a PWA, so it opens without Safari's
-chrome, with its own icon and the 777 splash.
+Then open that address on both phones and, on iPhone, use **Share → Add to
+Home Screen** — the app is a PWA, so it opens without Safari's chrome, with its
+own icon and the 777 splash.
 
 ## If two people end up in different spaces
 

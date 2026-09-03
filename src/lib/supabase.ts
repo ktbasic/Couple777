@@ -12,12 +12,27 @@ import type { Database } from './db/schema';
  */
 
 const url = import.meta.env.VITE_SUPABASE_URL?.trim();
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 
-const configured = Boolean(url && anonKey && !url.includes('your-project-ref'));
+/**
+ * The browser-safe key, under either of the two names Supabase has given it.
+ *
+ * Projects created before the 2025 key rotation show it as "anon public" and
+ * it is a JWT; newer ones show it as "publishable" and it looks like
+ * `sb_publishable_...`. They are the same thing as far as this app is
+ * concerned — both are safe in a bundle because RLS, not the key, decides who
+ * reads what — and a deployment that sets only the name the code did not
+ * happen to check would silently fall back to the setup screen. So check both.
+ */
+const publishableKey =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+
+const configured = Boolean(
+  url && publishableKey && !url.includes('your-project-ref'),
+);
 
 export const supabase: SupabaseClient<Database> | null = configured
-  ? createClient<Database>(url!, anonKey!, {
+  ? createClient<Database>(url!, publishableKey!, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -35,7 +50,8 @@ export function isConfigured(): boolean {
 export function requireDb(): SupabaseClient<Database> {
   if (!supabase) {
     throw new Error(
-      'Couple777 has no Supabase credentials. Copy .env.example to .env.local and fill it in.',
+      'Couple777 has no Supabase credentials. Set VITE_SUPABASE_URL and ' +
+        'VITE_SUPABASE_PUBLISHABLE_KEY (or VITE_SUPABASE_ANON_KEY) — see .env.example.',
     );
   }
   return supabase;

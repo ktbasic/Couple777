@@ -10,7 +10,8 @@
     "typecheck": "tsc -b --noEmit false --emitDeclarationOnly false --pretty",
     "build:static": "VITE_ROUTER=hash vite build --outDir dist-preview",
     "test:rls": "node supabase/tests/rls.test.mjs",
-    "dev:local": "node supabase/tests/local-server.mjs"
+    "dev:local": "node supabase/tests/local-server.mjs",
+    "test:hosted": "node supabase/tests/hosted.e2e.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.58.0",
