@@ -27,7 +27,11 @@ than enough for two people testing.
 You should see *Success. No rows returned*. That is what success looks like
 here — it created tables rather than fetching anything.
 
-To check: click **Table Editor** in the sidebar. You should see `profiles`,
+To check it properly, open a new query, paste in **`supabase/verify.sql`** and
+run it. You want a single row reading `ok | ok | ok | ok`. Anything else names
+what is missing, and re-running the migration is safe.
+
+You can also just look: click **Table Editor** in the sidebar. You should see `profiles`,
 `couples`, `cycles`, `plans`, `plan_invites`, `memories`,
 `memory_private_notes` and `notifications`.
 

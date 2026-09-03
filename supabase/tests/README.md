@@ -24,7 +24,16 @@ partner overwrite `partner_1_user_id` with a stranger, because a `WITH CHECK`
 only sees the new row — "the caller is one of the two people" was still
 satisfied, by the attacker. Comparing against `OLD` needs a trigger.
 
-## `npm run dev:local`
+## `npm run dev:local` — frozen
+
+**This is finished and is not being developed further.** It did its job (three
+real bugs, below) and it is test-only: nothing in `src/` imports it, and
+deleting `supabase/tests/` would leave the app untouched.
+
+It is here for one reason: this cloud sandbox cannot reach `*.supabase.co` —
+the egress gateway answers **403 to CONNECT** — so there is no way to exercise
+the client against the real thing from inside it. If you can reach Supabase
+from where you are, use a real project and ignore this.
 
 A local stand-in for the parts of Supabase the app talks to, so the real client
 code can be driven end to end. PGlite behind a small HTTP server speaking
@@ -44,7 +53,12 @@ VITE_SUPABASE_URL=http://localhost:54321
 VITE_SUPABASE_ANON_KEY=local-anon-key
 ```
 
-**It is not a Supabase emulator.** No email confirmation, no OAuth, no
+**It is not a Supabase emulator, and differences from real PostgREST are the
+shim's problem, not the app's.** Four came up while building it — `columns=`
+on bulk inserts, the `Accept` header that makes `.single()` return an object,
+`date` columns arriving as timestamps, and `RETURNING` being appended when the
+client asked for nothing back. All four were fixed **in the shim**. None of
+them changed how the app behaves against real Supabase. No email confirmation, no OAuth, no
 Realtime, no refresh-token rotation. It exists to prove the app's own wiring is
 right before it meets the real thing — and the missing Realtime is useful in
 itself: the app has to stay correct on plain navigation, which it does.
