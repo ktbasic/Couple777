@@ -9,6 +9,7 @@ import {
 } from 'react';
 import type {
   AppState,
+  CoupleProfile,
   DailyEntry,
   ID,
   Memory,
@@ -26,7 +27,19 @@ const STORAGE_KEY = 'couple777:v1';
 type Action =
   | { type: 'reset' }
   | { type: 'hydrate'; state: AppState }
-  | { type: 'completeOnboarding'; nameA: string; nameB: string; since: string; city: string }
+  | {
+      type: 'completeOnboarding';
+      nameA: string;
+      nameB: string;
+      since: string;
+      city: string;
+      profile: CoupleProfile;
+      partnerJoined: boolean;
+    }
+  | { type: 'setPartnerJoined'; joined: boolean }
+  | { type: 'setPersonAvatar'; personId: ID; avatarId?: string; avatarUrl?: string }
+  | { type: 'renamePerson'; personId: ID; name: string }
+  | { type: 'markNotificationsRead'; ids: ID[] }
   | { type: 'switchPerson'; id: ID }
   | { type: 'setNotifications'; enabled: boolean }
   | { type: 'upsertPlan'; plan: Plan }
@@ -61,6 +74,8 @@ function reducer(state: AppState, action: Action): AppState {
           ...state.couple,
           togetherSince: action.since || state.couple.togetherSince,
           homeCity: action.city || state.couple.homeCity,
+          partnerJoined: action.partnerJoined,
+          profile: action.profile,
           people: [
             { ...a, name: action.nameA, initial: action.nameA.charAt(0).toUpperCase() },
             { ...b, name: action.nameB, initial: action.nameB.charAt(0).toUpperCase() },
@@ -68,6 +83,43 @@ function reducer(state: AppState, action: Action): AppState {
         },
       };
     }
+
+    case 'setPartnerJoined':
+      return { ...state, couple: { ...state.couple, partnerJoined: action.joined } };
+
+    case 'setPersonAvatar':
+      return {
+        ...state,
+        couple: {
+          ...state.couple,
+          people: state.couple.people.map((p) =>
+            p.id === action.personId
+              ? // A photo and a drawn avatar are alternatives, so setting one
+                // clears the other rather than leaving a stale fallback.
+                { ...p, avatarId: action.avatarId, avatarUrl: action.avatarUrl }
+              : p,
+          ) as AppState['couple']['people'],
+        },
+      };
+
+    case 'renamePerson':
+      return {
+        ...state,
+        couple: {
+          ...state.couple,
+          people: state.couple.people.map((p) =>
+            p.id === action.personId
+              ? { ...p, name: action.name, initial: action.name.charAt(0).toUpperCase() || '?' }
+              : p,
+          ) as AppState['couple']['people'],
+        },
+      };
+
+    case 'markNotificationsRead':
+      return {
+        ...state,
+        readNotificationIds: [...new Set([...state.readNotificationIds, ...action.ids])],
+      };
 
     case 'switchPerson':
       return { ...state, couple: { ...state.couple, currentPersonId: action.id } };

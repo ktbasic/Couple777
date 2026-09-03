@@ -103,3 +103,131 @@
   display: flex;
   gap: var(--s-3);
 }
+
+/* ---------- Generator helper + actions ---------- */
+
+.helper {
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  line-height: 1.5;
+  margin-bottom: var(--s-5);
+}
+
+.cueBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-accent-wash);
+  border: 1px solid var(--c-accent-edge);
+  font-size: var(--t-small);
+  color: var(--c-ink-2);
+  line-height: 1.45;
+  margin-bottom: var(--s-5);
+}
+
+.cueClear {
+  margin-left: auto;
+  flex: none;
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-accent-ink);
+}
+
+/* The results anchor clears the sticky tab bar when scrolled to. */
+.resultsAnchor {
+  scroll-margin-top: 88px;
+}
+
+/* ---------- Loading ---------- */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-9) var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+  text-align: center;
+}
+
+.loadingDots {
+  display: flex;
+  gap: 7px;
+}
+
+.loadingDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  animation: bounce 1s var(--ease-soft) infinite;
+}
+.loadingDot:nth-child(2) { animation-delay: 0.14s; }
+.loadingDot:nth-child(3) { animation-delay: 0.28s; }
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-7px); opacity: 1; }
+}
+
+.loadingText {
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+
+/* ---------- Results ---------- */
+
+.topPick {
+  position: relative;
+}
+
+.topPickBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: var(--s-3);
+  padding: 5px 11px;
+  border-radius: var(--r-full);
+  background: var(--g-accent);
+  color: var(--c-on-accent);
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: var(--e-accent);
+}
+
+.topPickRing {
+  border-radius: var(--r-lg);
+  box-shadow: 0 0 0 2px var(--c-accent-edge);
+}
+
+/* ---------- Feedback ---------- */
+
+.feedback {
+  margin-top: var(--s-6);
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+}
+
+.feedbackLabel {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+  margin-bottom: var(--s-3);
+}
+
+.feedbackRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}

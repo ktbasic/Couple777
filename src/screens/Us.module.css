@@ -1,12 +1,44 @@
 .hero {
   text-align: center;
-  padding: calc(var(--safe-t) + var(--s-7)) 0 var(--s-7);
+  padding: calc(var(--safe-t) + var(--s-7)) 0 var(--s-6);
 }
 
-.avatars {
+.pair {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: var(--s-3);
   margin-bottom: var(--s-5);
+}
+
+.avatarButton {
+  position: relative;
+  border-radius: 50%;
+  transition: transform var(--d-fast) var(--ease);
+}
+.avatarButton:active {
+  transform: scale(0.94);
+}
+
+.edit {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  color: var(--c-ink-3);
+  font-size: 11px;
+  box-shadow: var(--e-1);
+}
+
+.heart {
+  font-size: 20px;
+  line-height: 1;
 }
 
 .names {
@@ -18,67 +50,222 @@
 }
 
 .together {
-  margin-top: var(--s-3);
+  margin-top: var(--s-2);
   font-size: var(--t-body);
   color: var(--c-ink-3);
 }
 
-.headline {
-  margin: var(--s-7) 0 var(--s-6);
-  padding: var(--s-6) var(--s-5);
+.inviteStrip {
+  margin-top: var(--s-5);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-accent-wash);
+  border: 1px solid var(--c-accent-edge);
+  text-align: left;
+}
+
+.inviteText {
+  flex: 1;
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--c-ink-2);
+}
+
+/* ---------- Look what you've made ---------- */
+
+.summary {
+  padding: var(--s-7) var(--s-5);
   border-radius: var(--r-lg);
   background: var(--c-accent-wash);
   border: 1px solid var(--c-accent-edge);
   text-align: center;
 }
 
-.headlineText {
+.summaryNumber {
   font-family: var(--f-display);
-  font-size: var(--t-display-m);
-  font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: -0.015em;
-  color: var(--c-ink);
-  text-wrap: balance;
+  font-size: 3.25rem;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  background: var(--g-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.headlineSub {
+.summaryLabel {
   margin-top: var(--s-3);
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+
+.breakdown {
+  margin-top: var(--s-5);
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: var(--r-full);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
   font-size: var(--t-small);
-  color: var(--c-ink-3);
-  line-height: 1.5;
-  text-wrap: pretty;
+  font-weight: 600;
+  color: var(--c-ink-2);
+  transition: transform var(--d-fast) var(--ease), border-color var(--d-fast) var(--ease);
+}
+.chip:active {
+  transform: scale(0.95);
+}
+.chip:hover {
+  border-color: var(--c-accent);
+  color: var(--c-accent-ink);
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s-3);
+.chipCount {
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink);
 }
 
-.stat {
-  padding: var(--s-5);
+/* ---------- Year strip ---------- */
+
+.year {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  padding: var(--s-5) var(--s-4) var(--s-4);
   border-radius: var(--r-lg);
   background: var(--c-surface);
   border: 1px solid var(--c-hairline-soft);
-  animation: rise var(--d-slow) var(--ease) both;
+  box-shadow: var(--e-1);
+  overflow-x: auto;
+  min-width: 0;
 }
 
-.statValue {
-  font-family: var(--f-display);
-  font-size: var(--t-display-l);
+.month {
+  flex: 1;
+  min-width: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: transform var(--d-fast) var(--ease);
+}
+.month:active {
+  transform: scale(0.9);
+}
+
+.bar {
+  width: 100%;
+  max-width: 20px;
+  border-radius: var(--r-full);
+  background: var(--c-surface-3);
+  transition: background-color var(--d-fast) var(--ease);
+}
+
+.month:hover .bar {
+  background: var(--c-accent-soft);
+}
+
+.barOn {
+  background: var(--g-accent);
+}
+
+.monthLabel {
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--c-ink-4);
+  text-transform: uppercase;
+}
+
+.yearHint {
+  margin-top: var(--s-3);
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+  text-align: center;
+}
+
+/* ---------- Milestones ---------- */
+
+.milestones {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-2);
+}
+
+.milestone {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
+  text-align: left;
+  width: 100%;
+  transition: background-color var(--d-fast) var(--ease);
+}
+.milestone:hover {
+  background: var(--c-surface-2);
+}
+
+.milestoneDone {
+  background: var(--c-surface-2);
+  border-color: var(--c-accent-edge);
+}
+
+.milestoneIcon {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  background: var(--c-surface-2);
+}
+
+.milestoneDone .milestoneIcon {
+  background: var(--c-accent-wash);
+}
+
+.milestoneMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.milestoneLabel {
+  font-size: var(--t-body);
+  font-weight: 600;
   color: var(--c-ink);
 }
 
-.statLabel {
-  margin-top: var(--s-2);
+.milestoneProgress {
+  margin-top: 1px;
   font-size: var(--t-small);
   color: var(--c-ink-3);
-  line-height: 1.4;
 }
+
+.check {
+  flex: none;
+  color: var(--c-accent-ink);
+  font-size: 15px;
+}
+
+/* ---------- Rhythm ---------- */
 
 .rhythm {
   display: grid;
@@ -93,6 +280,8 @@
   padding: var(--s-4);
   border-radius: var(--r-md);
   background: var(--c-surface-2);
+  width: 100%;
+  text-align: left;
 }
 
 .rhythmRow[data-tier='day'] { color: var(--c-day); }
@@ -115,6 +304,8 @@
   font-size: var(--t-small);
   color: var(--c-ink-3);
 }
+
+/* ---------- Rows ---------- */
 
 .rows {
   display: grid;

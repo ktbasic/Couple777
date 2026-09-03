@@ -8,7 +8,7 @@ export const PERSON_A = 'p-a';
 export const PERSON_B = 'p-b';
 
 /** Seed data is generated relative to today so the prototype never goes stale. */
-export function buildSeedState(nameA = 'Katy', nameB = 'Sam'): AppState {
+export function buildSeedState(nameA = 'Katy', nameB = 'Marian'): AppState {
   const now = today();
   const d = (offset: number) => addDays(now, offset);
 
@@ -240,13 +240,20 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Sam'): AppState {
     couple: {
       id: 'c-1',
       people: [
-        { id: PERSON_A, name: nameA, initial: nameA.charAt(0).toUpperCase(), avatarUrl: photo('avatar-a', 200, 200) },
-        { id: PERSON_B, name: nameB, initial: nameB.charAt(0).toUpperCase(), avatarUrl: photo('avatar-b', 200, 200) },
+        { id: PERSON_A, name: nameA, initial: nameA.charAt(0).toUpperCase(), avatarId: 'person-1' },
+        { id: PERSON_B, name: nameB, initial: nameB.charAt(0).toUpperCase(), avatarId: 'fox' },
       ],
       togetherSince: toISODate(new Date(new Date().getFullYear() - 2, new Date().getMonth() - 4, 14)),
       homeCity: 'Munich',
       inviteCode: 'K7-4M2P',
       currentPersonId: PERSON_A,
+      partnerJoined: true,
+      profile: {
+        wishes: ['adventure', 'quality-time'],
+        status: 'dating',
+        proximity: 'together',
+        vibes: ['cozy', 'adventurous', 'playful'],
+      },
     },
     plans: [...plans, ...history.plans],
     memories: [...memories, ...history.memories],
@@ -284,6 +291,7 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Sam'): AppState {
     roomSessions: [],
     savedIdeaIds: ['i-stargaze', 'i-letters'],
     notificationsEnabled: true,
+    readNotificationIds: [],
     checkInDays: 25,
   };
 }

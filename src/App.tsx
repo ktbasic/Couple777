@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { useStore } from './context/store';
+import { Splash, useSplash } from './screens/Splash';
 
 import OnboardingScreen from './screens/Onboarding';
 import HomeScreen from './screens/Home';
@@ -30,50 +31,55 @@ function RequireOnboarding({ children }: { children: React.ReactNode }) {
 }
 
 export function App() {
+  const [splashOpen, dismissSplash] = useSplash();
+
   return (
-    <Routes>
-      <Route path="/onboarding" element={<OnboardingScreen />} />
+    <>
+      {splashOpen ? <Splash onDone={dismissSplash} /> : null}
+      <Routes>
+        <Route path="/onboarding" element={<OnboardingScreen />} />
 
-      {/* Tabbed surfaces */}
-      <Route
-        element={
-          <RequireOnboarding>
-            <AppShell />
-          </RequireOnboarding>
-        }
-      >
-        <Route index element={<HomeScreen />} />
-        <Route path="/explore" element={<ExploreScreen />} />
-        <Route path="/memories" element={<MemoriesScreen />} />
-        <Route path="/talk" element={<TalkScreen />} />
-        <Route path="/us" element={<UsScreen />} />
-      </Route>
+        {/* Tabbed surfaces */}
+        <Route
+          element={
+            <RequireOnboarding>
+              <AppShell />
+            </RequireOnboarding>
+          }
+        >
+          <Route index element={<HomeScreen />} />
+          <Route path="/explore" element={<ExploreScreen />} />
+          <Route path="/memories" element={<MemoriesScreen />} />
+          <Route path="/talk" element={<TalkScreen />} />
+          <Route path="/us" element={<UsScreen />} />
+        </Route>
 
-      {/* Pushed flows — no tab bar, so the screen keeps your attention. */}
-      <Route
-        element={
-          <RequireOnboarding>
-            <AppShell tabs={false} />
-          </RequireOnboarding>
-        }
-      >
-        <Route path="/plan/new/:tier" element={<PlanEditScreen />} />
-        <Route path="/plan/:planId/edit" element={<PlanEditScreen />} />
-        <Route path="/plan/:planId" element={<PlanDetailScreen />} />
+        {/* Pushed flows — no tab bar, so the screen keeps your attention. */}
+        <Route
+          element={
+            <RequireOnboarding>
+              <AppShell tabs={false} />
+            </RequireOnboarding>
+          }
+        >
+          <Route path="/plan/new/:tier" element={<PlanEditScreen />} />
+          <Route path="/plan/:planId/edit" element={<PlanEditScreen />} />
+          <Route path="/plan/:planId" element={<PlanDetailScreen />} />
 
-        <Route path="/memories/new" element={<MemoryCaptureScreen />} />
-        <Route path="/memories/:memoryId" element={<MemoryDetailScreen />} />
+          <Route path="/memories/new" element={<MemoryCaptureScreen />} />
+          <Route path="/memories/:memoryId" element={<MemoryDetailScreen />} />
 
-        <Route path="/talk/daily" element={<DailyQuestionScreen />} />
-        <Route path="/talk/room" element={<RoomScreen />} />
-        <Route path="/talk/room/:topicId" element={<RoomSessionScreen />} />
-        <Route path="/talk/notes" element={<NotesScreen />} />
-        <Route path="/talk/notes/new" element={<NoteComposeScreen />} />
+          <Route path="/talk/daily" element={<DailyQuestionScreen />} />
+          <Route path="/talk/room" element={<RoomScreen />} />
+          <Route path="/talk/room/:topicId" element={<RoomSessionScreen />} />
+          <Route path="/talk/notes" element={<NotesScreen />} />
+          <Route path="/talk/notes/new" element={<NoteComposeScreen />} />
 
-        <Route path="/us/settings" element={<SettingsScreen />} />
-      </Route>
+          <Route path="/us/settings" element={<SettingsScreen />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }

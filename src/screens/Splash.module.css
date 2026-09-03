@@ -1,0 +1,103 @@
+.frame {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: var(--g-page);
+  animation: splashIn var(--d-base) var(--ease-soft) both;
+}
+
+.leaving {
+  animation: splashOut 460ms var(--ease) forwards;
+}
+
+@keyframes splashIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes splashOut {
+  to {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+.inner {
+  text-align: center;
+}
+
+/* The counter: 7 → 77 → 777, each digit dropping in. */
+.digits {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 2px;
+  font-family: var(--f-display);
+  font-size: 4.5rem;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  background: var(--g-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  min-height: 4.5rem;
+}
+
+.digit {
+  display: inline-block;
+  animation: dropIn 420ms var(--ease) both;
+}
+
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mark {
+  margin-top: var(--s-5);
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--c-ink);
+  opacity: 0;
+  animation: riseIn 520ms var(--ease) 900ms both;
+}
+
+.tag {
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  opacity: 0;
+  animation: riseIn 520ms var(--ease) 1080ms both;
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Reduced motion: show the finished state, skip the choreography. */
+@media (prefers-reduced-motion: reduce) {
+  .digit,
+  .mark,
+  .tag {
+    animation: none;
+    opacity: 1;
+  }
+}

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Screen, ScreenHeader } from '@/components/layout/Screen';
 import { Chip, ChipRow } from '@/components/ui/Chip';
 import { ButtonLink } from '@/components/ui/Button';
@@ -22,14 +23,24 @@ const FILTERS: { value: MemoryKind | 'all'; label: string; emoji?: string }[] = 
 
 export default function MemoriesScreen() {
   const { state } = useStore();
-  const [filter, setFilter] = useState<MemoryKind | 'all'>('all');
+  const [params, setParams] = useSearchParams();
+  // Us links straight into a filtered timeline, so the URL owns the filter.
+  const kindParam = params.get('kind') as MemoryKind | null;
+  const month = params.get('month');
+  const [filter, setFilter] = useState<MemoryKind | 'all'>(kindParam ?? 'all');
   const stats = relationshipStats(state);
 
+  const chooseFilter = (next: MemoryKind | 'all') => {
+    setFilter(next);
+    // Changing the chips clears a deep link rather than fighting it.
+    if (kindParam || month) setParams({}, { replace: true });
+  };
+
   const groups = useMemo(() => {
-    const filtered =
-      filter === 'all' ? state.memories : state.memories.filter((m) => m.kind === filter);
-    return memoriesByMonth(filtered);
-  }, [state.memories, filter]);
+    let list = filter === 'all' ? state.memories : state.memories.filter((m) => m.kind === filter);
+    if (month) list = list.filter((m) => m.date.startsWith(month));
+    return memoriesByMonth(list);
+  }, [state.memories, filter, month]);
 
   const total = groups.reduce((n, g) => n + g.items.length, 0);
 
@@ -38,7 +49,11 @@ export default function MemoriesScreen() {
       <ScreenHeader
         eyebrow="Memories"
         title="Everything you've made together"
-        sub={`${stats.memories} moments kept, and ${stats.photos} photos.`}
+        sub={
+          month
+            ? `Showing ${formatMonthYear(`${month}-01`)}.`
+            : `${stats.memories} moments kept, and ${stats.photos} photos.`
+        }
       />
 
       <div className={s.stats}>
@@ -63,7 +78,7 @@ export default function MemoriesScreen() {
               key={f.value}
               emoji={f.emoji}
               selected={filter === f.value}
-              onClick={() => setFilter(f.value)}
+              onClick={() => chooseFilter(f.value)}
             >
               {f.label}
             </Chip>
@@ -74,12 +89,22 @@ export default function MemoriesScreen() {
       {total === 0 ? (
         <EmptyState
           emoji="📷"
-          title="Nothing here yet"
-          body="Finish a date or a trip and it will land here, or write one down now."
+          title={month ? 'Nothing that month' : 'Nothing here yet'}
+          body={
+            month
+              ? 'A quiet one. Every relationship has them.'
+              : 'Finish a date or a trip and it will land here, or write one down now.'
+          }
           action={
-            <ButtonLink to="/memories/new" variant="accent" size="sm">
-              Write a memory
-            </ButtonLink>
+            month ? (
+              <ButtonLink to="/memories" variant="secondary" size="sm">
+                See everything
+              </ButtonLink>
+            ) : (
+              <ButtonLink to="/memories/new" variant="accent" size="sm">
+                Write a memory
+              </ButtonLink>
+            )
           }
         />
       ) : (

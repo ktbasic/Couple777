@@ -21,6 +21,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'medium',
     weather: ['any', 'rain', 'cold'],
     spontaneity: 'spontaneous',
+    dayparts: ['evening'],
     image: photo('pasta'),
   },
   {
@@ -38,6 +39,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['any', 'rain', 'cold'],
     spontaneity: 'spontaneous',
+    dayparts: ['evening', 'late'],
     image: photo('records'),
   },
   {
@@ -55,6 +57,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['any', 'cold', 'warm'],
     spontaneity: 'spontaneous',
+    dayparts: ['evening', 'late'],
     image: photo('nightwalk'),
   },
   {
@@ -72,6 +75,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'medium',
     weather: ['sun', 'warm', 'any'],
     spontaneity: 'planned',
+    dayparts: ['morning', 'brunch'],
     image: photo('market'),
   },
   {
@@ -89,6 +93,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['rain', 'cold', 'any'],
     spontaneity: 'planned',
+    dayparts: ['afternoon'],
     image: photo('gallery'),
   },
   {
@@ -105,6 +110,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['any', 'rain', 'cold'],
     spontaneity: 'spontaneous',
+    dayparts: ['evening', 'late'],
     image: photo('candles'),
   },
   {
@@ -122,6 +128,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['rain', 'cold', 'any'],
     spontaneity: 'spontaneous',
+    dayparts: ['afternoon'],
     image: photo('bookshop'),
   },
   {
@@ -138,6 +145,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'medium',
     weather: ['sun', 'cold', 'warm'],
     spontaneity: 'planned',
+    dayparts: ['morning'],
     image: photo('sunrise'),
   },
   {
@@ -155,6 +163,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['any', 'rain', 'cold'],
     spontaneity: 'spontaneous',
+    dayparts: ['evening', 'late'],
     image: photo('oldphotos'),
   },
   {
@@ -171,6 +180,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'medium',
     weather: ['any', 'rain', 'cold', 'warm'],
     spontaneity: 'spontaneous',
+    dayparts: ['evening', 'late'],
     image: photo('bar'),
   },
   {
@@ -188,6 +198,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['rain', 'cold', 'any'],
     spontaneity: 'spontaneous',
+    dayparts: ['evening', 'late'],
     image: photo('cinema'),
   },
   {
@@ -204,6 +215,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'medium',
     weather: ['any', 'rain', 'cold'],
     spontaneity: 'planned',
+    dayparts: ['afternoon', 'evening'],
     image: photo('pottery'),
   },
   {
@@ -220,6 +232,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['sun', 'warm'],
     spontaneity: 'spontaneous',
+    dayparts: ['afternoon', 'evening'],
     image: photo('picnic'),
   },
   {
@@ -237,6 +250,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['any', 'rain', 'cold'],
     spontaneity: 'spontaneous',
+    dayparts: ['evening', 'late'],
     image: photo('questions'),
   },
   {
@@ -253,6 +267,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'high',
     weather: ['sun', 'warm', 'cold'],
     spontaneity: 'planned',
+    dayparts: ['morning', 'afternoon'],
     image: photo('coldswim'),
   },
   {
@@ -269,6 +284,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'high',
     weather: ['sun', 'warm'],
     spontaneity: 'planned',
+    dayparts: ['brunch', 'afternoon', 'wholeday'],
     image: photo('bikeride'),
   },
   {
@@ -286,6 +302,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['any', 'rain', 'cold'],
     spontaneity: 'spontaneous',
+    dayparts: ['evening'],
     image: photo('letters'),
   },
   {
@@ -303,6 +320,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'medium',
     weather: ['any', 'sun', 'warm', 'cold'],
     spontaneity: 'spontaneous',
+    dayparts: ['afternoon', 'wholeday'],
     image: photo('district'),
   },
   {
@@ -319,6 +337,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['any', 'rain', 'cold', 'sun'],
     spontaneity: 'planned',
+    dayparts: ['morning', 'brunch'],
     image: photo('slowmorning'),
   },
   {
@@ -335,6 +354,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['cold', 'warm'],
     spontaneity: 'planned',
+    dayparts: ['evening', 'late'],
     image: photo('stars'),
   },
   {
@@ -352,6 +372,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'medium',
     weather: ['any', 'rain', 'cold'],
     spontaneity: 'planned',
+    dayparts: ['afternoon', 'evening'],
     image: photo('project'),
   },
   {
@@ -369,6 +390,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'medium',
     weather: ['any', 'rain', 'cold'],
     spontaneity: 'spontaneous',
+    dayparts: ['evening'],
     image: photo('tasting'),
   },
   {
@@ -385,6 +407,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'high',
     weather: ['sun', 'cold', 'warm'],
     spontaneity: 'planned',
+    dayparts: ['morning', 'wholeday'],
     image: photo('hike'),
   },
   {
@@ -402,6 +425,7 @@ export const DATE_IDEAS: DateIdea[] = [
     energy: 'low',
     weather: ['any', 'rain', 'cold'],
     spontaneity: 'spontaneous',
+    dayparts: ['afternoon', 'evening'],
     image: photo('planning'),
   },
 ];

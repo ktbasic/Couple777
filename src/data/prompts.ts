@@ -61,6 +61,28 @@ export const DAILY_PROMPTS: DailyPrompt[] = [
   { id: 'p-35', kind: 'question', text: 'Where should we go next, if money were slightly less real?' },
 ];
 
+/**
+ * Stand-in replies for the partner. On one device there is no second person to
+ * wait for, so the prototype answers as them a few seconds after you write
+ * yours — which is what makes the sealed-then-revealed moment demonstrable.
+ * A real build deletes this and waits for the other phone.
+ */
+const PARTNER_REPLIES = [
+  'Honestly? The morning you brought coffee back to bed and we just stayed there talking.',
+  'When we walk somewhere with no plan. That is when I feel closest to you.',
+  'I keep thinking about the breakfast we had on the balcony last summer. Small thing. Stuck with me.',
+  'You noticing when I am quiet before I have said anything about it.',
+  'More slow mornings. We are good at evenings and bad at mornings.',
+  'The kitchen dancing. I will bring it up for years, be warned.',
+  'I want us to keep booking things. We are better when there is something ahead of us.',
+];
+
+export function partnerReplyFor(promptId: string): string {
+  let h = 0;
+  for (let i = 0; i < promptId.length; i++) h = (h * 29 + promptId.charCodeAt(i)) >>> 0;
+  return PARTNER_REPLIES[h % PARTNER_REPLIES.length];
+}
+
 /** Deterministic prompt of the day, so both partners get the same one. */
 export function promptForDate(iso: string): DailyPrompt {
   let h = 0;
@@ -76,6 +98,34 @@ export const PROMPT_KIND_LABEL: Record<DailyPrompt['kind'], string> = {
   reflection: 'Worth sitting with',
   quote: 'Something to think about',
 };
+
+/**
+ * The line under the greeting on Home. One per day, about love, connection,
+ * growth, or making time on purpose — never generic motivation.
+ */
+export const DAILY_QUOTES = [
+  'Love is built in the moments you keep making time for.',
+  'Attention is the most ordinary form of affection.',
+  'The relationship you have is the one you keep showing up for.',
+  'Being known takes longer than being loved. Both are worth it.',
+  'You do not find time for each other. You take it.',
+  'Small kindnesses compound faster than grand gestures.',
+  'Curiosity is what keeps a long relationship from going quiet.',
+  'The good years are made of unremarkable evenings.',
+  'Choosing each other is a thing you do on purpose, repeatedly.',
+  'Novelty is not the opposite of commitment. It is how it survives.',
+  'Say the thing you assume they already know.',
+  'A plan on the calendar outlives ten good intentions.',
+  'Closeness is a practice, not a state you arrive at.',
+  'The best conversations start with a question nobody has asked in a while.',
+];
+
+/** Deterministic quote of the day, so both partners see the same line. */
+export function quoteForDate(iso: string): string {
+  let h = 0;
+  for (let i = 0; i < iso.length; i++) h = (h * 41 + iso.charCodeAt(i)) >>> 0;
+  return DAILY_QUOTES[h % DAILY_QUOTES.length];
+}
 
 /** Rotating line under the inspiration card on Home. */
 export const INSPIRATION_LINES = [

@@ -4,8 +4,9 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { useToast } from '@/components/ui/Toast';
 import { useStore } from '@/context/store';
-import { PROMPT_KIND_LABEL, promptForDate } from '@/data/prompts';
+import { PROMPT_KIND_LABEL, partnerReplyFor, promptForDate } from '@/data/prompts';
 import { dailyEntry, dailyStatus } from '@/lib/selectors';
+import { cueFromText, cueToParams } from '@/lib/generator';
 import { today } from '@/lib/dates';
 import s from './DailyQuestion.module.css';
 
@@ -18,6 +19,12 @@ export default function DailyQuestionScreen() {
   const status = dailyStatus(state, me.id, partner.id, date);
   const [draft, setDraft] = useState('');
 
+  // Their own words choose the starting filters over in Explore.
+  const cue =
+    status.bothAnswered && entry
+      ? cueFromText(Object.values(entry.answers).map((a) => a.text).join(' '))
+      : null;
+
   const submit = () => {
     const text = draft.trim();
     if (!text) return;
@@ -29,6 +36,21 @@ export default function DailyQuestionScreen() {
         ? 'Both in. Answers unlocked.'
         : `Saved. It unlocks when ${partner.name} answers.`,
     });
+
+    // Stands in for the partner's device. Without it the reveal — the whole
+    // point of the mechanic — could never be seen on a single phone.
+    if (!status.answeredByPartner) {
+      window.setTimeout(() => {
+        dispatch({
+          type: 'answerDaily',
+          date,
+          promptId: prompt.id,
+          personId: partner.id,
+          text: partnerReplyFor(prompt.id),
+        });
+        toast.show({ emoji: '🔓', message: `${partner.name} answered. Both unlocked.` });
+      }, 3600);
+    }
   };
 
   return (
@@ -63,8 +85,12 @@ export default function DailyQuestionScreen() {
               🌿 {state.checkInDays} days of checking in with each other.
             </p>
             <div className={s.next}>
-              <ButtonLink to="/explore" variant="secondary" block>
-                Turn this into a plan
+              <ButtonLink
+                to={cue ? `/explore?${cueToParams(cue)}` : '/explore?tier=day'}
+                variant="secondary"
+                block
+              >
+                {cue ? `Find something ${cue.label}` : 'Turn this into a plan'}
               </ButtonLink>
               <ButtonLink to="/talk/room" variant="quiet" block>
                 Take it further in the Relationship Room

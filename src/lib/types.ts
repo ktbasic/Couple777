@@ -12,8 +12,51 @@ export type RitualTier = 'day' | 'week' | 'month';
 export interface Person {
   id: ID;
   name: string;
+  /** An uploaded photo, stored as a downscaled data URL. */
   avatarUrl?: string;
+  /** A chosen Couple777 avatar, used when there is no photo. */
+  avatarId?: string;
   initial: string;
+}
+
+/* ---------------- Personalization, captured at onboarding ---------------- */
+
+/** What the couple said they want more of. Up to two. */
+export type Wish =
+  | 'romance'
+  | 'conversation'
+  | 'fun'
+  | 'adventure'
+  | 'quality-time'
+  | 'spontaneity';
+
+export type RelationshipStatus = 'dating' | 'engaged' | 'married' | 'unsaid';
+
+/** How near each other they live. Distinct from adventure travel distance. */
+export type Proximity = 'together' | 'same-area' | 'different-cities' | 'long-distance';
+
+/** Only asked of long-distance couples. */
+export type SeeFrequency = 'weekly' | 'monthly' | 'few-months' | 'varies';
+
+/** How the couple describes themselves. Up to three. */
+export type CoupleVibe =
+  | 'cozy'
+  | 'romantic'
+  | 'playful'
+  | 'creative'
+  | 'adventurous'
+  | 'exploring';
+
+/**
+ * Answers from onboarding. Everything here feeds the recommendation system —
+ * see `lib/generator.ts`, which scores ideas against these before filters.
+ */
+export interface CoupleProfile {
+  wishes: Wish[];
+  status: RelationshipStatus;
+  proximity: Proximity;
+  seeFrequency?: SeeFrequency;
+  vibes: CoupleVibe[];
 }
 
 export interface Couple {
@@ -24,8 +67,11 @@ export interface Couple {
   /** Shared home base, used for adventure suggestions. */
   homeCity: string;
   inviteCode: string;
-  /** Who is holding the phone right now (prototype: switchable). */
+  /** Who is holding the phone. */
   currentPersonId: ID;
+  /** False until the partner actually accepts the invite. */
+  partnerJoined: boolean;
+  profile: CoupleProfile;
 }
 
 /* ---------------- Plans: one shape for all three tiers ---------------- */
@@ -79,6 +125,9 @@ export type Energy = 'low' | 'medium' | 'high';
 export type Weather = 'any' | 'rain' | 'sun' | 'cold' | 'warm';
 export type Spontaneity = 'spontaneous' | 'planned';
 
+/** When in the day an idea belongs. */
+export type Daypart = 'morning' | 'brunch' | 'afternoon' | 'evening' | 'late' | 'wholeday';
+
 export interface DateIdea {
   id: ID;
   title: string;
@@ -96,10 +145,12 @@ export interface DateIdea {
   energy: Energy;
   weather: Weather[];
   spontaneity: Spontaneity;
+  dayparts: Daypart[];
   image?: string;
 }
 
 export interface IdeaFilters {
+  daypart: Daypart | null;
   duration: number | null; // minutes available
   budget: number | null; // euro ceiling
   setting: Setting | null;
@@ -107,6 +158,9 @@ export interface IdeaFilters {
   energy: Energy | null;
   weather: Weather | null;
 }
+
+/** Why a suggestion missed, fed back into the next round. */
+export type IdeaFeedback = 'expensive' | 'far' | 'effort' | 'done' | 'mood';
 
 /* ---------------- Mini adventures ---------------- */
 
@@ -260,6 +314,11 @@ export interface AppState {
   roomSessions: RoomSession[];
   savedIdeaIds: ID[];
   notificationsEnabled: boolean;
+  /**
+   * Notifications are derived from state rather than stored, so they can never
+   * drift out of sync; only which ones have been read is persisted.
+   */
+  readNotificationIds: ID[];
   /** Days the couple has both checked in, for the gentle streak. */
   checkInDays: number;
 }

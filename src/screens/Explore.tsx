@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Screen, ScreenHeader, Section } from '@/components/layout/Screen';
 import { Segmented } from '@/components/ui/Segmented';
@@ -12,10 +12,12 @@ import { DestinationCard, MatchReveal } from '@/features/DestinationCard';
 import { DATE_IDEAS } from '@/data/dateIdeas';
 import {
   BUDGET_OPTIONS,
+  DAYPART_OPTIONS,
   DISTANCE_OPTIONS,
   DURATION_OPTIONS,
   EMPTY_FILTERS,
   ENERGY_OPTIONS,
+  FEEDBACK_OPTIONS,
   MOOD_OPTIONS,
   SETTING_OPTIONS,
   VIBE_OPTIONS,
@@ -25,7 +27,15 @@ import {
 } from '@/lib/generator';
 import { useStore } from '@/context/store';
 import { matches, newMatch } from '@/lib/selectors';
-import type { AdventureMood, Distance, IdeaFilters } from '@/lib/types';
+import type {
+  AdventureMood,
+  Daypart,
+  Distance,
+  IdeaFeedback,
+  IdeaFilters,
+  Setting,
+  Vibe,
+} from '@/lib/types';
 import s from './Explore.module.css';
 
 type Tab = 'day' | 'week' | 'month';
@@ -71,21 +81,100 @@ export default function ExploreScreen() {
 
 function DateIdeasTab() {
   const { state } = useStore();
-  const [filters, setFilters] = useState<IdeaFilters>(EMPTY_FILTERS);
-  const [seed, setSeed] = useState(1);
+  const [params, setParams] = useSearchParams();
+  const resultsRef = useRef<HTMLDivElement>(null);
 
-  const ideas = useMemo(() => generateDateIdeas(filters, seed), [filters, seed]);
+  // A cue from Talk arrives as query params, so the generator opens already
+  // pointed at what the couple just said to each other.
+  const cued = useMemo<IdeaFilters>(() => {
+    const read = <T extends string>(key: string) => (params.get(key) as T | null) ?? null;
+    return {
+      ...EMPTY_FILTERS,
+      daypart: read<Daypart>('daypart'),
+      setting: read<Setting>('setting'),
+      vibe: read<Vibe>('vibe'),
+    };
+  }, [params]);
+
+  const hasCue = Boolean(cued.daypart || cued.setting || cued.vibe);
+  const [filters, setFilters] = useState<IdeaFilters>(cued);
+  const [seed, setSeed] = useState(1);
+  const [feedback, setFeedback] = useState<IdeaFeedback[]>([]);
+  const [seen, setSeen] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [surprised, setSurprised] = useState(false);
+
+  useEffect(() => {
+    if (hasCue) setFilters(cued);
+  }, [cued, hasCue]);
+
+  const ideas = useMemo(
+    () => generateDateIdeas(filters, seed, 4, state.couple.profile, feedback, seen),
+    [filters, seed, state.couple.profile, feedback, seen],
+  );
+
   const saved = DATE_IDEAS.filter((i) => state.savedIdeaIds.includes(i.id));
 
   // Selecting the value that is already set clears it, so filters stay escapable.
   const set = <K extends keyof IdeaFilters>(key: K, value: IdeaFilters[K]) =>
     setFilters((f) => ({ ...f, [key]: f[key] === value ? null : value }));
 
+  /** The signature action: think for a beat, then bring you to the answer. */
+  const surpriseUs = () => {
+    setLoading(true);
+    setSurprised(true);
+    window.setTimeout(() => {
+      setSeed((n) => n + 7);
+      setLoading(false);
+      window.setTimeout(
+        () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+        60,
+      );
+    }, 1100);
+  };
+
+  const react = (f: IdeaFeedback) => {
+    // "Done this before" hides what is on screen; the rest just re-weight.
+    if (f === 'done') setSeen((prev) => [...new Set([...prev, ...ideas.map((i) => i.id)])]);
+    setFeedback((prev) => (prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]));
+    setSeed((n) => n + 1);
+  };
+
+  const clearAll = () => {
+    setFilters(EMPTY_FILTERS);
+    setFeedback([]);
+    setSeen([]);
+    if (hasCue) setParams({ tier: 'day' }, { replace: true });
+  };
+
   return (
     <>
+      {hasCue ? (
+        <p className={s.cueBanner}>
+          <span aria-hidden>✨</span>
+          <span>Set up from what you both wrote today.</span>
+          <button type="button" className={s.cueClear} onClick={clearAll}>
+            Clear
+          </button>
+        </p>
+      ) : null}
+
+      <p className={s.helper}>Pick whatever matters. Leave the rest to us.</p>
+
       <div className={s.filters}>
         <div className={s.filterGroup}>
-          <p className={s.filterLabel}>How long have you got?</p>
+          <p className={s.filterLabel}>When are we doing this?</p>
+          <ChipRow>
+            {DAYPART_OPTIONS.map((o) => (
+              <Chip key={o.value} emoji={o.emoji} selected={filters.daypart === o.value} onClick={() => set('daypart', o.value)}>
+                {o.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        </div>
+
+        <div className={s.filterGroup}>
+          <p className={s.filterLabel}>How much time?</p>
           <ChipRow>
             {DURATION_OPTIONS.map((o) => (
               <Chip key={o.value} selected={filters.duration === o.value} onClick={() => set('duration', o.value)}>
@@ -107,7 +196,7 @@ function DateIdeasTab() {
         </div>
 
         <div className={s.filterGroup}>
-          <p className={s.filterLabel}>What kind of evening?</p>
+          <p className={s.filterLabel}>What kind of mood?</p>
           <ChipRow>
             {VIBE_OPTIONS.map((o) => (
               <Chip key={o.value} emoji={o.emoji} selected={filters.vibe === o.value} onClick={() => set('vibe', o.value)}>
@@ -146,25 +235,63 @@ function DateIdeasTab() {
       </div>
 
       <div className={s.surprise}>
-        <Button variant="accent" onClick={() => { setFilters(EMPTY_FILTERS); setSeed((n) => n + 7); }}>
-          Surprise me
+        <Button variant="accent" onClick={surpriseUs}>
+          ✨ Surprise us
         </Button>
-        <Button variant="quiet" onClick={() => setFilters(EMPTY_FILTERS)}>
+        <Button variant="quiet" onClick={clearAll}>
           Clear
         </Button>
       </div>
 
-      <div className={s.resultHead}>
-        <p className={s.count}>{ideas.length} ideas for you</p>
-        <button type="button" className={s.regen} onClick={() => setSeed((n) => n + 1)}>
-          Show me others
-        </button>
-      </div>
+      <div ref={resultsRef} className={s.resultsAnchor}>
+        {loading ? (
+          <div className={s.loading}>
+            <span className={s.loadingDots} aria-hidden>
+              <span className={s.loadingDot} />
+              <span className={s.loadingDot} />
+              <span className={s.loadingDot} />
+            </span>
+            <p className={s.loadingText}>Finding something for you two…</p>
+          </div>
+        ) : (
+          <>
+            <div className={s.resultHead}>
+              <p className={s.count}>{ideas.length} ideas for you</p>
+              <button type="button" className={s.regen} onClick={() => setSeed((n) => n + 1)}>
+                Show me others
+              </button>
+            </div>
 
-      <div className={s.results}>
-        {ideas.map((idea, i) => (
-          <IdeaCard key={`${seed}-${idea.id}`} idea={idea} index={i} />
-        ))}
+            <div className={s.results}>
+              {ideas.map((idea, i) => (
+                <div
+                  key={`${seed}-${idea.id}`}
+                  className={i === 0 && surprised ? s.topPick : undefined}
+                >
+                  {i === 0 && surprised ? <span className={s.topPickBadge}>Our pick</span> : null}
+                  <div className={i === 0 && surprised ? s.topPickRing : undefined}>
+                    <IdeaCard idea={idea} index={i} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className={s.feedback}>
+              <p className={s.feedbackLabel}>Not quite right?</p>
+              <div className={s.feedbackRow}>
+                {FEEDBACK_OPTIONS.map((o) => (
+                  <Chip
+                    key={o.value}
+                    selected={feedback.includes(o.value)}
+                    onClick={() => react(o.value)}
+                  >
+                    {o.label}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {saved.length ? (

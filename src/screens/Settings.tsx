@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BackBar, Screen, ScreenHeader } from '@/components/layout/Screen';
-import { Avatar } from '@/components/ui/Avatar';
 import { Input } from '@/components/ui/Field';
 import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
-import { useToast } from '@/components/ui/Toast';
 import { useStore } from '@/context/store';
 import s from './Settings.module.css';
 
 export default function SettingsScreen() {
-  const { state, dispatch, me, partner, reset } = useStore();
-  const toast = useToast();
+  const { state, dispatch, partner, reset } = useStore();
   const navigate = useNavigate();
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -20,36 +17,6 @@ export default function SettingsScreen() {
       <BackBar title="Settings" fallbackTo="/us" />
       <Screen>
         <ScreenHeader eyebrow="Us" title="Settings & privacy" />
-
-        <section className={s.group}>
-          <p className={s.groupLabel}>Who's holding the phone</p>
-          <div className={s.rows}>
-            {state.couple.people.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className={s.row}
-                onClick={() => {
-                  dispatch({ type: 'switchPerson', id: p.id });
-                  toast.show({ message: `Now viewing as ${p.name}` });
-                }}
-              >
-                <Avatar person={p} size={34} ring={p.id === me.id} />
-                <div className={s.rowMain}>
-                  <p className={s.rowTitle}>{p.name}</p>
-                  <p className={s.rowBody}>
-                    {p.id === me.id ? 'This is you' : 'Switch to see their side'}
-                  </p>
-                </div>
-                {p.id === me.id ? <span aria-hidden>✓</span> : null}
-              </button>
-            ))}
-          </div>
-          <p className={s.rowBody} style={{ marginTop: 'var(--s-3)' }}>
-            In the real app each of you has your own account. Switching here lets you see how the
-            private halves look from both sides.
-          </p>
-        </section>
 
         <section className={s.group}>
           <p className={s.groupLabel}>Daily connection</p>

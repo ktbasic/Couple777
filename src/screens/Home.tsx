@@ -7,17 +7,20 @@ import { RitualCardCompact, RitualCardHero } from '@/features/RitualCard';
 import { DailyCard } from '@/features/DailyCard';
 import { MemoryCard } from '@/features/MemoryCard';
 import { MatchReveal } from '@/features/DestinationCard';
+import { NotificationBell } from '@/features/NotificationBell';
 import { useStore } from '@/context/store';
 import {
   allRituals,
-  inboxNotes,
+  dailyEntry,
+  dailyStatus,
   mostUrgent,
   newMatch,
   planAwaitingMemory,
   sortedMemories,
 } from '@/lib/selectors';
-import { INSPIRATION_LINES } from '@/data/prompts';
-import { daysBetween, today } from '@/lib/dates';
+import { quoteForDate } from '@/data/prompts';
+import { cueFromText, cueToParams } from '@/lib/generator';
+import { today } from '@/lib/dates';
 import s from './Home.module.css';
 
 function greetingFor(hour: number) {
@@ -35,24 +38,30 @@ export default function HomeScreen() {
   const memories = sortedMemories(state.memories).slice(0, 4);
   const awaiting = planAwaitingMemory(state);
   const match = newMatch(state);
-  const unread = inboxNotes(state, me.id).filter((n) => !n.readAt);
 
-  // Rotates daily, so the line is not the same one every time you open the app.
-  const line =
-    INSPIRATION_LINES[Math.abs(daysBetween('2024-01-01', now)) % INSPIRATION_LINES.length];
+  // Once both have answered, their own words seed the date generator.
+  const daily = dailyStatus(state, me.id, partner.id, now);
+  const entry = dailyEntry(state, now);
+  const cue =
+    daily.bothAnswered && entry
+      ? cueFromText(Object.values(entry.answers).map((a) => a.text).join(' '))
+      : null;
 
   return (
     <Screen>
       <header className={s.top}>
-        <div>
-          <p className={s.brand}>Couple777</p>
-          <p className={s.greeting}>
+        <div className={s.headMain}>
+          <h1 className={s.greeting}>
             {greetingFor(new Date().getHours())}, {me.name} &amp; {partner.name}
-          </p>
+          </h1>
+          <p className={s.quote}>&ldquo;{quoteForDate(now)}&rdquo;</p>
         </div>
-        <Link to="/us" className={s.avatars} aria-label="Our relationship">
-          <AvatarPair people={state.couple.people} size={30} />
-        </Link>
+        <div className={s.headActions}>
+          <Link to="/us" className={s.avatars} aria-label="Our relationship and settings">
+            <AvatarPair people={state.couple.people} size={34} />
+          </Link>
+          <NotificationBell />
+        </div>
       </header>
 
       {awaiting ? (
@@ -70,24 +79,7 @@ export default function HomeScreen() {
         </div>
       ) : null}
 
-      {unread.length ? (
-        <div className={s.waiting}>
-          <span aria-hidden>💌</span>
-          <p className={s.waitingText}>
-            {partner.name} left you {unread.length === 1 ? 'a note' : `${unread.length} notes`}.
-          </p>
-          <Link to="/talk/notes" className={s.waitingLink}>
-            Read
-          </Link>
-        </div>
-      ) : null}
-
       <section className={s.hero}>
-        <h1 className={s.heroTitle}>Our 777</h1>
-        <p className={s.heroSub}>
-          Every seven days, seven weeks, and seven months — kept together.
-        </p>
-
         <div className={s.rituals}>
           {rituals.map((r, i) => (
             <div key={r.tier} className={s.ritual} style={{ animationDelay: `${i * 80}ms` }}>
@@ -117,19 +109,33 @@ export default function HomeScreen() {
         </Section>
       ) : null}
 
-      <Section>
-        <div className={s.inspire}>
-          <span className={s.inspireMark} aria-hidden>
-            &ldquo;
-          </span>
-          <p className={s.inspireText}>{line}</p>
-          <div className={s.inspireCta}>
-            <ButtonLink to="/explore" variant="secondary" size="sm">
-              Find a date idea
+      {cue ? (
+        <Section>
+          <div className={s.cue}>
+            <p className={s.cueLabel}>From what you both wrote</p>
+            <p className={s.cueText}>
+              Sounds like something {cue.label}. Want to make it a plan?
+            </p>
+            <ButtonLink to={`/explore?${cueToParams(cue)}`} variant="accent" size="sm">
+              Find something {cue.label}
             </ButtonLink>
           </div>
-        </div>
-      </Section>
+        </Section>
+      ) : (
+        <Section>
+          <div className={s.inspire}>
+            <span className={s.inspireMark} aria-hidden />
+            <p className={s.inspireText}>
+              Your next date does not need to be extraordinary. It just needs to be intentional.
+            </p>
+            <div className={s.inspireCta}>
+              <ButtonLink to="/explore" variant="secondary" size="sm">
+                Find a date idea
+              </ButtonLink>
+            </div>
+          </div>
+        </Section>
+      )}
 
       {memories.length ? (
         <Section>
