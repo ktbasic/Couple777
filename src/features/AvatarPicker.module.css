@@ -47,6 +47,17 @@
   color: var(--c-accent-ink);
 }
 
+.tabs {
+  margin: var(--s-5) 0 var(--s-5);
+}
+
+.done {
+  position: sticky;
+  bottom: 0;
+  padding: var(--s-4) 0 var(--s-2);
+  background: linear-gradient(to top, var(--c-page) 68%, transparent);
+}
+
 .groupLabel {
   font-size: var(--t-micro);
   font-weight: 700;
@@ -59,8 +70,8 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--s-4) var(--s-3);
-  padding: var(--s-1) 2px var(--s-2);
+  gap: var(--s-5) var(--s-3);
+  padding: var(--s-2) 4px var(--s-3);
 }
 
 .option {
@@ -86,7 +97,11 @@
 /* The chosen one gets the accent ring plus a soft halo. */
 .optionOn {
   border-color: var(--c-accent);
-  box-shadow: 0 0 0 4px var(--c-accent-wash), var(--e-2);
+  box-shadow: 0 0 0 5px var(--c-accent-wash), 0 6px 16px rgba(232, 94, 142, 0.28);
+  transform: scale(1.06);
+}
+.optionOn:hover {
+  transform: scale(1.06) translateY(-2px);
 }
 
 /* Played once, on the tap itself. */
@@ -96,9 +111,9 @@
 
 @keyframes avatarPop {
   0% { transform: scale(1); }
-  35% { transform: scale(1.16); }
-  62% { transform: scale(0.95); }
-  100% { transform: scale(1); }
+  32% { transform: scale(1.22); }
+  60% { transform: scale(0.98); }
+  100% { transform: scale(1.06); }
 }
 
 .tick {

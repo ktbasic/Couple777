@@ -1,7 +1,10 @@
 import { useRef, useState } from 'react';
 import { Sheet } from '@/components/ui/Sheet';
+import { Segmented } from '@/components/ui/Segmented';
+import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { AVATARS, AVATAR_GROUPS, AvatarArt } from '@/components/ui/AvatarArt';
+import type { AvatarGroup } from '@/components/ui/AvatarArt';
 import { useStore } from '@/context/store';
 import { useToast } from '@/components/ui/Toast';
 import type { Person } from '@/lib/types';
@@ -60,16 +63,16 @@ export function AvatarPicker({
   const fileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
+  const [tab, setTab] = useState<AvatarGroup>(
+    () => AVATARS.find((a) => a.id === person.avatarId)?.group ?? 'People',
+  );
 
-  // The sheet lingers for a beat after a tap so the selection animation is
-  // actually seen — closing instantly threw away the reward.
+  // The sheet stays open so the preview at the top updates under your thumb
+  // and you can try a few. Closing on the first tap made it a one-shot guess.
   const choose = (avatarId: string) => {
     setPicked(avatarId);
     dispatch({ type: 'setPersonAvatar', personId: person.id, avatarId });
-    window.setTimeout(() => {
-      toast.show({ message: `${person.name}'s avatar updated` });
-      onClose();
-    }, 480);
+    window.setTimeout(() => setPicked(null), 500);
   };
 
   const upload = async (file: File) => {
@@ -114,12 +117,18 @@ export function AvatarPicker({
         />
       </label>
 
-      {AVATAR_GROUPS.map((group) => {
+      <div className={s.tabs}>
+        <Segmented<AvatarGroup>
+          value={tab}
+          onChange={setTab}
+          options={AVATAR_GROUPS.map((g) => ({ value: g, label: g }))}
+        />
+      </div>
+
+      {AVATAR_GROUPS.filter((g) => g === tab).map((group) => {
         const items = AVATARS.filter((a) => a.group === group);
-        if (!items.length) return null;
         return (
           <div key={group}>
-            <p className={s.groupLabel}>{group}</p>
             <div className={s.grid}>
               {items.map((a) => {
                 const selected = !person.avatarUrl && person.avatarId === a.id;
@@ -152,6 +161,12 @@ export function AvatarPicker({
           </div>
         );
       })}
+
+      <div className={s.done}>
+        <Button variant="accent" block onClick={onClose}>
+          Done
+        </Button>
+      </div>
     </Sheet>
   );
 }

@@ -16,7 +16,7 @@ import {
   relationshipStats,
 } from '@/lib/selectors';
 import { TIER_META, countdownLabel, durationTogether, formatMonthYear, today } from '@/lib/dates';
-import type { Person } from '@/lib/types';
+import type { ID } from '@/lib/types';
 import s from './Us.module.css';
 
 const CHEV = (
@@ -29,7 +29,8 @@ export default function UsScreen() {
   const { state, dispatch, me, partner } = useStore();
   const navigate = useNavigate();
   const toast = useToast();
-  const [editing, setEditing] = useState<Person | null>(null);
+  const [editingId, setEditingId] = useState<ID | null>(null);
+  const editing = state.couple.people.find((p) => p.id === editingId) ?? null;
 
   const stats = relationshipStats(state);
   const rituals = allRituals(state);
@@ -53,7 +54,7 @@ export default function UsScreen() {
               <button
                 type="button"
                 className={s.avatarButton}
-                onClick={() => setEditing(p)}
+                onClick={() => setEditingId(p.id)}
                 aria-label={`Change ${p.name}'s avatar`}
               >
                 <Avatar person={p} size={76} />
@@ -235,7 +236,7 @@ export default function UsScreen() {
       </Section>
 
       {editing ? (
-        <AvatarPicker person={editing} open onClose={() => setEditing(null)} />
+        <AvatarPicker person={editing} open onClose={() => setEditingId(null)} />
       ) : null}
     </Screen>
   );

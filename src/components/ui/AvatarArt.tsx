@@ -56,6 +56,22 @@ const WHITE = '#FFFFFF';
 const BLUSH = '#F2879F';
 const GOLD = '#E9B949';
 
+/** Softer than INK. People are drawn with this; mascots keep the hard ink. */
+const SOFT_INK = '#4A4054';
+
+/**
+ * Darken a fill to get its own outline. Shapes read better when their edge is
+ * a deeper version of the colour beside it rather than one universal near-
+ * black, which is what made the earlier set feel like sticker art.
+ */
+function shade(hex: string, amount: number): string {
+  const n = parseInt(hex.replace('#', ''), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) =>
+    Math.round(Math.max(0, Math.min(255, v * (1 - amount)))),
+  );
+  return `#${ch.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+}
+
 const C = {
   rose: '#E4598A',
   coral: '#EE8B6E',
@@ -72,13 +88,18 @@ const C = {
   skyPale: '#DCE7F6',
 };
 
-/** Deliberately wide, with several distinct light tones rather than one. */
+/**
+ * Deliberately wide at the light end — several distinct European and East
+ * Asian tones rather than one "light" — while keeping the deeper range.
+ */
 const SKIN = {
-  porcelain: '#FCE4D6',
-  pale: '#F9D5BD',
-  light: '#F6C9A8',
-  fair: '#EFBB92',
-  olive: '#DFAE80',
+  ivory: '#FCEDE0',      // very fair, neutral
+  rosy: '#F9DFD0',       // fair, pink undertone
+  porcelain: '#FAE3D2',  // fair, neutral
+  warmIvory: '#F8E6CC',  // light, warm/yellow undertone
+  golden: '#F2D6AE',     // light-medium, golden
+  honey: '#E7C29A',      // medium, warm
+  olive: '#D9B084',      // medium, olive
   tan: '#CE9463',
   brown: '#A96A42',
   deep: '#7C4B2D',
@@ -101,19 +122,19 @@ const HAIR = {
 export const AVATARS: AvatarDef[] = [
   /* ---------------------------------- People --------------------------------- */
   { id: 'person-1', label: 'Afro & hoops', group: 'People', ring: C.coral, ground: C.blushPale, skin: SKIN.deep, hair: HAIR.ink, hairStyle: 'afro', head: 'round', eyes: 'open', mouth: 'grin', accessories: ['earrings'], top: HAIR.pink, sparkle: GOLD },
-  { id: 'person-2', label: 'Pink & winking', group: 'People', ring: C.plum, ground: C.creamPale, skin: SKIN.porcelain, hair: HAIR.pink, hairStyle: 'long', head: 'oval', eyes: 'wink', mouth: 'smirk', top: '#C3AEE0', sparkle: WHITE },
-  { id: 'person-3', label: 'Ponytail & specs', group: 'People', ring: C.rose, ground: C.mintPale, skin: SKIN.pale, hair: HAIR.blonde, hairStyle: 'ponytail', head: 'round', eyes: 'happy', mouth: 'smile', accessories: ['glasses'], top: '#3E5A8C', sparkle: C.plum },
+  { id: 'person-2', label: 'Pink & winking', group: 'People', ring: C.plum, ground: C.creamPale, skin: SKIN.rosy, hair: HAIR.pink, hairStyle: 'long', head: 'oval', eyes: 'wink', mouth: 'smirk', top: '#C3AEE0', sparkle: WHITE },
+  { id: 'person-3', label: 'Ponytail & specs', group: 'People', ring: C.rose, ground: C.mintPale, skin: SKIN.ivory, hair: HAIR.blonde, hairStyle: 'ponytail', head: 'round', eyes: 'happy', mouth: 'smile', accessories: ['glasses'], top: '#3E5A8C', sparkle: C.plum },
   { id: 'person-4', label: 'Lilac bob', group: 'People', ring: C.plum, ground: C.blushPale, skin: SKIN.porcelain, hair: HAIR.lilac, hairStyle: 'bob-cowlick', head: 'taper', eyes: 'heart', mouth: 'soft', top: HAIR.pink, sparkle: WHITE },
-  { id: 'person-5', label: 'Beard & freckles', group: 'People', ring: C.mauve, ground: C.peachPale, skin: SKIN.light, hair: HAIR.auburn, hairStyle: 'buzz', head: 'square', eyes: 'open', mouth: 'smile', accessories: ['beard', 'freckles'], top: GOLD, sparkle: C.plum },
-  { id: 'person-6', label: 'Blunt fringe', group: 'People', ring: C.mint, ground: C.lilacPale, skin: SKIN.tan, hair: HAIR.ink, hairStyle: 'bob-fringe', head: 'wide', eyes: 'open', mouth: 'soft', top: '#EE8B7E', sparkle: GOLD },
+  { id: 'person-5', label: 'Beard & freckles', group: 'People', ring: C.mauve, ground: C.peachPale, skin: SKIN.rosy, hair: HAIR.auburn, hairStyle: 'buzz', head: 'square', eyes: 'open', mouth: 'smile', accessories: ['beard', 'freckles'], top: GOLD, sparkle: C.plum },
+  { id: 'person-6', label: 'Blunt fringe', group: 'People', ring: C.mint, ground: C.lilacPale, skin: SKIN.warmIvory, hair: HAIR.ink, hairStyle: 'bob-fringe', head: 'wide', eyes: 'open', mouth: 'soft', top: '#EE8B7E', sparkle: GOLD },
   { id: 'person-7', label: 'Curls & clips', group: 'People', ring: C.rose, ground: C.lilacPale, skin: SKIN.brown, hair: HAIR.ink, hairStyle: 'curls-clips', head: 'round', eyes: 'star', mouth: 'grin', top: C.mint, sparkle: GOLD },
-  { id: 'person-8', label: 'Teal & shades', group: 'People', ring: C.gold, ground: C.skyPale, skin: SKIN.pale, hair: HAIR.teal, hairStyle: 'short-fringe', head: 'square', eyes: 'open', mouth: 'smirk', accessories: ['sunglasses'], top: '#B0A2D8', sparkle: C.plum },
-  { id: 'person-9', label: 'Silver & sleepy', group: 'People', ring: C.sky, ground: C.skyPale, skin: SKIN.porcelain, hair: HAIR.silver, hairStyle: 'silver-long', head: 'oval', eyes: 'sleepy', mouth: 'soft', top: '#8FB8D8', sparkle: WHITE },
-  { id: 'person-10', label: 'Topknot & tash', group: 'People', ring: C.coral, ground: C.creamPale, skin: SKIN.olive, hair: HAIR.ink, hairStyle: 'topknot', head: 'taper', eyes: 'open', mouth: 'smile', accessories: ['moustache'], top: C.mint, sparkle: GOLD },
-  { id: 'person-11', label: 'Ginger waves', group: 'People', ring: C.mint, ground: C.peachPale, skin: SKIN.pale, hair: HAIR.ginger, hairStyle: 'waves', head: 'round', eyes: 'open', mouth: 'grin', accessories: ['freckles'], top: '#7FA8D8', sparkle: WHITE },
+  { id: 'person-8', label: 'Teal & shades', group: 'People', ring: C.gold, ground: C.skyPale, skin: SKIN.golden, hair: HAIR.teal, hairStyle: 'short-fringe', head: 'square', eyes: 'open', mouth: 'smirk', accessories: ['sunglasses'], top: '#B0A2D8', sparkle: C.plum },
+  { id: 'person-9', label: 'Silver & sleepy', group: 'People', ring: C.sky, ground: C.skyPale, skin: SKIN.ivory, hair: HAIR.silver, hairStyle: 'silver-long', head: 'oval', eyes: 'sleepy', mouth: 'soft', top: '#8FB8D8', sparkle: WHITE },
+  { id: 'person-10', label: 'Topknot & tash', group: 'People', ring: C.coral, ground: C.creamPale, skin: SKIN.warmIvory, hair: HAIR.ink, hairStyle: 'topknot', head: 'taper', eyes: 'open', mouth: 'smile', accessories: ['moustache'], top: C.mint, sparkle: GOLD },
+  { id: 'person-11', label: 'Ginger waves', group: 'People', ring: C.mint, ground: C.peachPale, skin: SKIN.porcelain, hair: HAIR.ginger, hairStyle: 'waves', head: 'round', eyes: 'open', mouth: 'grin', accessories: ['freckles'], top: '#7FA8D8', sparkle: WHITE },
   { id: 'person-12', label: 'Fade & shades', group: 'People', ring: C.mauve, ground: C.mintPale, skin: SKIN.espresso, hair: HAIR.ink, hairStyle: 'fade', head: 'square', eyes: 'open', mouth: 'smile', accessories: ['sunglasses', 'headband'], top: GOLD, sparkle: WHITE },
-  { id: 'person-13', label: 'Undercut & beard', group: 'People', ring: C.plum, ground: C.lilacPale, skin: SKIN.fair, hair: '#5E4536', hairStyle: 'undercut', head: 'square', eyes: 'open', mouth: 'soft', accessories: ['beard', 'moustache'], top: '#6FA8C8', sparkle: GOLD },
-  { id: 'person-14', label: 'Beanie', group: 'People', ring: C.rose, ground: C.creamPale, skin: SKIN.light, hair: HAIR.sand, hairStyle: 'short-fringe', head: 'wide', eyes: 'happy', mouth: 'oh', accessories: ['beanie'], top: '#A8D8C8', sparkle: C.plum },
+  { id: 'person-13', label: 'Undercut & beard', group: 'People', ring: C.plum, ground: C.lilacPale, skin: SKIN.golden, hair: '#5E4536', hairStyle: 'undercut', head: 'square', eyes: 'open', mouth: 'soft', accessories: ['beard', 'moustache'], top: '#6FA8C8', sparkle: GOLD },
+  { id: 'person-14', label: 'Beanie', group: 'People', ring: C.rose, ground: C.creamPale, skin: SKIN.honey, hair: HAIR.sand, hairStyle: 'short-fringe', head: 'wide', eyes: 'happy', mouth: 'oh', accessories: ['beanie'], top: '#A8D8C8', sparkle: C.plum },
 
   /* --------------------------------- Animals -------------------------------- */
   { id: 'cat', label: 'Cat', group: 'Animals', ring: C.mauve, ground: C.lilacPale, skin: '#C9C2D2', animal: 'cat', top: '#8FB8D8', sparkle: WHITE },
@@ -151,7 +172,16 @@ function Sparkle({ x, y, r, fill }: { x: number; y: number; r: number; fill: str
   );
 }
 
-function Shoulders({ top, skin }: { top: string; skin: string }) {
+/**
+ * People are cropped much tighter than mascots: the head fills the disc and
+ * only a sliver of shoulder grounds it at the bottom. Scaling about the head
+ * centre lets every existing hair path come along unchanged.
+ */
+const HEAD_TF = 'translate(50 46) scale(1.41) translate(-50 -44)';
+const ANIMAL_TF = 'translate(50 46) scale(1.1) translate(-50 -44)';
+
+function Shoulders({ top, skin, tight }: { top: string; skin: string; tight?: boolean }) {
+  if (tight) return <ellipse cx="50" cy="116" rx="42" ry="32" fill={top} />;
   return (
     <>
       <rect x="41" y="54" width="18" height="18" rx="8" fill={skin} />
@@ -188,19 +218,27 @@ function Ears({ shape, skin }: { shape: HeadShape; skin: string }) {
     <>
       <circle cx={earX} cy={earY} r="5.5" fill={skin} />
       <circle cx={100 - earX} cy={earY} r="5.5" fill={skin} />
-      <path d={`M${earX - 0.6} ${earY - 1.8}a2.6 2.6 0 0 0 0 3.8`} stroke={INK} strokeWidth="1" fill="none" opacity="0.3" strokeLinecap="round" />
-      <path d={`M${100 - earX + 0.6} ${earY - 1.8}a2.6 2.6 0 0 1 0 3.8`} stroke={INK} strokeWidth="1" fill="none" opacity="0.3" strokeLinecap="round" />
+      <path d={`M${earX - 0.6} ${earY - 1.8}a2.6 2.6 0 0 0 0 3.8`} stroke={shade(skin, 0.2)} strokeWidth="0.9" fill="none" strokeLinecap="round" />
+      <path d={`M${100 - earX + 0.6} ${earY - 1.8}a2.6 2.6 0 0 1 0 3.8`} stroke={shade(skin, 0.2)} strokeWidth="0.9" fill="none" strokeLinecap="round" />
     </>
   );
 }
 
 /* ---------------------------------- Eyes ---------------------------------- */
 
+/* Mascot face (animals, playful) keeps the original placement. */
 const EYE_L = 41.5;
 const EYE_R = 58.5;
 const EYE_Y = 43;
 
-function OpenEye({ x, r = 7 }: { x: number; r?: number }) {
+/* Human face on the zoomed portrait. Head spans y 15..77, x 21..79. */
+const FL = 38.5;
+const FR = 61.5;
+const FY = 45;
+const NOSE_Y = 55;
+const MOUTH_Y = 63;
+
+function MascotEye({ x, r = 7 }: { x: number; r?: number }) {
   return (
     <>
       <circle cx={x} cy={EYE_Y} r={r} fill={INK} />
@@ -210,121 +248,181 @@ function OpenEye({ x, r = 7 }: { x: number; r?: number }) {
   );
 }
 
-function ClosedEye({ x, up = false }: { x: number; up?: boolean }) {
+/* ------------------------------ Human face ------------------------------- */
+
+/**
+ * Small, flat and matte. The previous eye was a 7px near-black disc with two
+ * highlights, which is most of why the faces read as mascots.
+ */
+function HumanEye({ x }: { x: number }) {
+  return <ellipse cx={x} cy={FY} rx="3.3" ry="4" fill={SOFT_INK} />;
+}
+
+function HumanLash({ x, up }: { x: number; up: boolean }) {
   return (
     <path
-      d={up ? `M${x - 5.5} ${EYE_Y + 2} q5.5 -6.5 11 0` : `M${x - 5.5} ${EYE_Y - 1} q5.5 6.5 11 0`}
-      stroke={INK}
-      strokeWidth="2.6"
+      d={up ? `M${x - 4.4} ${FY + 1.6} q4.4 -5 8.8 0` : `M${x - 4.4} ${FY - 1} q4.4 4.6 8.8 0`}
+      stroke={SOFT_INK}
+      strokeWidth="1.9"
       fill="none"
       strokeLinecap="round"
     />
   );
 }
 
-function HeartEye({ x }: { x: number }) {
+/** Two soft lines: closed and calm, rather than droopy or sad. */
+function HumanSleepy({ x }: { x: number }) {
   return (
     <path
-      transform={`translate(${x} ${EYE_Y}) scale(0.72)`}
-      d="M0 8 C-9 1 -9 -6 -4.4 -8 C-1.6 -9.2 0 -7 0 -5.4 C0 -7 1.6 -9.2 4.4 -8 C9 -6 9 1 0 8 Z"
-      fill="#E45C7A"
+      d={`M${x - 4.6} ${FY} q4.6 1.6 9.2 0`}
+      stroke={SOFT_INK}
+      strokeWidth="1.9"
+      fill="none"
+      strokeLinecap="round"
     />
   );
 }
 
-function StarEye({ x }: { x: number }) {
-  const r = 7.4;
+function HumanHeart({ x }: { x: number }) {
+  return (
+    <path
+      transform={`translate(${x} ${FY}) scale(0.52)`}
+      d="M0 8 C-9 1 -9 -6 -4.4 -8 C-1.6 -9.2 0 -7 0 -5.4 C0 -7 1.6 -9.2 4.4 -8 C9 -6 9 1 0 8 Z"
+      fill="#E1798C"
+    />
+  );
+}
+
+function HumanStar({ x }: { x: number }) {
+  const r = 4.6;
   const k = r * 0.28;
   return (
     <path
-      transform={`translate(${x} ${EYE_Y})`}
+      transform={`translate(${x} ${FY})`}
       d={`M0 ${-r} C ${k} ${-k} ${k} ${-k} ${r} 0 C ${k} ${k} ${k} ${k} 0 ${r} C ${-k} ${k} ${-k} ${k} ${-r} 0 C ${-k} ${-k} ${-k} ${-k} 0 ${-r} Z`}
-      fill={INK}
+      fill={SOFT_INK}
     />
   );
 }
 
-/** Half-lidded and content: a sagging upper lid over a round lower eye. */
-function SleepyEye({ x }: { x: number }) {
-  return (
-    <>
-      <path
-        d={`M${x - 6.6} ${EYE_Y - 0.8} q6.6 -4.4 13.2 0 a6.6 6.6 0 0 1 -13.2 0 Z`}
-        fill={INK}
-      />
-      <circle cx={x - 2} cy={EYE_Y + 1.6} r="2.1" fill={WHITE} />
-    </>
-  );
-}
-
-function EyePair({ kind }: { kind: Eyes }) {
+function HumanEyes({ kind }: { kind: Eyes }) {
   switch (kind) {
     case 'wink':
-      return (
-        <>
-          <OpenEye x={EYE_L} />
-          <ClosedEye x={EYE_R} />
-        </>
-      );
-    case 'heart':
-      return (
-        <>
-          <HeartEye x={EYE_L} />
-          <HeartEye x={EYE_R} />
-        </>
-      );
+      return (<><HumanEye x={FL} /><HumanLash x={FR} up={false} /></>);
     case 'happy':
-      return (
-        <>
-          <ClosedEye x={EYE_L} up />
-          <ClosedEye x={EYE_R} up />
-        </>
-      );
-    case 'star':
-      return (
-        <>
-          <StarEye x={EYE_L} />
-          <StarEye x={EYE_R} />
-        </>
-      );
+      return (<><HumanLash x={FL} up /><HumanLash x={FR} up /></>);
     case 'sleepy':
-      return (
-        <>
-          <SleepyEye x={EYE_L} />
-          <SleepyEye x={EYE_R} />
-        </>
-      );
+      return (<><HumanSleepy x={FL} /><HumanSleepy x={FR} /></>);
+    case 'heart':
+      return (<><HumanHeart x={FL} /><HumanHeart x={FR} /></>);
+    case 'star':
+      return (<><HumanStar x={FL} /><HumanStar x={FR} /></>);
     default:
-      return (
-        <>
-          <OpenEye x={EYE_L} />
-          <OpenEye x={EYE_R} />
-        </>
-      );
+      return (<><HumanEye x={FL} /><HumanEye x={FR} /></>);
   }
 }
 
-/* --------------------------------- Mouths --------------------------------- */
+/** A hint of a nose, in the skin's own deeper tone. */
+function Nose({ skin }: { skin: string }) {
+  return (
+    <path
+      d={`M48.4 ${NOSE_Y - 1.4} q1.6 2.4 3.2 0`}
+      stroke={shade(skin, 0.24)}
+      strokeWidth="1.7"
+      fill="none"
+      strokeLinecap="round"
+    />
+  );
+}
 
-function MouthShape({ kind, y = 55 }: { kind: Mouth; y?: number }) {
+function HumanMouth({
+  kind,
+  skin,
+  y,
+  over,
+}: {
+  kind: Mouth;
+  skin: string;
+  y: number;
+  /** The colour the mouth sits on, when it is not skin. */
+  over?: string;
+}) {
+  const ink = over ? shade(over, 0.42) : shade(skin, 0.62);
   switch (kind) {
     case 'grin':
       return (
         <>
-          <path d={`M42 ${y - 1.5} h16 a8 8 0 0 1 -16 0Z`} fill={INK} />
-          <path d={`M46 ${y + 3.4} a4 3 0 0 0 8 0Z`} fill="#F2879F" />
+          <path d={`M44.6 ${y - 1} h10.8 a5.4 5.4 0 0 1 -10.8 0Z`} fill={ink} />
+          <path d={`M47.4 ${y + 2.4} a2.6 2 0 0 0 5.2 0Z`} fill="#E8A0AE" />
         </>
       );
     case 'smirk':
-      return <path d={`M45 ${y} q5 4.5 10 -1.5`} stroke={INK} strokeWidth="2.4" fill="none" strokeLinecap="round" />;
+      return <path d={`M46.4 ${y} q3.6 3.2 7.2 -1`} stroke={ink} strokeWidth="1.8" fill="none" strokeLinecap="round" />;
     case 'oh':
-      return <ellipse cx="50" cy={y + 1} rx="3.4" ry="4.2" fill={INK} />;
+      return <ellipse cx="50" cy={y + 0.6} rx="2.4" ry="3" fill={ink} />;
     case 'soft':
-      return <path d={`M46.5 ${y} q3.5 3.4 7 0`} stroke={INK} strokeWidth="2.4" fill="none" strokeLinecap="round" />;
+      return <path d={`M47.4 ${y} q2.6 2.4 5.2 0`} stroke={ink} strokeWidth="1.8" fill="none" strokeLinecap="round" />;
     default:
-      return <path d={`M44.5 ${y} q5.5 5.5 11 0`} stroke={INK} strokeWidth="2.4" fill="none" strokeLinecap="round" />;
+      return <path d={`M46 ${y} q4 3.8 8 0`} stroke={ink} strokeWidth="1.8" fill="none" strokeLinecap="round" />;
   }
 }
+
+function HumanBlush() {
+  return (
+    <>
+      <ellipse cx="29" cy="55" rx="6.4" ry="3.6" fill={BLUSH} opacity="0.28" />
+      <ellipse cx="71" cy="55" rx="6.4" ry="3.6" fill={BLUSH} opacity="0.28" />
+    </>
+  );
+}
+
+function HumanFreckles({ skin }: { skin: string }) {
+  return (
+    <g fill={shade(skin, 0.32)} opacity="0.7">
+      <circle cx="32" cy="51" r="0.9" />
+      <circle cx="36.5" cy="54.4" r="0.9" />
+      <circle cx="31" cy="56" r="0.9" />
+      <circle cx="68" cy="51" r="0.9" />
+      <circle cx="63.5" cy="54.4" r="0.9" />
+      <circle cx="69" cy="56" r="0.9" />
+    </g>
+  );
+}
+
+function HumanGlasses({ hair }: { hair: string }) {
+  const r = 10.4;
+  return (
+    <g stroke={shade(hair, 0.12)} strokeWidth="1.5" fill="none" opacity="0.92">
+      <circle cx={FL} cy={FY} r={r} />
+      <circle cx={FR} cy={FY} r={r} />
+      <path d={`M${FL + r} ${FY} H${FR - r}`} strokeLinecap="round" />
+      <path d={`M${FL - r} ${FY - 1} l -5 1.6`} strokeLinecap="round" />
+      <path d={`M${FR + r} ${FY - 1} l 5 1.6`} strokeLinecap="round" />
+    </g>
+  );
+}
+
+function HumanSunglasses() {
+  return (
+    <g>
+      <rect x={FL - 10.6} y={FY - 6.6} width="21.2" height="13.6" rx="6.4" fill="#5A5066" />
+      <rect x={FR - 10.6} y={FY - 6.6} width="21.2" height="13.6" rx="6.4" fill="#5A5066" />
+      <path d={`M${FL + 10.6} ${FY - 2.6} H${FR - 10.6}`} stroke="#5A5066" strokeWidth="2.2" strokeLinecap="round" />
+      <path d={`M${FL - 5.4} ${FY + 1.4} a4.8 4.8 0 0 1 4.8 -3.6`} stroke={WHITE} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.3" />
+    </g>
+  );
+}
+
+function HumanMoustache({ hair }: { hair: string }) {
+  return (
+    <path
+      d={`M50 ${NOSE_Y + 3.6}c-2.4-2.2-6-2.8-8.4-1.4-1.9 1.1-1.9 3.1 0 3.8 2.9 1.1 6.2.1 8.4-2.4Zm0 0c2.4-2.2 6-2.8 8.4-1.4 1.9 1.1 1.9 3.1 0 3.8-2.9 1.1-6.2.1-8.4-2.4Z`}
+      fill={hair}
+    />
+  );
+}
+
+/* --------------------------------- Mouths --------------------------------- */
 
 function Blush() {
   return (
@@ -337,57 +435,13 @@ function Blush() {
 
 /* ------------------------------- Accessories ------------------------------ */
 
-function Glasses() {
-  return (
-    <g stroke={INK} strokeWidth="1.9" fill="none">
-      <circle cx={EYE_L} cy={EYE_Y} r="8.1" />
-      <circle cx={EYE_R} cy={EYE_Y} r="8.1" />
-      <path d="M50.4 43h-0.8M33.2 41.6 29 43.4M66.8 41.6 71 43.4" strokeLinecap="round" />
-    </g>
-  );
-}
-
-function Sunglasses() {
-  return (
-    <g>
-      <path d="M30 38.5h40v3.2H30Z" fill={INK} />
-      <rect x="30" y="39" width="18" height="13.5" rx="6" fill={INK} />
-      <rect x="52" y="39" width="18" height="13.5" rx="6" fill={INK} />
-      <path d="M48 41h4v2h-4Z" fill={INK} />
-      <path d="M34 43.5a5 5 0 0 1 5-2.5" stroke={WHITE} strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.55" />
-      <path d="M56 43.5a5 5 0 0 1 5-2.5" stroke={WHITE} strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.55" />
-    </g>
-  );
-}
-
-function Beard({ hair }: { hair: string }) {
+/** Drawn on the zoomed face, not scaled with the hair. */
+function HumanBeard({ hair }: { hair: string }) {
   return (
     <path
-      d="M30 45c.4 3 1.2 5.6 2.4 7.6 4-2.6 10-3.8 17.6-3.8s13.6 1.2 17.6 3.8c1.2-2 2-4.6 2.4-7.6 0 13.5-8.2 22-20 22s-20-8.5-20-22Z"
+      d="M22 50c.6 5.4 1.8 10 3.6 13.8 5.6-3.6 13.6-5.4 24.4-5.4s18.8 1.8 24.4 5.4c1.8-3.8 3-8.4 3.6-13.8 0 19-11.6 27.4-28 27.4S22 69 22 50Z"
       fill={hair}
     />
-  );
-}
-
-function Moustache({ hair }: { hair: string }) {
-  return (
-    <path
-      d="M50 53.4c-2-2-5-2.5-7-1.2-1.6 1-1.6 2.7 0 3.3 2.4 1 5.2.1 7-2.1Zm0 0c2-2 5-2.5 7-1.2 1.6 1 1.6 2.7 0 3.3-2.4 1-5.2.1-7-2.1Z"
-      fill={hair}
-    />
-  );
-}
-
-function Freckles() {
-  return (
-    <g fill={INK} opacity="0.26">
-      <circle cx="29" cy="49" r="1" />
-      <circle cx="33.5" cy="47" r="1" />
-      <circle cx="34" cy="52.4" r="1" />
-      <circle cx="71" cy="49" r="1" />
-      <circle cx="66.5" cy="47" r="1" />
-      <circle cx="66" cy="52.4" r="1" />
-    </g>
   );
 }
 
@@ -404,13 +458,14 @@ function Headband({ color }: { color: string }) {
   return <path d="M29 37c5-4 13-6 21-6s16 2 21 6c-1 3-2 5-3 6-5-4-11-6-18-6s-13 2-18 6c-1-1-2-3-3-6Z" fill={color} />;
 }
 
-function Beanie({ color }: { color: string }) {
+/** Drawn on the zoomed face so the brim clears the brow. */
+function HumanBeanie({ color }: { color: string }) {
   return (
     <>
-      <path d="M28 38c0-13 10-21 22-21s22 8 22 21Z" fill={color} />
-      <rect x="27" y="36" width="46" height="7" rx="3.5" fill={color} />
-      <rect x="27" y="36" width="46" height="7" rx="3.5" fill={INK} opacity="0.12" />
-      <circle cx="50" cy="15" r="5" fill={color} />
+      <circle cx="50" cy="14" r="6" fill={color} />
+      <path d="M21 36c0-16 13-25 29-25s29 9 29 25Z" fill={color} />
+      <rect x="20" y="32" width="60" height="9" rx="4.5" fill={color} />
+      <rect x="20" y="32" width="60" height="9" rx="4.5" fill={shade(color, 0.14)} />
     </>
   );
 }
@@ -444,26 +499,26 @@ function HairBack({ style, hair }: { style: HairStyle; hair: string }) {
     case 'curls-clips':
       return (
         <>
-          <circle cx="30" cy="34" r="11" fill={hair} />
-          <circle cx="50" cy="26" r="12" fill={hair} />
-          <circle cx="70" cy="34" r="11" fill={hair} />
-          <circle cx="25" cy="46" r="8" fill={hair} />
-          <circle cx="75" cy="46" r="8" fill={hair} />
+          <circle cx="31" cy="36" r="10" fill={hair} />
+          <circle cx="50" cy="30" r="11" fill={hair} />
+          <circle cx="69" cy="36" r="10" fill={hair} />
+          <circle cx="26" cy="46" r="7.5" fill={hair} />
+          <circle cx="74" cy="46" r="7.5" fill={hair} />
         </>
       );
     case 'afro':
       return (
         <>
-          <circle cx="31" cy="33" r="12.5" fill={hair} />
-          <circle cx="50" cy="23" r="13.5" fill={hair} />
-          <circle cx="69" cy="33" r="12.5" fill={hair} />
+          <circle cx="32" cy="36" r="11.5" fill={hair} />
+          <circle cx="50" cy="30" r="12" fill={hair} />
+          <circle cx="68" cy="36" r="11.5" fill={hair} />
         </>
       );
     case 'topknot':
       return (
         <>
-          <circle cx="50" cy="16" r="8.5" fill={hair} />
-          <path d="M50 14c-4-4-3-8 0-9 3 1 4 5 0 9Z" fill={hair} />
+          <circle cx="50" cy="24" r="7.5" fill={hair} />
+          <path d="M50 22c-3.4-3.4-2.6-6.8 0-7.6 2.6.8 3.4 4.2 0 7.6Z" fill={hair} />
         </>
       );
     default:
@@ -530,16 +585,11 @@ function HairFront({ style, hair }: { style: HairStyle; hair: string }) {
       return (
         <>
           <path d="M30 40c1-12 9-19 20-19s19 7 20 19c-3-9-10-12-20-12s-17 3-20 12Z" fill={hair} />
-          <path d="M30 40c1-4 2-7 4-9 8 5 24 5 32 0 2 2 3 5 4 9-4-5-36-5-40 0Z" fill={hair} opacity="0.45" />
+          <path d="M31 36c1-3 2-5 3-7 8 4 24 4 32 0 1 2 2 4 3 7-5-4-33-4-38 0Z" fill={hair} opacity="0.4" />
         </>
       );
     case 'undercut':
-      return (
-        <>
-          <path d="M29 38c2-11 10-17 21-17s19 6 21 17c-6-8-13-10-21-10s-15 2-21 10Z" fill={hair} />
-          <path d="M29 38c1 3 1 5 1 7 3-6 10-8 20-8s17 2 20 8c0-2 0-4 1-7-5-6-13-8-21-8s-16 2-21 8Z" fill={INK} opacity="0.22" />
-        </>
-      );
+      return <path d="M28 41c1-13 10-20 22-20s21 7 22 20c-6-9-13-12-22-12s-16 3-22 12Z" fill={hair} />;
     default:
       return null;
   }
@@ -711,8 +761,8 @@ function PlayfulFace({ kind }: { kind: Playful }) {
       <>
         <circle cx="50" cy="61" r="6" fill="#B98047" />
         <circle cx="48.2" cy="59.2" r="2" fill="#D8A472" />
-        <OpenEye x={43.5} r={5.6} />
-        <OpenEye x={56.5} r={5.6} />
+        <MascotEye x={43.5} r={5.6} />
+        <MascotEye x={56.5} r={5.6} />
         <path d="M46.5 51q3.5 3.6 7 0" stroke={INK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
       </>
     );
@@ -720,8 +770,8 @@ function PlayfulFace({ kind }: { kind: Playful }) {
   if (kind === 'monster') {
     return (
       <>
-        <OpenEye x={EYE_L} />
-        <OpenEye x={EYE_R} />
+        <MascotEye x={EYE_L} />
+        <MascotEye x={EYE_R} />
         <path d="M42 53.5h16a8 8 0 0 1-16 0Z" fill={INK} />
         <path d="M44.5 53.5 46.5 58 48.5 53.5ZM51.5 53.5 53.5 58 55.5 53.5Z" fill={WHITE} />
       </>
@@ -729,8 +779,8 @@ function PlayfulFace({ kind }: { kind: Playful }) {
   }
   return (
     <>
-      <OpenEye x={EYE_L} r={6} />
-      <OpenEye x={EYE_R} r={6} />
+      <MascotEye x={EYE_L} r={6} />
+      <MascotEye x={EYE_R} r={6} />
       <ellipse cx="50" cy="54" rx="3.4" ry="4.2" fill={INK} />
     </>
   );
@@ -744,7 +794,7 @@ export function AvatarArt({ id, size = 44 }: { id: string; size?: number }) {
   const clip = `c777-${uid}`;
 
   const {
-    skin = SKIN.light,
+    skin = SKIN.porcelain,
     hair = INK,
     hairStyle = 'none',
     head = 'round',
@@ -756,6 +806,7 @@ export function AvatarArt({ id, size = 44 }: { id: string; size?: number }) {
   } = def;
 
   const has = (a: Accessory) => accessories.includes(a);
+  const isPerson = !animal && !playful;
 
   return (
     <svg viewBox="0 0 100 100" width={size} height={size} role="img" aria-label={def.label}>
@@ -774,16 +825,16 @@ export function AvatarArt({ id, size = 44 }: { id: string; size?: number }) {
         <Sparkle x={24} y={64} r={2.8} fill={def.sparkle} />
         <Sparkle x={79} y={68} r={4.2} fill={def.sparkle} />
 
-        <Shoulders top={def.top} skin={playful ? def.top : skin} />
+        <Shoulders top={def.top} skin={playful ? def.top : skin} tight={isPerson} />
 
         {playful ? (
-          <>
+          <g transform={ANIMAL_TF}>
             <PlayfulBody kind={playful} skin={skin} />
             <Blush />
             <PlayfulFace kind={playful} />
-          </>
+          </g>
         ) : animal ? (
-          <>
+          <g transform={ANIMAL_TF}>
             <AnimalEars animal={animal} skin={skin} />
             <Head shape="round" skin={skin} />
             <AnimalFace animal={animal} />
@@ -803,31 +854,46 @@ export function AvatarArt({ id, size = 44 }: { id: string; size?: number }) {
               </>
             ) : (
               <>
-                <OpenEye x={42} r={animal === 'owl' ? 5 : 6} />
-                <OpenEye x={58} r={animal === 'owl' ? 5 : 6} />
+                <MascotEye x={42} r={animal === 'owl' ? 5 : 6} />
+                <MascotEye x={58} r={animal === 'owl' ? 5 : 6} />
               </>
             )}
             <Blush />
             <AnimalMouth animal={animal} />
-          </>
+          </g>
         ) : (
           <>
-            <HairBack style={hairStyle} hair={hair} />
-            <Ears shape={head} skin={skin} />
-            {has('earrings') ? <Earrings /> : null}
-            <Head shape={head} skin={skin} />
-            {has('beard') ? <Beard hair={hair} /> : null}
-            <HairFront style={hairStyle} hair={hair} />
-            {has('headband') ? <Headband color={def.top} /> : null}
-            {has('beanie') ? <Beanie color={def.top} /> : null}
+            {/* Everything structural scales together, so the existing hair,
+                beard and hat paths follow the head without being redrawn. */}
+            <g transform={HEAD_TF}>
+              <HairBack style={hairStyle} hair={hair} />
+              <Ears shape={head} skin={skin} />
+              {has('earrings') ? <Earrings /> : null}
+              <Head shape={head} skin={skin} />
+            </g>
 
-            <EyePair kind={eyes} />
-            <Blush />
-            {has('freckles') ? <Freckles /> : null}
-            <MouthShape kind={mouth} y={has('moustache') ? 60 : 55} />
-            {has('moustache') ? <Moustache hair={hair} /> : null}
-            {has('glasses') ? <Glasses /> : null}
-            {has('sunglasses') ? <Sunglasses /> : null}
+            {has('beard') ? <HumanBeard hair={hair} /> : null}
+
+            <g transform={HEAD_TF}>
+              <HairFront style={hairStyle} hair={hair} />
+              {has('headband') ? <Headband color={def.top} /> : null}
+            </g>
+
+            {has('beanie') ? <HumanBeanie color={def.top} /> : null}
+
+            <HumanBlush />
+            <HumanEyes kind={eyes} />
+            <Nose skin={skin} />
+            {has('freckles') ? <HumanFreckles skin={skin} /> : null}
+            <HumanMouth
+              kind={mouth}
+              skin={skin}
+              over={has('beard') ? hair : undefined}
+              y={has('moustache') ? MOUTH_Y + 4 : MOUTH_Y}
+            />
+            {has('moustache') ? <HumanMoustache hair={hair} /> : null}
+            {has('glasses') ? <HumanGlasses hair={hair} /> : null}
+            {has('sunglasses') ? <HumanSunglasses /> : null}
           </>
         )}
       </g>
