@@ -6,3 +6,8 @@ dist-ssr
 .DS_Store
 .vite
 *.tsbuildinfo
+
+# Local secrets
+.env
+.env.local
+.env.*.local

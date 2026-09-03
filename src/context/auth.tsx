@@ -1,0 +1,145 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
+import type { Session, User } from '@supabase/supabase-js';
+import { appUrl, isConfigured, supabase } from '@/lib/supabase';
+
+/**
+ * Who is holding the phone, according to Supabase.
+ *
+ * There is no local fallback and no demo user on purpose: an account that is
+ * not real is worse than no account, because everything built on top of it —
+ * the couple, the invites, the memories — would quietly belong to nobody.
+ */
+
+export type OAuthProvider = 'google' | 'apple';
+
+export interface AuthValue {
+  /** null while the first session check is still in flight. */
+  session: Session | null;
+  user: User | null;
+  loading: boolean;
+  configured: boolean;
+  signUpWithEmail(email: string, password: string, displayName: string): Promise<void>;
+  signInWithEmail(email: string, password: string): Promise<void>;
+  signInWithProvider(provider: OAuthProvider, next?: string): Promise<void>;
+  signOut(): Promise<void>;
+}
+
+const AuthContext = createContext<AuthValue | null>(null);
+
+/**
+ * Supabase speaks in error codes and provider jargon. People do not, and a
+ * sign-in screen is exactly where an unhelpful message costs you the user.
+ */
+export function readableAuthError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error ?? '');
+  const m = raw.toLowerCase();
+  if (m.includes('invalid login credentials')) return "That email and password don't match.";
+  if (m.includes('user already registered') || m.includes('already been registered')) {
+    return 'There is already an account with that email. Try signing in instead.';
+  }
+  if (m.includes('password should be at least')) return 'Use at least six characters.';
+  if (m.includes('unable to validate email') || m.includes('invalid email')) {
+    return "That email address doesn't look right.";
+  }
+  if (m.includes('email not confirmed')) {
+    return 'Check your inbox and confirm your email first.';
+  }
+  if (m.includes('provider is not enabled')) {
+    return 'That sign-in method is not switched on for this Couple777 yet.';
+  }
+  if (m.includes('rate limit') || m.includes('too many')) {
+    return 'Too many tries just now. Give it a minute.';
+  }
+  if (m.includes('failed to fetch') || m.includes('networkerror')) {
+    return "Couldn't reach Couple777. Check your connection.";
+  }
+  return raw || 'Something went wrong. Try again.';
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const configured = isConfigured();
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(configured);
+
+  useEffect(() => {
+    if (!supabase) return;
+    let alive = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!alive) return;
+      setSession(data.session);
+      setLoading(false);
+    });
+
+    // Covers sign-in, sign-out, token refresh and the OAuth redirect landing.
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next);
+      setLoading(false);
+    });
+
+    return () => {
+      alive = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const signUpWithEmail = useCallback(
+    async (email: string, password: string, displayName: string) => {
+      if (!supabase) throw new Error('Couple777 is not connected to a backend yet.');
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        // Picked up by the handle_new_user trigger, so the profile has a name
+        // from the very first render rather than an empty header.
+        options: { data: { display_name: displayName.trim() } },
+      });
+      if (error) throw error;
+    },
+    [],
+  );
+
+  const signInWithEmail = useCallback(async (email: string, password: string) => {
+    if (!supabase) throw new Error('Couple777 is not connected to a backend yet.');
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error) throw error;
+  }, []);
+
+  const signInWithProvider = useCallback(async (provider: OAuthProvider, next?: string) => {
+    if (!supabase) throw new Error('Couple777 is not connected to a backend yet.');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      // Come back where you left off — an invited partner must land back on
+      // their invite, not on a generic home screen.
+      options: { redirectTo: appUrl(next ?? '/') },
+    });
+    if (error) throw error;
+  }, []);
+
+  const signOut = useCallback(async () => {
+    if (!supabase) return;
+    await supabase.auth.signOut();
+  }, []);
+
+  const value = useMemo<AuthValue>(
+    () => ({
+      session,
+      user: session?.user ?? null,
+      loading,
+      configured,
+      signUpWithEmail,
+      signInWithEmail,
+      signInWithProvider,
+      signOut,
+    }),
+    [session, loading, configured, signUpWithEmail, signInWithEmail, signInWithProvider, signOut],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthValue {
+  const v = useContext(AuthContext);
+  if (!v) throw new Error('useAuth must be used inside <AuthProvider>');
+  return v;
+}

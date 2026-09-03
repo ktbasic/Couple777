@@ -72,6 +72,14 @@ create table if not exists public.couples (
   together_since     date,
   home_base          text,
   distance_setup     text,
+  -- What the creator calls their partner before that partner has an account.
+  -- Everything on screen says "Bring Marian in", not "Bring your partner in",
+  -- and that has to survive until the second seat is actually filled.
+  partner_2_name     text,
+  -- The couple-level answers from onboarding (wishes, vibes, how often they
+  -- see each other). Kept as one document because the app reads them as one
+  -- object and nothing queries across them.
+  profile            jsonb       not null default '{}'::jsonb,
   invite_code        text        not null unique,
   -- The day all three clocks started ticking.
   rhythm_start       date        not null default current_date,
