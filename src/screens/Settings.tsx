@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/Field';
 import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
 import { useStore } from '@/context/store';
+import { useAuth } from '@/context/auth';
 import s from './Settings.module.css';
 
 export default function SettingsScreen() {
   const { state, dispatch, partner, reset } = useStore();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -90,17 +92,27 @@ export default function SettingsScreen() {
         </section>
 
         <div className={s.danger}>
-          <button type="button" className={s.dangerBtn} onClick={() => setConfirmReset(true)}>
-            Reset the prototype
+          <button type="button" className={s.dangerBtn} onClick={() => void signOut()}>
+            Sign out
           </button>
-          <p className={s.dangerNote}>Everything here is stored on this device only.</p>
+          <p className={s.dangerNote}>
+            Your account and everything in it stays where it is. Signing back in brings it all
+            back.
+          </p>
+          <button type="button" className={s.dangerBtn} onClick={() => setConfirmReset(true)}>
+            Clear this device
+          </button>
+          <p className={s.dangerNote}>
+            Only what this browser keeps — notes, saved ideas, the daily question. Your plans and
+            memories live in your account.
+          </p>
         </div>
       </Screen>
 
       <Sheet open={confirmReset} onClose={() => setConfirmReset(false)} title="Start over?">
         <p className={s.rowBody} style={{ marginBottom: 'var(--s-5)' }}>
-          This clears everything on this device — plans, memories, notes, answers — and restores
-          the sample couple. It cannot be undone.
+          This clears what this browser is keeping — notes, saved ideas, daily answers. Your
+          plans, memories and your shared space are in your account and are not touched.
         </p>
         <Button
           variant="accent"
@@ -108,10 +120,10 @@ export default function SettingsScreen() {
           onClick={() => {
             reset();
             setConfirmReset(false);
-            navigate('/onboarding', { replace: true });
+            navigate('/', { replace: true });
           }}
         >
-          Reset everything
+          Clear this device
         </Button>
       </Sheet>
     </>

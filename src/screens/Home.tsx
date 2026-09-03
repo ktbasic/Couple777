@@ -8,6 +8,7 @@ import { DailyCard } from '@/features/DailyCard';
 import { MemoryCard } from '@/features/MemoryCard';
 import { MatchReveal } from '@/features/DestinationCard';
 import { NotificationBell } from '@/features/NotificationBell';
+import { IncomingInvite } from '@/features/IncomingInvite';
 import { useStore } from '@/context/store';
 import {
   alsoAhead,
@@ -64,6 +65,10 @@ export default function HomeScreen() {
           <NotificationBell />
         </div>
       </header>
+
+      {/* An unanswered invitation is the one thing here waiting on you, so it
+          sits above everything else. */}
+      <IncomingInvite />
 
       {awaiting?.plan ? (
         <div className={s.nudge}>

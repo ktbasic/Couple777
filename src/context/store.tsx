@@ -22,6 +22,7 @@ import type {
 import { completeCycle } from '@/lib/cycles';
 import { buildSeedState } from '@/data/seed';
 import { today } from '@/lib/dates';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/auth';
 import * as repo from '@/lib/db/repo';
 import { applySpace, loadCoupleSpace, planToRow, type CoupleSpace } from '@/lib/db/sync';
@@ -422,6 +423,39 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (userId) await load(userId);
   }, [userId, load]);
 
+  /*
+   * Realtime is a convenience, not the mechanism: every path that matters also
+   * re-reads on navigation and on refresh(). If the channel never connects —
+   * a locked-down network, Realtime switched off on the project — the app is
+   * merely a pull-to-refresh slower, not wrong. Reliability over sophistication.
+   */
+  const coupleId = space?.coupleId ?? null;
+  useEffect(() => {
+    const db = supabase;
+    if (!db || !coupleId || !userId) return;
+    const channel = db
+      .channel(`couple:${coupleId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'plans', filter: `couple_id=eq.${coupleId}` },
+        () => void load(userId),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'plan_invites', filter: `couple_id=eq.${coupleId}` },
+        () => void load(userId),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'couples', filter: `id=eq.${coupleId}` },
+        () => void load(userId),
+      )
+      .subscribe();
+    return () => {
+      void db.removeChannel(channel);
+    };
+  }, [coupleId, userId, load]);
+
   useEffect(() => {
     if (userId) writeLocal(userId, state);
   }, [state, userId]);
@@ -484,12 +518,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       partner,
       reset,
       status,
-      coupleId: space?.coupleId ?? null,
+      coupleId,
       space,
       refresh,
       error,
     };
-  }, [state, remoteDispatch, reset, status, space, refresh, error]);
+  }, [state, remoteDispatch, reset, status, space, coupleId, refresh, error]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

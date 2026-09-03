@@ -1,0 +1,110 @@
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  border: 1px solid var(--c-accent-edge);
+  box-shadow: var(--e-2);
+  animation: inviteIn var(--d-base) var(--ease) both;
+}
+
+@keyframes inviteIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.from {
+  font-size: var(--t-small);
+  font-weight: 700;
+  color: var(--c-accent-ink);
+}
+
+.plan {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.emoji {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--r-md);
+  background: var(--c-accent-wash);
+  font-size: 22px;
+}
+
+.planText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
+}
+
+.when {
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+}
+
+.message {
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  font-size: var(--t-body);
+  color: var(--c-ink-2);
+  line-height: 1.5;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
+.minor {
+  display: flex;
+  justify-content: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+
+.link {
+  background: none;
+  border: 0;
+  padding: var(--s-1) var(--s-2);
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-3);
+  cursor: pointer;
+}
+
+.sheetBody {
+  font-size: var(--t-body);
+  color: var(--c-ink-3);
+  line-height: 1.5;
+}
+
+.sheetForm {
+  margin-top: var(--s-4);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}

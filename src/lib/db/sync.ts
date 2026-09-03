@@ -14,6 +14,7 @@ import type {
   CycleRow,
   Json,
   MemoryRow,
+  NotificationRow,
   PlanInviteRow,
   PlanRow,
   ProfileRow,
@@ -48,6 +49,8 @@ export interface CoupleSpace {
   invites: PlanInviteRow[];
   /** The invitation waiting on this user right now, if there is one. */
   incoming: PlanInviteRow | null;
+  /** This user's own notification rows. RLS makes "own" literal. */
+  notifications: NotificationRow[];
 }
 
 /* --------------------------------- Mapping --------------------------------- */
@@ -198,14 +201,16 @@ export async function loadCoupleSpace(userId: string): Promise<CoupleSpace | nul
   const coupleRow = await repo.getMyCouple(userId);
   if (!coupleRow) return null;
 
-  const [profiles, cycleRows, planRows, inviteRows, memoryRows, privateNotes] = await Promise.all([
-    repo.getProfiles([coupleRow.partner_1_user_id, coupleRow.partner_2_user_id ?? '']),
-    repo.getCycles(coupleRow.id),
-    repo.getPlans(coupleRow.id),
-    repo.getPlanInvites(coupleRow.id),
-    repo.getMemories(coupleRow.id),
-    repo.getMyPrivateNotes(userId),
-  ]);
+  const [profiles, cycleRows, planRows, inviteRows, memoryRows, privateNotes, notificationRows] =
+    await Promise.all([
+      repo.getProfiles([coupleRow.partner_1_user_id, coupleRow.partner_2_user_id ?? '']),
+      repo.getCycles(coupleRow.id),
+      repo.getPlans(coupleRow.id),
+      repo.getPlanInvites(coupleRow.id),
+      repo.getMemories(coupleRow.id),
+      repo.getMyPrivateNotes(userId),
+      repo.getNotifications(userId),
+    ]);
 
   // The newest invitation per plan is the live one; older rows are history.
   const latestInvite = new Map<string, PlanInviteRow>();
@@ -231,6 +236,7 @@ export async function loadCoupleSpace(userId: string): Promise<CoupleSpace | nul
     invites: inviteRows,
     incoming:
       inviteRows.find((i) => i.recipient_user_id === userId && i.status === 'pending') ?? null,
+    notifications: notificationRows,
   };
 }
 

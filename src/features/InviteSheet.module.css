@@ -124,3 +124,16 @@
   line-height: 1.55;
   color: var(--c-ink-3);
 }
+
+/* Sharing to WhatsApp and the rest stays available, and stays visibly
+   secondary: the in-app ask is what makes the invitation real. */
+.outside {
+  background: none;
+  border: 0;
+  padding: var(--s-2);
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-accent-ink);
+  cursor: pointer;
+}

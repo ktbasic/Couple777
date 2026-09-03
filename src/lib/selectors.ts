@@ -172,7 +172,9 @@ export type NotificationKind =
   | 'note'
   | 'date-soon'
   | 'ritual-due'
-  | 'capture-memory';
+  | 'capture-memory'
+  /* Written by the other person on their own phone, so it cannot be derived. */
+  | 'from-partner';
 
 export interface AppNotification {
   id: ID;

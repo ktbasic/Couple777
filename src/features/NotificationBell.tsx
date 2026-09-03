@@ -1,20 +1,46 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/context/store';
-import { notifications } from '@/lib/selectors';
+import { notifications, type AppNotification } from '@/lib/selectors';
 import s from './NotificationBell.module.css';
 
+const REMOTE_EMOJI: Record<string, string> = {
+  plan_invite: '💌',
+  invite_accepted: '❤️',
+  invite_declined: '🤍',
+  invite_suggested: '🕐',
+  partner_joined: '🎉',
+  cycle_reminder: '⏳',
+  memory_reminder: '📸',
+};
+
 /**
- * The relationship inbox. Everything in it is derived from state, so it is
- * always a view of things that are actually true right now — never a queue
- * that outlives what it was announcing.
+ * The relationship inbox.
+ *
+ * Two sources, on purpose. Most items are still *derived* from state — a
+ * derived item is always a view of something that is true right now, and can
+ * never outlive what it was announcing. The rows from Supabase are the ones
+ * that cannot be derived, because they are about something the other person
+ * did on their own phone: they invited you, or they said yes.
  */
 export function NotificationBell() {
-  const { state, dispatch, me, partner } = useStore();
+  const { state, dispatch, me, partner, space } = useStore();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const items = notifications(state, me.id, partner.id);
+  const derived = notifications(state, me.id, partner.id);
+  const remote: AppNotification[] = (space?.notifications ?? []).map((n) => ({
+    id: n.id,
+    kind: 'from-partner' as const,
+    emoji: REMOTE_EMOJI[n.kind] ?? '💌',
+    title: n.title,
+    body: n.body ?? '',
+    to: n.plan_id ? `/plan/${n.plan_id}` : '/',
+    at: new Date(n.created_at).getTime(),
+    read: Boolean(n.read_at) || state.readNotificationIds.includes(n.id),
+  }));
+
+  const items = [...remote, ...derived].sort((a, b) => b.at - a.at);
   const unread = items.filter((n) => !n.read);
 
   const openItem = (id: string, to: string) => {

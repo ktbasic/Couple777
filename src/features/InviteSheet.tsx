@@ -38,16 +38,27 @@ export function InviteSheet({
   const text = inviteText(plan, tier, me.name, message);
   const when = plan.time ? `${formatPlanDate(plan.date)} · ${plan.time}` : formatPlanDate(plan.date);
 
-  const send = async () => {
-    const outcome = await shareInvite(text, `${me.name} · Couple777`);
-    if (outcome.method === 'failed') {
-      toast.show({ message: "Couldn't open sharing. Try copying it instead." });
-      return;
-    }
+  /*
+   * The main way to ask, now that both people have accounts: a real
+   * invitation addressed to the other one, which appears on their Home and
+   * which only they can answer.
+   */
+  const ask = () => {
     dispatch({ type: 'sendInvite', planId: plan.id, message: message.trim() || undefined });
     setSent(true);
+  };
+
+  /*
+   * Secondary, and deliberately so. Sharing to WhatsApp or Messages still
+   * works and always will, but it is not what makes the invitation real —
+   * nothing about the plan depends on the other person having WhatsApp.
+   */
+  const shareOutside = async () => {
+    const outcome = await shareInvite(text, `${me.name} · Couple777`);
     if (outcome.method === 'clipboard') {
       toast.show({ emoji: '📋', message: 'Invite copied — paste it anywhere' });
+    } else if (outcome.method === 'failed') {
+      toast.show({ message: "Couldn't open sharing on this device." });
     }
   };
 
@@ -65,7 +76,8 @@ export function InviteSheet({
           </span>
           <p className={s.sentTitle}>On its way to {partner.name}</p>
           <p className={s.sentBody}>
-            You'll see it here as soon as they say yes. No nagging in the meantime.
+            It is on {partner.name}&apos;s Home now. You&apos;ll see it here as soon as they say
+            yes — no nagging in the meantime.
           </p>
           <div className={s.actions}>
             <Button variant="accent" block onClick={close}>
@@ -99,9 +111,12 @@ export function InviteSheet({
           </div>
 
           <div className={s.actions}>
-            <Button variant="accent" size="lg" block onClick={() => void send()}>
-              {canShareNatively() ? 'Share invite' : 'Copy invite'}
+            <Button variant="accent" size="lg" block onClick={ask}>
+              Ask {partner.name} 💌
             </Button>
+            <button type="button" className={s.outside} onClick={() => void shareOutside()}>
+              {canShareNatively() ? 'Share outside Couple777' : 'Copy the invite text'}
+            </button>
             <button type="button" className={s.cancel} onClick={close}>
               Cancel
             </button>
