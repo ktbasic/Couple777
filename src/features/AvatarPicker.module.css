@@ -59,28 +59,63 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--s-3);
+  gap: var(--s-4) var(--s-3);
+  padding: var(--s-1) 2px var(--s-2);
 }
 
 .option {
+  position: relative;
   aspect-ratio: 1;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--c-surface);
+  background: transparent;
   border: 2px solid transparent;
-  transition: transform var(--d-fast) var(--ease), border-color var(--d-fast) var(--ease);
-  overflow: hidden;
+  transition:
+    transform var(--d-fast) var(--ease),
+    border-color var(--d-fast) var(--ease),
+    box-shadow var(--d-base) var(--ease);
 }
 .option:active {
   transform: scale(0.9);
 }
 .option:hover {
-  border-color: var(--c-accent-edge);
+  transform: translateY(-2px);
 }
 
+/* The chosen one gets the accent ring plus a soft halo. */
 .optionOn {
   border-color: var(--c-accent);
+  box-shadow: 0 0 0 4px var(--c-accent-wash), var(--e-2);
+}
+
+/* Played once, on the tap itself. */
+.optionPop {
+  animation: avatarPop 460ms var(--ease);
+}
+
+@keyframes avatarPop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.16); }
+  62% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.tick {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--g-accent);
+  color: var(--c-on-accent);
+  font-size: 10px;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px var(--c-page);
+  animation: avatarPop 460ms var(--ease);
 }
 
 .error {

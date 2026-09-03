@@ -22,18 +22,17 @@
 
 .edit {
   position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 24px;
-  height: 24px;
+  right: 0;
+  bottom: 2px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--c-surface);
-  border: 1px solid var(--c-hairline);
-  color: var(--c-ink-3);
-  font-size: 11px;
-  box-shadow: var(--e-1);
+  background: var(--g-accent);
+  color: var(--c-on-accent);
+  font-size: 10px;
+  box-shadow: 0 0 0 2px var(--c-page), var(--e-1);
 }
 
 .heart {

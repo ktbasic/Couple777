@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Sheet } from '@/components/ui/Sheet';
 import { Avatar } from '@/components/ui/Avatar';
-import { AVATARS, AvatarArt } from '@/components/ui/AvatarArt';
+import { AVATARS, AVATAR_GROUPS, AvatarArt } from '@/components/ui/AvatarArt';
 import { useStore } from '@/context/store';
 import { useToast } from '@/components/ui/Toast';
 import type { Person } from '@/lib/types';
@@ -59,11 +59,17 @@ export function AvatarPicker({
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);
 
+  // The sheet lingers for a beat after a tap so the selection animation is
+  // actually seen — closing instantly threw away the reward.
   const choose = (avatarId: string) => {
+    setPicked(avatarId);
     dispatch({ type: 'setPersonAvatar', personId: person.id, avatarId });
-    toast.show({ message: `${person.name}'s avatar updated` });
-    onClose();
+    window.setTimeout(() => {
+      toast.show({ message: `${person.name}'s avatar updated` });
+      onClose();
+    }, 480);
   };
 
   const upload = async (file: File) => {
@@ -77,8 +83,6 @@ export function AvatarPicker({
       setError("That image couldn't be read. Try a different one.");
     }
   };
-
-  const groups = ['People', 'Creatures'] as const;
 
   return (
     <Sheet open={open} onClose={onClose} title={`${person.name}'s avatar`}>
@@ -110,30 +114,44 @@ export function AvatarPicker({
         />
       </label>
 
-      {groups.map((group) => (
-        <div key={group}>
-          <p className={s.groupLabel}>{group}</p>
-          <div className={s.grid}>
-            {AVATARS.filter((a) => a.group === group).map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                aria-label={a.label}
-                aria-pressed={!person.avatarUrl && person.avatarId === a.id}
-                className={[
-                  s.option,
-                  !person.avatarUrl && person.avatarId === a.id ? s.optionOn : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                onClick={() => choose(a.id)}
-              >
-                <AvatarArt id={a.id} size={54} />
-              </button>
-            ))}
+      {AVATAR_GROUPS.map((group) => {
+        const items = AVATARS.filter((a) => a.group === group);
+        if (!items.length) return null;
+        return (
+          <div key={group}>
+            <p className={s.groupLabel}>{group}</p>
+            <div className={s.grid}>
+              {items.map((a) => {
+                const selected = !person.avatarUrl && person.avatarId === a.id;
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    aria-label={a.label}
+                    title={a.label}
+                    aria-pressed={selected}
+                    className={[
+                      s.option,
+                      selected ? s.optionOn : '',
+                      picked === a.id ? s.optionPop : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    onClick={() => choose(a.id)}
+                  >
+                    <AvatarArt id={a.id} size={54} />
+                    {selected ? (
+                      <span className={s.tick} aria-hidden>
+                        ✓
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </Sheet>
   );
 }
