@@ -386,11 +386,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const [state, dispatch] = useReducer(reducer, undefined, () => emptyState());
   const [space, setSpace] = useState<CoupleSpace | null>(null);
-  const [loadingSpace, setLoadingSpace] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /*
+   * Which user the loaded state belongs to, or null if nothing has been
+   * fetched yet.
+   *
+   * A plain `loading` boolean is not enough. Between "we know who is signed
+   * in" and "we have their couple", space is null and loading has not been set
+   * yet, so status computed 'no-couple' for a tick — long enough to redirect a
+   * deep link or a refresh to couple setup, which then bounced it home. Anyone
+   * opening a link to a plan, or just reloading, lost their place.
+   */
+  const [hydratedFor, setHydratedFor] = useState<string | null>(null);
 
   const load = useCallback(async (uid: string) => {
-    setLoadingSpace(true);
     setError(null);
     try {
       const next = await loadCoupleSpace(uid);
@@ -405,7 +414,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setLoadingSpace(false);
+      setHydratedFor(uid);
     }
   }, []);
 
@@ -413,6 +422,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!configured) return;
     if (!userId) {
       setSpace(null);
+      setHydratedFor(null);
       dispatch({ type: 'hydrate', state: emptyState() });
       return;
     }
@@ -498,13 +508,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const status: StoreStatus = !configured
     ? 'unconfigured'
-    : authLoading || (Boolean(userId) && loadingSpace && !space)
+    : authLoading
       ? 'loading'
       : !userId
         ? 'signed-out'
-        : !space
-          ? 'no-couple'
-          : 'ready';
+        : // Not "no space" until we have actually looked for one.
+          hydratedFor !== userId
+          ? 'loading'
+          : !space
+            ? 'no-couple'
+            : 'ready';
 
   const value = useMemo<StoreValue>(() => {
     const me =
@@ -549,10 +562,19 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
   switch (action.type) {
     case 'upsertPlan': {
       const known = state.plans.some((p) => p.id === action.plan.id);
-      await repo.upsertPlanRow({
-        ...planToRow(action.plan, coupleId, known ? undefined : 'planned'),
-        ...(known ? { id: action.plan.id } : {}),
-      });
+      // The tier comes from the cycle this plan belongs to, so the rhythm
+      // decides which moment it is and the person only decides what to do.
+      const cycle = state.cycles.find((c) => c.id === action.plan.cycleId);
+      if (!cycle) throw new Error('That plan is not attached to a 777 moment.');
+      // On insert the client's own id goes in as the primary key, so the plan
+      // keeps the id the screen already navigated to.
+      await repo.upsertPlanRow(
+        {
+          ...planToRow(action.plan, coupleId, cycle.tier, known ? undefined : 'planned'),
+          ...(known ? {} : { id: action.plan.id }),
+        },
+        known ? action.plan.id : undefined,
+      );
       return true;
     }
 
@@ -592,7 +614,7 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
         );
       }
       const plan = state.plans.find((p) => p.cycleId === action.cycleId);
-      if (plan) await repo.upsertPlanRow({ id: plan.id, status: 'completed' });
+      if (plan) await repo.upsertPlanRow({ status: 'completed' }, plan.id);
       return true;
     }
 
@@ -615,7 +637,7 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
         recipient_user_id: partner.id,
         message: action.message ?? null,
       });
-      await repo.upsertPlanRow({ id: action.planId, status: 'invite_sent' });
+      await repo.upsertPlanRow({ status: 'invite_sent' }, action.planId);
       await repo.notify({
         couple_id: coupleId,
         user_id: partner.id,
@@ -643,15 +665,17 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
             ? 'declined'
             : 'suggested_change';
       await repo.respondToPlanInvite(invite.id, status);
-      await repo.upsertPlanRow({
-        id: action.planId,
-        status:
-          action.response === 'yes'
-            ? 'confirmed'
-            : action.response === 'cant'
-              ? 'declined'
-              : 'planned',
-      });
+      await repo.upsertPlanRow(
+        {
+          status:
+            action.response === 'yes'
+              ? 'confirmed'
+              : action.response === 'cant'
+                ? 'declined'
+                : 'planned',
+        },
+        action.planId,
+      );
       const plan = state.plans.find((p) => p.id === action.planId);
       await repo.notify({
         couple_id: coupleId,
@@ -679,7 +703,6 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
       const m = action.memory;
       const cycle = state.cycles.find((c) => c.planId === m.planId);
       const row = await repo.upsertMemoryRow({
-        ...(known ? { id: m.id } : {}),
         couple_id: coupleId,
         plan_id: m.planId ?? null,
         cycle_id: m.cycleId ?? cycle?.id ?? null,
@@ -692,7 +715,8 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
         mood: m.mood ?? null,
         shared_note: m.sharedNote ?? null,
         photos: m.photos ?? [],
-      });
+        ...(known ? {} : { id: m.id }),
+      }, known ? m.id : undefined);
       const mine = m.privateNotes?.[userId];
       if (mine !== undefined) await repo.setMyPrivateNote(row.id, userId, mine);
       return true;

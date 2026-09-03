@@ -9,6 +9,7 @@ import { useStore } from '@/context/store';
 import * as repo from '@/lib/db/repo';
 import { pendingOnboarding, clearPendingOnboarding } from '@/lib/pendingOnboarding';
 import { today } from '@/lib/dates';
+import { createInitialCycles } from '@/lib/cycles';
 import { InviteShare } from '@/features/InviteShare';
 import s from './CoupleSetup.module.css';
 
@@ -62,7 +63,7 @@ export default function CoupleSetupScreen() {
           home_base: homeBase || null,
         });
       }
-      await repo.createCouple(user.id, {
+      const couple = await repo.createCouple(user.id, {
         partnerName,
         togetherSince: since || undefined,
         relationshipStatus: status,
@@ -71,6 +72,16 @@ export default function CoupleSetupScreen() {
         profile: (pending?.coupleProfile ?? state.couple.profile) as never,
         rhythmStart: today(),
       });
+      // The three clocks start the moment the space exists.
+      await repo.seedCycles(
+        couple.id,
+        createInitialCycles(couple.rhythm_start?.slice(0, 10) || today()).map((c) => ({
+          tier: c.tier,
+          seq: c.seq,
+          startDate: c.startDate,
+          dueDate: c.dueDate,
+        })),
+      );
       clearPendingOnboarding();
       await refresh();
       setStep('invite');

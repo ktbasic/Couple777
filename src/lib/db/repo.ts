@@ -69,6 +69,35 @@ export async function getMyCouple(userId: string): Promise<CoupleRow | null> {
   return data;
 }
 
+/**
+ * Starting a space starts the clocks. Without this a new couple has a home
+ * screen with nothing on it and no way to get one — the three cycles are the
+ * app, not an optional extra.
+ */
+export async function seedCycles(coupleId: string, cycles: {
+  tier: CycleRow['tier'];
+  seq: number;
+  startDate: string;
+  dueDate: string;
+}[]): Promise<CycleRow[]> {
+  const db = requireDb();
+  if (!cycles.length) return [];
+  return unwrap(
+    await db
+      .from('cycles')
+      .insert(
+        cycles.map((c) => ({
+          couple_id: coupleId,
+          tier: c.tier,
+          seq: c.seq,
+          start_date: c.startDate,
+          due_date: c.dueDate,
+        })) as never,
+      )
+      .select(),
+  );
+}
+
 export async function createCouple(
   userId: string,
   details: {
@@ -153,10 +182,11 @@ export async function getPlans(coupleId: string): Promise<PlanRow[]> {
   return unwrap(await db.from('plans').select('*').eq('couple_id', coupleId));
 }
 
-export async function upsertPlanRow(row: Partial<PlanRow> & { id?: string }): Promise<PlanRow> {
+/** Update when given an id, insert when not. Postgres mints ids on insert. */
+export async function upsertPlanRow(row: Partial<PlanRow>, id?: string): Promise<PlanRow> {
   const db = requireDb();
-  if (row.id) {
-    return unwrap(await db.from('plans').update(row).eq('id', row.id).select().single());
+  if (id) {
+    return unwrap(await db.from('plans').update(row).eq('id', id).select().single());
   }
   return unwrap(await db.from('plans').insert(row).select().single());
 }
@@ -225,10 +255,10 @@ export async function getMemories(coupleId: string): Promise<MemoryRow[]> {
   );
 }
 
-export async function upsertMemoryRow(row: Partial<MemoryRow> & { id?: string }): Promise<MemoryRow> {
+export async function upsertMemoryRow(row: Partial<MemoryRow>, id?: string): Promise<MemoryRow> {
   const db = requireDb();
-  if (row.id) {
-    return unwrap(await db.from('memories').update(row).eq('id', row.id).select().single());
+  if (id) {
+    return unwrap(await db.from('memories').update(row).eq('id', id).select().single());
   }
   return unwrap(await db.from('memories').insert(row).select().single());
 }

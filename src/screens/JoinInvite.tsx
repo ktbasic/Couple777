@@ -25,6 +25,7 @@ export default function JoinInviteScreen() {
   const [open, setOpen] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
+  const [joined, setJoined] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -45,16 +46,23 @@ export default function JoinInviteScreen() {
     };
   }, [code]);
 
-  // Signed in and already in a space: nothing to join, go home.
+  /*
+   * Someone who already has a space has nothing to join here.
+   *
+   * The guard matters: joining sets coupleId, so without it this effect fires
+   * the instant the join succeeds and bounces you home — over the top of the
+   * short setup the join was supposed to lead to.
+   */
   useEffect(() => {
-    if (coupleId) navigate('/', { replace: true });
-  }, [coupleId, navigate]);
+    if (coupleId && !joined) navigate('/', { replace: true });
+  }, [coupleId, joined, navigate]);
 
   const join = async () => {
     setJoining(true);
     setError(null);
     try {
       await repo.joinCoupleByCode(code);
+      setJoined(true);
       await refresh();
       // Straight to the short personal setup: nothing the first partner
       // already answered gets asked again.

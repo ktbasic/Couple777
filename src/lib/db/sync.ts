@@ -39,6 +39,19 @@ import * as repo from './repo';
 
 export const PLACEHOLDER_PARTNER_ID = 'partner-not-joined';
 
+/**
+ * A calendar day, always as YYYY-MM-DD.
+ *
+ * The whole app treats a date as a plain day string and does arithmetic on it,
+ * so a full timestamp arriving from the database — which happens the moment
+ * anything in the chain hands back a Date rather than a date — turns into
+ * NaN-NaN-NaN a few functions later, far from the cause.
+ */
+function day(value: string | null | undefined): string {
+  if (!value) return '';
+  return value.length > 10 ? value.slice(0, 10) : value;
+}
+
 export interface CoupleSpace {
   coupleId: string;
   couple: Couple;
@@ -76,8 +89,8 @@ export function cycleFromRow(r: CycleRow, planId?: string, memoryId?: string): C
     id: r.id,
     tier: r.tier as RitualTier,
     seq: r.seq,
-    startDate: r.start_date,
-    dueDate: r.due_date,
+    startDate: day(r.start_date),
+    dueDate: day(r.due_date),
     completedAt: r.completed_at ?? undefined,
     satisfiedBy: r.satisfied_by ?? undefined,
     planId,
@@ -91,7 +104,7 @@ export function planFromRow(r: PlanRow, invite?: PlanInviteRow): Plan {
     cycleId: r.cycle_id ?? '',
     title: r.title,
     emoji: r.emoji || '❤️',
-    date: r.scheduled_date ?? '',
+    date: day(r.scheduled_date),
     time: r.scheduled_time ?? undefined,
     createdBy: r.created_by,
     surprise: r.surprise,
@@ -121,14 +134,25 @@ export function planFromRow(r: PlanRow, invite?: PlanInviteRow): Plan {
   };
 }
 
+/**
+ * A plan row, minus its id — the caller decides whether this is an insert or
+ * an update, and passing a locally-minted id on an insert would fight Postgres
+ * for it.
+ *
+ * `cycle_type` is derived from the cycle the plan hangs off, never chosen. The
+ * rhythm decides which moment this is; the couple only decides what to do with
+ * it. That is the rule the whole app is built on, so it is not something a
+ * form gets to set.
+ */
 export function planToRow(
   plan: Plan,
   coupleId: string,
+  tier: RitualTier,
   status?: PlanRow['status'],
-): Partial<PlanRow> {
+): Omit<Partial<PlanRow>, 'id'> {
   return {
-    id: plan.id.startsWith('pl-') ? undefined : plan.id,
     couple_id: coupleId,
+    cycle_type: tier,
     cycle_id: plan.cycleId || null,
     created_by: plan.createdBy,
     title: plan.title,
@@ -149,7 +173,7 @@ export function planToRow(
 export function memoryFromRow(r: MemoryRow, privateNote?: string, ownerId?: string): Memory {
   return {
     id: r.id,
-    date: r.happened_on,
+    date: day(r.happened_on),
     title: r.title,
     emoji: r.emoji || '❤️',
     kind: r.kind as Memory['kind'],
@@ -181,7 +205,7 @@ function coupleFromRows(
     // Whoever is holding the phone reads first, so "You and Marian" is right
     // on both devices without either screen being told which one it is.
     people: (meId === b.id ? [b, a] : [a, b]) as [Person, Person],
-    togetherSince: row.together_since ?? '',
+    togetherSince: day(row.together_since),
     homeCity: row.home_base ?? '',
     inviteCode: row.invite_code,
     currentPersonId: meId,
@@ -227,7 +251,7 @@ export async function loadCoupleSpace(userId: string): Promise<CoupleSpace | nul
   return {
     coupleId: coupleRow.id,
     couple: coupleFromRows(coupleRow, profiles, userId),
-    rhythmStart: coupleRow.rhythm_start,
+    rhythmStart: day(coupleRow.rhythm_start),
     cycles: cycleRows.map((r) =>
       cycleFromRow(r, planByCycle.get(r.id), memoryByCycle.get(r.id)),
     ),
