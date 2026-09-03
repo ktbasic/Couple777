@@ -6,6 +6,12 @@ import { Splash, useSplash } from './screens/Splash';
 import a from './App.module.css';
 
 import OnboardingScreen from './screens/Onboarding';
+import AccountScreen from './screens/Account';
+import CoupleSetupScreen from './screens/CoupleSetup';
+import JoinInviteScreen from './screens/JoinInvite';
+import NeedsSetupScreen from './screens/NeedsSetup';
+import PrivacyScreen, { hasSeenPrivacy } from './screens/Privacy';
+import MeSetupScreen from './screens/MeSetup';
 import HomeScreen from './screens/Home';
 import ExploreScreen from './screens/Explore';
 import MemoriesScreen from './screens/Memories';
@@ -22,12 +28,27 @@ import PlanDetailScreen from './screens/PlanDetail';
 import UsScreen from './screens/Us';
 import SettingsScreen from './screens/Settings';
 
-/** Everything is behind the couple being set up. */
-function RequireOnboarding({ children }: { children: React.ReactNode }) {
-  const { state } = useStore();
+/**
+ * The app proper is behind a real account in a real couple.
+ *
+ * Each redirect below is a different missing thing, and sending someone to the
+ * wrong one is how people get stuck in a loop: signed in but spaceless lands
+ * on couple setup, not back on sign-up.
+ */
+function RequireCouple({ children }: { children: React.ReactNode }) {
+  const { status, state } = useStore();
   const location = useLocation();
-  if (!state.onboarded) {
+
+  if (status === 'unconfigured') return <NeedsSetupScreen />;
+  if (status === 'loading') return null;
+  if (status === 'signed-out') {
     return <Navigate to="/onboarding" replace state={{ from: location.pathname }} />;
+  }
+  if (status === 'no-couple') return <Navigate to="/couple" replace />;
+  // Shown once per person, after there is a second person for the promises to
+  // be about. Both partners see it, including the one who arrived by link.
+  if (!hasSeenPrivacy(state.couple.currentPersonId)) {
+    return <Navigate to="/privacy" replace />;
   }
   return <>{children}</>;
 }
@@ -46,13 +67,19 @@ export function App() {
       <div className={handingOff ? a.entering : undefined}>
         <Routes>
           <Route path="/onboarding" element={<OnboardingScreen />} />
+        <Route path="/account" element={<AccountScreen />} />
+        <Route path="/couple" element={<CoupleSetupScreen />} />
+        {/* The partner's way in. Deliberately reachable signed-out. */}
+        <Route path="/join/:code" element={<JoinInviteScreen />} />
+        <Route path="/privacy" element={<PrivacyScreen />} />
+        <Route path="/me/setup" element={<MeSetupScreen />} />
 
           {/* Tabbed surfaces */}
           <Route
             element={
-              <RequireOnboarding>
+              <RequireCouple>
                 <AppShell />
-              </RequireOnboarding>
+              </RequireCouple>
             }
           >
             <Route index element={<HomeScreen />} />
@@ -65,9 +92,9 @@ export function App() {
           {/* Pushed flows — no tab bar, so the screen keeps your attention. */}
           <Route
             element={
-              <RequireOnboarding>
+              <RequireCouple>
                 <AppShell tabs={false} />
-              </RequireOnboarding>
+              </RequireCouple>
             }
           >
             <Route path="/plan/new" element={<PlanEditScreen />} />

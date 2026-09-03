@@ -1,0 +1,94 @@
+.screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-6);
+  padding: var(--s-7) var(--s-6) calc(var(--s-7) + var(--safe-b));
+  background: linear-gradient(178deg, #FFFAF6 0%, #FDF0EE 52%, #FBE3E2 100%);
+}
+
+.top {
+  text-align: center;
+}
+
+.icon {
+  width: 56px;
+  margin: 0 auto var(--s-5);
+  box-shadow: var(--e-accent);
+}
+
+.title {
+  font-family: var(--f-display);
+  font-size: var(--t-display-l);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--c-ink);
+}
+
+.body {
+  margin-top: var(--s-3);
+  font-size: var(--t-body);
+  color: var(--c-ink-3);
+  line-height: 1.5;
+}
+
+.center {
+  text-align: center;
+  display: grid;
+  gap: var(--s-3);
+  justify-items: center;
+}
+
+.bigEmoji {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.actions,
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
+/* The provider marks sit inline with the label rather than floating the row. */
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: var(--s-2);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.link {
+  background: none;
+  border: 0;
+  padding: var(--s-2);
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-accent-ink);
+  cursor: pointer;
+}
+
+.error {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+  font-size: var(--t-small);
+  font-weight: 500;
+}
+
+.fine {
+  margin-top: auto;
+  padding-top: var(--s-5);
+  text-align: center;
+  font-size: var(--t-micro);
+  color: var(--c-ink-4);
+}

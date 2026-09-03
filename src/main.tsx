@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, HashRouter } from 'react-router-dom';
+import { AuthProvider } from './context/auth';
 import { StoreProvider } from './context/store';
 import { ToastProvider } from './components/ui/Toast';
 import { App } from './App';
@@ -17,11 +18,15 @@ const Router = import.meta.env.VITE_ROUTER === 'hash' ? HashRouter : BrowserRout
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Router>
-      <StoreProvider>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
-      </StoreProvider>
+      {/* Auth is outermost: the store loads the shared space for whoever is
+          signed in, so it has to be told who that is first. */}
+      <AuthProvider>
+        <StoreProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </StoreProvider>
+      </AuthProvider>
     </Router>
   </StrictMode>,
 );
