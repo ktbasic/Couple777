@@ -62,7 +62,7 @@ export function App() {
             </RequireOnboarding>
           }
         >
-          <Route path="/plan/new/:tier" element={<PlanEditScreen />} />
+          <Route path="/plan/new" element={<PlanEditScreen />} />
           <Route path="/plan/:planId/edit" element={<PlanEditScreen />} />
           <Route path="/plan/:planId" element={<PlanDetailScreen />} />
 

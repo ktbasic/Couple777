@@ -1,60 +1,47 @@
-import type { AppState, ID, Memory, Plan, RitualTier } from './types';
-import { TIER_META, countdownLabel, cycleProgress, daysBetween, dueDate, today } from './dates';
+import type { AppState, Cycle, ID, Memory, Plan, RitualTier } from './types';
+import { byAttention, viewOpenCycles, type CycleView } from './cycles';
+import { TIER_META, countdownLabel, today } from './dates';
 
-/** The next planned item for a tier, if there is one. */
-export function nextPlan(plans: Plan[], tier: RitualTier, now = today()): Plan | undefined {
-  return plans
-    .filter((p) => p.tier === tier && p.status === 'planned' && daysBetween(now, p.date) >= 0)
-    .sort((a, b) => a.date.localeCompare(b.date))[0];
+/**
+ * The ritual layer is now the cycle engine — see `lib/cycles.ts`. These are
+ * the read helpers screens use.
+ */
+export function ritualViews(state: AppState, now = today()): CycleView[] {
+  return viewOpenCycles(state.cycles, state.plans, now);
 }
 
-export function lastCompleted(plans: Plan[], tier: RitualTier): Plan | undefined {
-  return plans
-    .filter((p) => p.tier === tier && p.status === 'completed')
-    .sort((a, b) => b.date.localeCompare(a.date))[0];
+export function ritualView(state: AppState, tier: RitualTier, now = today()): CycleView | undefined {
+  return ritualViews(state, now).find((v) => v.cycle.tier === tier);
 }
 
-export interface RitualStatus {
-  tier: RitualTier;
-  plan?: Plan;
-  /** The date the countdown is pointing at — planned, or otherwise when it is due. */
-  targetDate: string;
-  daysAway: number;
-  label: string;
-  /** True when nothing is planned and the window has already passed. */
-  overdue: boolean;
-  /** 0 → 1 through the current cycle. */
-  progress: number;
+/** The cycle that most needs a decision. */
+export function upNext(state: AppState, now = today()): CycleView | undefined {
+  return byAttention(ritualViews(state, now))[0];
 }
 
-export function ritualStatus(state: AppState, tier: RitualTier, now = today()): RitualStatus {
-  const plan = nextPlan(state.plans, tier, now);
-  const last = lastCompleted(state.plans, tier);
-  const due = dueDate(tier, last?.date ?? null);
-  const targetDate = plan?.date ?? due;
-  const daysAway = daysBetween(now, targetDate);
-
-  return {
-    tier,
-    plan,
-    targetDate,
-    daysAway,
-    label: countdownLabel(now, targetDate),
-    overdue: !plan && daysAway <= 0,
-    progress: cycleProgress(tier, last?.date ?? null, now),
-  };
+/** The other two, in 7/7/7 order. */
+export function alsoAhead(state: AppState, now = today()): CycleView[] {
+  const hero = upNext(state, now);
+  const order: RitualTier[] = ['day', 'week', 'month'];
+  return ritualViews(state, now)
+    .filter((v) => v.cycle.id !== hero?.cycle.id)
+    .sort((a, b) => order.indexOf(a.cycle.tier) - order.indexOf(b.cycle.tier));
 }
 
-/** All three, ordered by urgency — the closest ritual gets the visual weight. */
-export function allRituals(state: AppState, now = today()): RitualStatus[] {
-  return (['day', 'week', 'month'] as RitualTier[]).map((t) => ritualStatus(state, t, now));
+export function planForCycle(state: AppState, cycleId: ID): Plan | undefined {
+  return state.plans.find((p) => p.cycleId === cycleId);
 }
 
-export function mostUrgent(state: AppState, now = today()): RitualStatus {
-  return [...allRituals(state, now)].sort((a, b) => {
-    if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
-    return a.daysAway - b.daysAway;
-  })[0];
+export function cycleForPlan(state: AppState, plan: Plan): Cycle | undefined {
+  return state.cycles.find((c) => c.id === plan.cycleId);
+}
+
+/** Completed cycles whose moment has happened but has no memory yet. */
+export function cycleAwaitingMemory(state: AppState): { cycle: Cycle; plan?: Plan } | undefined {
+  const c = state.cycles
+    .filter((x) => x.completedAt && !x.memoryId && x.planId)
+    .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))[0];
+  return c ? { cycle: c, plan: state.plans.find((p) => p.id === c.planId) } : undefined;
 }
 
 /* ------------------------------- Memories -------------------------------- */
@@ -72,13 +59,6 @@ export function memoriesByMonth(memories: Memory[]): { key: string; items: Memor
     else groups.set(key, [m]);
   }
   return [...groups.entries()].map(([key, items]) => ({ key, items }));
-}
-
-/** A completed plan with no memory yet — the prompt to capture one. */
-export function planAwaitingMemory(state: AppState): Plan | undefined {
-  return state.plans
-    .filter((p) => p.status === 'completed' && !p.memoryId)
-    .sort((a, b) => b.date.localeCompare(a.date))[0];
 }
 
 /* --------------------------------- Notes --------------------------------- */
@@ -167,8 +147,10 @@ export interface RelationshipStats {
 }
 
 export function relationshipStats(state: AppState): RelationshipStats {
-  const done = state.plans.filter((p) => p.status === 'completed');
-  const count = (t: RitualTier) => done.filter((p) => p.tier === t).length;
+  // Cycles closed by a larger overlapping moment are not counted twice —
+  // a weekend away is one thing the couple did, not two.
+  const done = state.cycles.filter((c) => c.completedAt && !c.satisfiedBy);
+  const count = (t: RitualTier) => done.filter((c) => c.tier === t).length;
   return {
     total: done.length + state.memories.filter((m) => !m.planId).length,
     dates: count('day'),
@@ -243,45 +225,44 @@ export function notifications(state: AppState, meId: ID, partnerId: ID, now = to
     });
   }
 
-  for (const tier of ['day', 'week', 'month'] as RitualTier[]) {
-    const r = ritualStatus(state, tier, now);
-    if (r.plan && r.daysAway >= 0 && r.daysAway <= 3) {
+  for (const v of ritualViews(state, now)) {
+    if (v.plan && v.daysAway >= 0 && v.daysAway <= 3) {
       items.push({
-        id: `date-${r.plan.id}`,
+        id: `date-${v.plan.id}`,
         kind: 'date-soon',
-        emoji: r.plan.emoji,
+        emoji: v.plan.emoji,
         title:
-          r.daysAway === 0
-            ? `${r.plan.title} is today`
-            : `${r.plan.title} — ${countdownLabel(now, r.plan.date).toLowerCase()}`,
-        body: TIER_META[tier].label,
-        to: `/plan/${r.plan.id}`,
-        at: Date.now() - r.daysAway * 1000,
+          v.daysAway === 0
+            ? `${v.plan.title} is today`
+            : `${v.plan.title} — ${countdownLabel(now, v.plan.date).toLowerCase()}`,
+        body: TIER_META[v.cycle.tier].label,
+        to: `/plan/${v.plan.id}`,
+        at: Date.now() - v.daysAway * 1000,
       });
     }
-    if (r.overdue) {
+    if (v.overdue) {
       items.push({
-        id: `due-${tier}-${now.slice(0, 7)}`,
+        id: `due-${v.cycle.id}`,
         kind: 'ritual-due',
         emoji: '🌿',
-        title: `Your ${TIER_META[tier].cadence} is due`,
-        body: TIER_META[tier].hint,
-        to: `/plan/new/${tier}`,
+        title: `Life got busy — your ${TIER_META[v.cycle.tier].cadence} is open`,
+        body: TIER_META[v.cycle.tier].hint,
+        to: `/plan/new?cycle=${v.cycle.id}`,
         at: Date.now() - 2000,
       });
     }
   }
 
-  const awaiting = planAwaitingMemory(state);
-  if (awaiting) {
+  const awaiting = cycleAwaitingMemory(state);
+  if (awaiting?.plan) {
     items.push({
-      id: `memory-${awaiting.id}`,
+      id: `memory-${awaiting.cycle.id}`,
       kind: 'capture-memory',
-      emoji: '📷',
-      title: `Turn ${awaiting.title.toLowerCase()} into a memory`,
-      body: 'Add a photo and a line each, while it is still fresh.',
-      to: `/memories/new?plan=${awaiting.id}`,
-      at: new Date(awaiting.completedAt ?? Date.now()).getTime(),
+      emoji: awaiting.plan.emoji,
+      title: `How was ${awaiting.plan.title.toLowerCase()}?`,
+      body: 'Turn it into a memory while it is still fresh.',
+      to: `/memories/new?cycle=${awaiting.cycle.id}`,
+      at: new Date(awaiting.cycle.completedAt ?? Date.now()).getTime(),
     });
   }
 

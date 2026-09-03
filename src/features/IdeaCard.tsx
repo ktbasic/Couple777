@@ -17,7 +17,16 @@ function cost(euros: number) {
   return euros === 0 ? 'Free' : `~€${euros}`;
 }
 
-export function IdeaCard({ idea, index = 0 }: { idea: DateIdea; index?: number }) {
+export function IdeaCard({
+  idea,
+  index = 0,
+  cycleId,
+}: {
+  idea: DateIdea;
+  index?: number;
+  /** The cycle this idea would fill, when one is being planned. */
+  cycleId?: string;
+}) {
   const { state, dispatch } = useStore();
   const toast = useToast();
   const navigate = useNavigate();
@@ -63,14 +72,16 @@ export function IdeaCard({ idea, index = 0 }: { idea: DateIdea; index?: number }
           <Button
             variant="accent"
             size="sm"
-            onClick={() => navigate(`/plan/new/day?idea=${idea.id}`)}
+            onClick={() => navigate(`/plan/new?idea=${idea.id}${cycleId ? `&cycle=${cycleId}` : ''}`)}
           >
-            Add to our next date
+            Make this the plan
           </Button>
           <Button
             variant="quiet"
             size="sm"
-            onClick={() => navigate(`/plan/new/day?idea=${idea.id}&surprise=1`)}
+            onClick={() =>
+              navigate(`/plan/new?idea=${idea.id}&surprise=1${cycleId ? `&cycle=${cycleId}` : ''}`)
+            }
           >
             Surprise them
           </Button>

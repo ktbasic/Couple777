@@ -1,11 +1,11 @@
-import type { ID, Memory, Plan, RitualTier } from '@/lib/types';
+import type { Cycle, ID, Memory, Plan, RitualTier } from '@/lib/types';
 import { photo } from '@/lib/photo';
-import { addDays, fromISODate } from '@/lib/dates';
+import { TIER_META, addDays, fromISODate } from '@/lib/dates';
 
 /**
  * A couple two years in has a backlog, and the app is much easier to judge
- * with one. This generates that history deterministically: completed plans at
- * roughly the right cadence, with a memory attached to most of them.
+ * with one. This builds that history as completed cycles — each with the plan
+ * that filled it and, usually, the memory it became.
  */
 
 interface Entry {
@@ -63,66 +63,75 @@ const BIGS: Entry[] = [
   { title: 'Andalusia road trip', emoji: '🚗', place: 'Seville · Granada · Cádiz', note: 'Three weeks, one very small car.', mood: 'joyful', photos: 9 },
 ];
 
-const TIER_SPACING: Record<RitualTier, number> = { day: 9, week: 52, month: 232 };
 const POOLS: Record<RitualTier, Entry[]> = { day: DATES, week: MINIS, month: BIGS };
 
 /**
- * @param startOffset days back from today for the most recent generated item —
- *   sits behind the handcrafted ones so the countdowns still read correctly.
+ * @param startOffset days back from today for the most recent generated turn —
+ *   behind the handcrafted ones so the live countdowns still read correctly.
  */
-function buildTier(
-  tier: RitualTier,
-  today: string,
-  startOffset: number,
-  people: [ID, ID],
-): { plans: Plan[]; memories: Memory[] } {
+function buildTier(tier: RitualTier, today: string, startOffset: number, people: [ID, ID]) {
+  const cycles: Cycle[] = [];
   const plans: Plan[] = [];
   const memories: Memory[] = [];
   const pool = POOLS[tier];
+  const step = TIER_META[tier].intervalDays;
 
   pool.forEach((entry, i) => {
-    // Slight jitter so the cadence looks kept, not clockwork.
+    // Slight jitter so the rhythm looks kept, not clockwork.
     const jitter = ((i * 37) % 7) - 3;
-    const offset = startOffset + i * TIER_SPACING[tier] + jitter;
+    const offset = startOffset + i * (step + 3) + jitter;
     const date = addDays(today, -offset);
     const by = people[i % 2];
-    const planId = `h-${tier}-${i}`;
-    const hasMemory = entry.photos > 0 || Boolean(entry.note);
-    const memoryId = hasMemory ? `hm-${tier}-${i}` : undefined;
 
-    plans.push({
-      id: planId,
+    const cycleId = `h-cy-${tier}-${i}`;
+    const planId = `h-pl-${tier}-${i}`;
+    const memoryId = `h-m-${tier}-${i}`;
+
+    cycles.push({
+      id: cycleId,
       tier,
-      title: entry.title,
-      emoji: entry.emoji,
-      date,
-      status: 'completed',
-      createdBy: by,
-      surprise: false,
-      place: entry.place,
+      seq: pool.length - i,
+      startDate: addDays(date, -step),
+      dueDate: date,
+      planId,
       completedAt: fromISODate(date).toISOString(),
       memoryId,
     });
 
-    if (memoryId) {
-      memories.push({
-        id: memoryId,
-        date,
-        title: entry.title,
-        emoji: entry.emoji,
-        kind: tier,
-        place: entry.place,
-        photos: Array.from({ length: entry.photos }, (_, p) => photo(`${planId}-${p}`)),
-        mood: entry.mood,
-        sharedNote: entry.note,
-        notes: {},
-        privateNotes: {},
-        planId,
-      });
-    }
+    plans.push({
+      id: planId,
+      cycleId,
+      title: entry.title,
+      emoji: entry.emoji,
+      date,
+      createdBy: by,
+      surprise: false,
+      place: entry.place,
+      invite: {
+        sentAt: fromISODate(addDays(date, -3)).toISOString(),
+        respondedAt: fromISODate(addDays(date, -3)).toISOString(),
+        response: 'yes',
+      },
+    });
+
+    memories.push({
+      id: memoryId,
+      date,
+      title: entry.title,
+      emoji: entry.emoji,
+      kind: tier,
+      place: entry.place,
+      photos: Array.from({ length: entry.photos }, (_, p) => photo(`${planId}-${p}`)),
+      mood: entry.mood,
+      sharedNote: entry.note,
+      notes: {},
+      privateNotes: {},
+      planId,
+      cycleId,
+    });
   });
 
-  return { plans, memories };
+  return { cycles, plans, memories };
 }
 
 export function buildHistory(today: string, people: [ID, ID]) {
@@ -131,6 +140,7 @@ export function buildHistory(today: string, people: [ID, ID]) {
   const month = buildTier('month', today, 310, people);
 
   return {
+    cycles: [...day.cycles, ...week.cycles, ...month.cycles],
     plans: [...day.plans, ...week.plans, ...month.plans],
     memories: [...day.memories, ...week.memories, ...month.memories],
   };

@@ -36,15 +36,18 @@ export default function MemoryCaptureScreen() {
   const toast = useToast();
   const { state, dispatch, me } = useStore();
 
-  const plan = state.plans.find((p) => p.id === params.get('plan'));
+  // Arrives from a completed cycle, so the rhythm, plan and partner are known.
+  const cycle = state.cycles.find((c) => c.id === params.get('cycle'));
+  const plan =
+    state.plans.find((p) => p.id === (cycle?.planId ?? params.get('plan'))) ?? undefined;
 
   const [title, setTitle] = useState(plan?.title ?? '');
   const [emoji] = useState(plan?.emoji ?? '✨');
   const [date, setDate] = useState(plan?.date ?? today());
   const [place, setPlace] = useState(plan?.place ?? '');
-  const [kind, setKind] = useState<MemoryKind>(plan?.tier ?? 'moment');
+  const [shared, setSharedNote] = useState('');
+  const [kind, setKind] = useState<MemoryKind>(cycle?.tier ?? 'moment');
   const [mood, setMood] = useState<Mood | null>(null);
-  const [shared, setShared] = useState('');
   const [mine, setMine] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -71,6 +74,7 @@ export default function MemoryCaptureScreen() {
       notes: mine.trim() ? { [me.id]: mine.trim() } : {},
       privateNotes: {},
       planId: plan?.id,
+      cycleId: cycle?.id,
     };
 
     dispatch({ type: 'upsertMemory', memory });
@@ -165,7 +169,7 @@ export default function MemoryCaptureScreen() {
             label="One line, from both of you"
             placeholder="Ended up dancing in the kitchen."
             value={shared}
-            onChange={(e) => setShared(e.target.value)}
+            onChange={(e) => setSharedNote(e.target.value)}
             hint="This is the line that shows on the timeline."
           />
 

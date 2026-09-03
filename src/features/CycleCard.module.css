@@ -217,3 +217,60 @@
   margin-left: auto;
   flex: none;
 }
+
+/* ---------------- Status ---------------- */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 11px;
+  border-radius: var(--r-full);
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  background: var(--c-surface-2);
+  color: var(--c-ink-3);
+  white-space: nowrap;
+}
+
+.status[data-state='invited'] {
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+}
+.status[data-state='confirmed'] {
+  background: var(--g-accent);
+  color: var(--c-on-accent);
+}
+.status[data-state='completed'] {
+  background: var(--c-gold-wash);
+  color: var(--c-gold-ink);
+}
+
+.heroHeadline {
+  margin-top: var(--s-4);
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.24;
+  color: var(--c-ink);
+  text-wrap: balance;
+}
+
+.heroCount {
+  margin-top: var(--s-1);
+  font-family: var(--f-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--c-ink);
+}
+
+.compactStatus {
+  flex: none;
+  margin-left: auto;
+}

@@ -3,20 +3,20 @@ import { Screen, Section } from '@/components/layout/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AvatarPair } from '@/components/ui/Avatar';
 import { Button, ButtonLink } from '@/components/ui/Button';
-import { RitualCardCompact, RitualCardHero } from '@/features/RitualCard';
+import { CycleCardCompact, CycleCardHero } from '@/features/CycleCard';
 import { DailyCard } from '@/features/DailyCard';
 import { MemoryCard } from '@/features/MemoryCard';
 import { MatchReveal } from '@/features/DestinationCard';
 import { NotificationBell } from '@/features/NotificationBell';
 import { useStore } from '@/context/store';
 import {
-  allRituals,
+  alsoAhead,
+  cycleAwaitingMemory,
   dailyEntry,
   dailyStatus,
-  mostUrgent,
   newMatch,
-  planAwaitingMemory,
   sortedMemories,
+  upNext,
 } from '@/lib/selectors';
 import { quoteForDate } from '@/data/prompts';
 import { cueFromText, cueToParams } from '@/lib/generator';
@@ -33,10 +33,11 @@ function greetingFor(hour: number) {
 export default function HomeScreen() {
   const { state, me, partner } = useStore();
   const now = today();
-  const rituals = allRituals(state, now);
-  const urgent = mostUrgent(state, now);
+  // Attention decides the hero, not tier — see `attentionScore`.
+  const hero = upNext(state, now);
+  const ahead = alsoAhead(state, now);
   const memories = sortedMemories(state.memories).slice(0, 4);
-  const awaiting = planAwaitingMemory(state);
+  const awaiting = cycleAwaitingMemory(state);
   const match = newMatch(state);
 
   // Once both have answered, their own words seed the date generator.
@@ -64,40 +65,42 @@ export default function HomeScreen() {
         </div>
       </header>
 
-      {awaiting ? (
+      {awaiting?.plan ? (
         <div className={s.nudge}>
           <span className={s.nudgeEmoji} aria-hidden>
-            {awaiting.emoji}
+            {awaiting.plan.emoji}
           </span>
           <div className={s.nudgeMain}>
-            <p className={s.nudgeTitle}>Turn {awaiting.title.toLowerCase()} into a memory?</p>
-            <p className={s.nudgeBody}>Add a photo and a line each, while it is still fresh.</p>
+            <p className={s.nudgeTitle}>How was {awaiting.plan.title.toLowerCase()}?</p>
+            <p className={s.nudgeBody}>Turn it into a memory while it is still fresh.</p>
           </div>
-          <ButtonLink to={`/memories/new?plan=${awaiting.id}`} variant="secondary" size="sm">
+          <ButtonLink to={`/memories/new?cycle=${awaiting.cycle.id}`} variant="secondary" size="sm">
             Add
           </ButtonLink>
         </div>
       ) : null}
 
-      <section className={s.hero}>
-        <div className={s.rituals}>
-          {rituals.map((r, i) => (
-            <div key={r.tier} className={s.ritual} style={{ animationDelay: `${i * 80}ms` }}>
-              {r.tier === urgent.tier ? (
-                <RitualCardHero status={r} />
-              ) : (
-                <RitualCardCompact status={r} />
-              )}
-            </div>
-          ))}
-        </div>
+      {hero ? (
+        <section className={s.hero}>
+          <p className={s.sectionKicker}>Up next</p>
+          <div className={s.ritual}>
+            <CycleCardHero view={hero} />
+          </div>
 
-        <div className={s.cta}>
-          <ButtonLink to={`/plan/new/${urgent.tier}`} variant="primary" block>
-            Plan something together
-          </ButtonLink>
-        </div>
-      </section>
+          {ahead.length ? (
+            <>
+              <p className={`${s.sectionKicker} ${s.aheadKicker}`}>What's ahead</p>
+              <div className={s.rituals}>
+                {ahead.map((v, i) => (
+                  <div key={v.cycle.id} className={s.ritual} style={{ animationDelay: `${(i + 1) * 80}ms` }}>
+                    <CycleCardCompact view={v} />
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : null}
+        </section>
+      ) : null}
 
       <Section>
         <DailyCard />

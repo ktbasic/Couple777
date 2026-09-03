@@ -4,10 +4,11 @@ import { formatGutter } from '@/lib/dates';
 import type { Memory } from '@/lib/types';
 import s from './MemoryCard.module.css';
 
+/** The rhythm that produced it — the couple's story, not analytics. */
 const KIND_LABEL: Record<Memory['kind'], string> = {
-  day: 'Date',
-  week: 'Mini adventure',
-  month: 'Big adventure',
+  day: '7 day',
+  week: '7 week',
+  month: '7 month',
   milestone: 'Milestone',
   moment: 'A moment',
 };
@@ -45,8 +46,10 @@ export function MemoryCard({ memory }: { memory: Memory }) {
           {memory.title}
         </h3>
         <p className={s.meta}>
-          <span>{KIND_LABEL[memory.kind]}</span>
-          {memory.place ? <span>· {memory.place}</span> : null}
+          <span className={s.rhythm} data-kind={memory.kind}>
+            {KIND_LABEL[memory.kind]}
+          </span>
+          {memory.place ? <span>{memory.place}</span> : null}
           {memory.photos.length ? (
             <span>
               · {memory.photos.length} photo{memory.photos.length === 1 ? '' : 's'}

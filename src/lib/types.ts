@@ -9,6 +9,46 @@ export type ISOStamp = string; // full ISO timestamp
 /** The three tiers of the 777 rhythm. */
 export type RitualTier = 'day' | 'week' | 'month';
 
+/* ---------------- Cycles: the system of record ---------------- */
+
+/**
+ * A cycle is one turn of one clock. Three run independently from the day the
+ * couple starts, and each keeps its own rhythm — completing early advances the
+ * next due date from the *due* date, not from when it happened.
+ *
+ * Nothing here is classified by the user. Whatever they do lands in whichever
+ * cycle is currently open for that tier.
+ */
+export interface Cycle {
+  id: ID;
+  tier: RitualTier;
+  /** 1-based turn number for this tier, used for copy like "your 4th". */
+  seq: number;
+  /** When this turn opened — the previous turn's due date. */
+  startDate: ISODate;
+  dueDate: ISODate;
+  planId?: ID;
+  completedAt?: ISOStamp;
+  memoryId?: ID;
+  /** Set when a larger cycle's moment counted for this one too. */
+  satisfiedBy?: ID;
+}
+
+/**
+ * Derived from the cycle and its plan rather than stored, so it cannot drift
+ * out of step with the thing it describes.
+ */
+export type CycleStatus = 'upcoming' | 'planned' | 'invited' | 'confirmed' | 'completed';
+
+export type InviteResponse = 'yes' | 'reschedule' | 'cant';
+
+export interface Invite {
+  sentAt: ISOStamp;
+  message?: string;
+  respondedAt?: ISOStamp;
+  response?: InviteResponse;
+}
+
 export interface Person {
   id: ID;
   name: string;
@@ -76,27 +116,31 @@ export interface Couple {
 
 /* ---------------- Plans: one shape for all three tiers ---------------- */
 
-export type PlanStatus = 'planned' | 'completed';
-
+/**
+ * What the couple decided to do with a cycle. The plan never states which
+ * tier it is — that comes from the cycle it belongs to, which is the whole
+ * point: the rhythm says when, the couple says what.
+ */
 export interface Plan {
   id: ID;
-  tier: RitualTier;
+  cycleId: ID;
   title: string;
   emoji: string;
-  /** Scheduled day. Big adventures may only have a month. */
   date: ISODate;
+  /** "19:00". Optional — not every moment has a clock time. */
+  time?: string;
   endDate?: ISODate;
-  status: PlanStatus;
   createdBy: ID;
   /** Hidden from the partner until revealed or the day arrives. */
   surprise: boolean;
   place?: string;
-  budget?: string;
-  notes?: string;
-  /** Set when the plan has been turned into a memory. */
-  memoryId?: ID;
-  completedAt?: ISOStamp;
-  /** Big adventures carry a planning space. */
+  note?: string;
+  /** A link the couple pasted — a restaurant page, a listing, anything. */
+  link?: string;
+  cost?: string;
+  reserved?: boolean;
+  invite?: Invite;
+  /** Only mini and big adventures carry the extra planning space. */
   trip?: Trip;
 }
 
@@ -115,6 +159,8 @@ export interface Trip {
   stays: TripItem[];
   notes: string;
   budget?: string;
+  /** Free text — "train from Munich, 1h50". */
+  transport?: string;
 }
 
 /* ---------------- Date ideas ---------------- */
@@ -248,6 +294,8 @@ export interface Memory {
   /** Only visible to its author. */
   privateNotes: Record<ID, string>;
   planId?: ID;
+  /** Which rhythm produced this, for the 777 story on the timeline. */
+  cycleId?: ID;
 }
 
 /* ---------------- Notes to my partner ---------------- */
@@ -306,6 +354,9 @@ export interface RoomSession {
 export interface AppState {
   onboarded: boolean;
   couple: Couple;
+  /** The day all three clocks started. */
+  rhythmStart: ISODate;
+  cycles: Cycle[];
   plans: Plan[];
   memories: Memory[];
   notes: Note[];

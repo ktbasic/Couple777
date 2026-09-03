@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { BackBar, Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Field';
@@ -8,6 +8,7 @@ import { useStore } from '@/context/store';
 import { DATE_IDEAS } from '@/data/dateIdeas';
 import { ADVENTURE_IDEAS } from '@/data/adventures';
 import { TIER_META, addDays, today } from '@/lib/dates';
+import { CYCLE_NOUN } from '@/lib/cycles';
 import { uid } from '@/lib/id';
 import type { Plan, RitualTier } from '@/lib/types';
 import s from './PlanEdit.module.css';
@@ -19,19 +20,25 @@ const EMOJI: Record<RitualTier, string[]> = {
 };
 
 export default function PlanEditScreen() {
-  const { tier: tierParam, planId } = useParams();
+  const { planId } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
   const { state, dispatch, me, partner } = useStore();
 
   const existing = planId ? state.plans.find((p) => p.id === planId) : undefined;
-  const tier: RitualTier =
-    existing?.tier ??
-    (tierParam === 'week' || tierParam === 'month' ? tierParam : 'day');
-  const meta = TIER_META[tier];
 
-  // A plan can arrive pre-filled from any of the three explore surfaces.
+  // The cycle is the context. Nobody picks a tier — the rhythm already knows.
+  const cycle =
+    state.cycles.find((c) => c.id === (existing?.cycleId ?? params.get('cycle'))) ??
+    state.cycles.find((c) => !c.completedAt && c.tier === 'day');
+
+  if (!cycle) return <Navigate to="/" replace />;
+
+  const tier = cycle.tier;
+  const meta = TIER_META[tier];
+  const rich = tier !== 'day';
+
   const sourceIdea = DATE_IDEAS.find((i) => i.id === params.get('idea'));
   const sourceAdventure = ADVENTURE_IDEAS.find((a) => a.id === params.get('adventure'));
   const sourceDestination = state.destinations.find((d) => d.id === params.get('destination'));
@@ -43,51 +50,62 @@ export default function PlanEditScreen() {
     existing?.emoji ?? sourceIdea?.emoji ?? sourceAdventure?.emoji ?? EMOJI[tier][0],
   );
   const [date, setDate] = useState(
-    existing?.date ?? addDays(today(), meta.intervalDays === 7 ? 5 : meta.intervalDays - 7),
+    existing?.date ?? (cycle.dueDate < today() ? addDays(today(), 3) : cycle.dueDate),
   );
+  const [time, setTime] = useState(existing?.time ?? '');
   const [place, setPlace] = useState(
     existing?.place ?? sourceAdventure?.place ?? sourceDestination?.country ?? '',
   );
-  const [budget, setBudget] = useState(
-    existing?.budget ?? (sourceIdea ? (sourceIdea.cost ? `€${sourceIdea.cost}` : 'Free') : sourceAdventure?.cost ?? ''),
+  const [cost, setCost] = useState(
+    existing?.cost ??
+      (sourceIdea ? (sourceIdea.cost ? `€${sourceIdea.cost}` : 'Free') : (sourceAdventure?.cost ?? '')),
   );
-  const [notes, setNotes] = useState(existing?.notes ?? sourceIdea?.description ?? sourceAdventure?.description ?? '');
+  const [note, setNote] = useState(
+    existing?.note ?? sourceIdea?.description ?? sourceAdventure?.description ?? '',
+  );
+  const [link, setLink] = useState(existing?.link ?? '');
+  const [transport, setTransport] = useState(existing?.trip?.transport ?? '');
+  const [reserved, setReserved] = useState(existing?.reserved ?? false);
   const [surprise, setSurprise] = useState(existing?.surprise ?? params.get('surprise') === '1');
 
   const save = () => {
     const plan: Plan = {
       id: existing?.id ?? uid('pl'),
-      tier,
+      cycleId: cycle.id,
       title: title.trim() || meta.label,
       emoji,
       date,
-      status: existing?.status ?? 'planned',
+      time: time.trim() || undefined,
+      endDate: existing?.endDate,
       createdBy: existing?.createdBy ?? me.id,
       surprise,
       place: place.trim() || undefined,
-      budget: budget.trim() || undefined,
-      notes: notes.trim() || undefined,
-      memoryId: existing?.memoryId,
-      completedAt: existing?.completedAt,
-      trip:
-        existing?.trip ??
-        (tier === 'month'
-          ? {
-              destination: title.trim() || 'Somewhere new',
-              country: place.trim() || undefined,
-              heroImage: sourceDestination?.image,
+      note: note.trim() || undefined,
+      link: link.trim() || undefined,
+      cost: cost.trim() || undefined,
+      reserved,
+      invite: existing?.invite,
+      trip: rich
+        ? {
+            ...(existing?.trip ?? {
+              destination: '',
               wishlist: [],
               stays: [],
               notes: '',
-              budget: budget.trim() || undefined,
-            }
-          : undefined),
+            }),
+            destination: title.trim() || place.trim() || 'Somewhere new',
+            country: place.trim() || undefined,
+            heroImage: existing?.trip?.heroImage ?? sourceDestination?.image,
+            transport: transport.trim() || undefined,
+            budget: cost.trim() || undefined,
+          }
+        : undefined,
     };
 
     dispatch({ type: 'upsertPlan', plan });
     toast.show({
       emoji: surprise ? '🤫' : '✓',
-      message: surprise ? `Hidden from ${partner.name} until the day` : "It's in the rhythm",
+      message: surprise ? `Hidden from ${partner.name} until the day` : "That's your plan",
     });
     navigate(`/plan/${plan.id}`, { replace: true });
   };
@@ -101,13 +119,15 @@ export default function PlanEditScreen() {
 
   return (
     <>
-      <BackBar title={existing ? 'Edit plan' : meta.verb} />
+      <BackBar title={existing ? 'Edit plan' : 'Plan something'} />
       <Screen>
         <header className={s.head}>
           <p className={s.eyebrow} data-tier={tier}>
-            Every {meta.cadence}
+            Your {meta.cadence} moment
           </p>
-          <h1 className={s.title}>{existing ? 'Change the plan' : meta.verb}</h1>
+          <h1 className={s.title}>
+            {existing ? 'Change the plan' : `What shall we do for this ${CYCLE_NOUN[tier]}?`}
+          </h1>
           <p className={s.sub}>{meta.hint}</p>
 
           {sourceIdea || sourceAdventure || sourceDestination ? (
@@ -115,8 +135,8 @@ export default function PlanEditScreen() {
               <span aria-hidden>✨</span>
               <span>
                 Started from{' '}
-                <strong>{sourceIdea?.title ?? sourceAdventure?.title ?? sourceDestination?.name}</strong>. Change
-                anything you like.
+                <strong>{sourceIdea?.title ?? sourceAdventure?.title ?? sourceDestination?.name}</strong>.
+                Change anything you like.
               </span>
             </p>
           ) : null}
@@ -148,25 +168,62 @@ export default function PlanEditScreen() {
             </div>
           </div>
 
-          <Input label="When" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <div className={s.pair}>
+            <Input label="When" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input label="Time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+          </div>
+
           <Input
-            label="Where"
+            label={tier === 'day' ? 'Where' : 'Destination'}
             placeholder="Optional"
             value={place}
             onChange={(e) => setPlace(e.target.value)}
           />
+
+          {rich ? (
+            <Input
+              label="Getting there"
+              placeholder="Train from Munich, about 2 hours"
+              value={transport}
+              onChange={(e) => setTransport(e.target.value)}
+            />
+          ) : null}
+
           <Input
-            label="Rough budget"
+            label={tier === 'month' ? 'Rough budget' : 'Rough cost'}
             placeholder="Optional"
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
+            value={cost}
+            onChange={(e) => setCost(e.target.value)}
           />
+
+          <Input
+            label="Link"
+            placeholder="Restaurant page, listing, tickets…"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            hint="Optional. Anything you want to find again quickly."
+          />
+
           <Textarea
             label="Anything worth noting"
             placeholder="Bookings, times, who is driving…"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
           />
+
+          <label className={s.toggle}>
+            <div className={s.toggleMain}>
+              <p className={s.toggleTitle}>Already reserved</p>
+              <p className={s.toggleBody}>Marks it as booked so neither of you wonders.</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={reserved}
+              onChange={(e) => setReserved(e.target.checked)}
+              style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+            />
+            <span className={[s.switch, reserved ? s.switchOn : ''].filter(Boolean).join(' ')} aria-hidden />
+          </label>
 
           <label className={s.toggle}>
             <div className={s.toggleMain}>
@@ -181,16 +238,13 @@ export default function PlanEditScreen() {
               onChange={(e) => setSurprise(e.target.checked)}
               style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
             />
-            <span
-              className={[s.switch, surprise ? s.switchOn : ''].filter(Boolean).join(' ')}
-              aria-hidden
-            />
+            <span className={[s.switch, surprise ? s.switchOn : ''].filter(Boolean).join(' ')} aria-hidden />
           </label>
         </div>
 
         <div className={s.actions}>
           <Button variant="accent" size="lg" block onClick={save}>
-            {existing ? 'Save changes' : 'Put it in the rhythm'}
+            {existing ? 'Save changes' : 'Save plan'}
           </Button>
           {existing ? (
             <button type="button" className={s.delete} onClick={remove}>

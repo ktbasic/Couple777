@@ -1,34 +1,58 @@
-import { useState } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { BackBar, Screen, Section } from '@/components/layout/Screen';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Photo } from '@/components/ui/Photo';
 import { Avatar } from '@/components/ui/Avatar';
 import { useToast } from '@/components/ui/Toast';
+import { InviteSheet } from '@/features/InviteSheet';
+import { PlanningHelpers } from '@/features/PlanningHelpers';
 import { useStore } from '@/context/store';
 import { TIER_META, countdownLabel, formatPlanDate, today } from '@/lib/dates';
+import { CYCLE_NOUN, cycleStatus } from '@/lib/cycles';
 import { uid } from '@/lib/id';
 import type { Plan, TripItem } from '@/lib/types';
 import s from './PlanDetail.module.css';
 
 export default function PlanDetailScreen() {
   const { planId } = useParams();
+  const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
   const { state, dispatch, me, partner } = useStore();
 
   const plan = state.plans.find((p) => p.id === planId);
-  if (!plan) return <Navigate to="/" replace />;
+  const cycle = state.cycles.find((c) => c.id === plan?.cycleId);
+  const [asking, setAsking] = useState(false);
 
-  const meta = TIER_META[plan.tier];
-  const hidden = plan.surprise && plan.createdBy !== me.id && plan.status === 'planned';
+  // The hero card links straight here with the invite open.
+  useEffect(() => {
+    if (params.get('ask') === '1') {
+      setAsking(true);
+      params.delete('ask');
+      setParams(params, { replace: true });
+    }
+  }, [params, setParams]);
+
+  if (!plan || !cycle) return <Navigate to="/" replace />;
+
+  const tier = cycle.tier;
+  const meta = TIER_META[tier];
+  const status = cycleStatus(cycle, plan);
+  const hidden = plan.surprise && plan.createdBy !== me.id && !cycle.completedAt;
   const onPhoto = Boolean(plan.trip?.heroImage);
+  const destination = plan.trip?.destination ?? plan.place ?? plan.title;
 
   const complete = () => {
-    dispatch({ type: 'completePlan', id: plan.id });
-    toast.show({ emoji: '✓', message: 'Another memory made' });
-    navigate(`/memories/new?plan=${plan.id}`);
+    dispatch({ type: 'completeCycle', cycleId: cycle.id });
+    // The engine closes overlapped smaller cycles too; say so plainly.
+    const alsoClosed = tier === 'month' ? 'your 7-week and 7-day moments' : tier === 'week' ? 'your 7-day moment' : null;
+    toast.show({
+      emoji: '✓',
+      message: alsoClosed ? `Made — this covered ${alsoClosed} too` : 'Another memory made',
+    });
+    navigate(`/memories/new?cycle=${cycle.id}`);
   };
 
   if (hidden) {
@@ -37,13 +61,10 @@ export default function PlanDetailScreen() {
         <BackBar title="A surprise" />
         <Screen>
           <div className={s.hidden}>
-            <span className={s.hiddenEmoji} aria-hidden>
-              🎁
-            </span>
+            <span className={s.hiddenEmoji} aria-hidden>🎁</span>
             <p className={s.hiddenTitle}>{partner.name} has planned something.</p>
             <p className={s.hiddenBody}>
-              It is {countdownLabel(today(), plan.date).toLowerCase()} away. That is all you get
-              for now.
+              It is {countdownLabel(today(), plan.date).toLowerCase()} away. That is all you get for now.
             </p>
           </div>
         </Screen>
@@ -54,13 +75,13 @@ export default function PlanDetailScreen() {
   return (
     <>
       <BackBar
-        title={meta.label}
-        actionLabel={plan.status === 'planned' ? 'Edit' : undefined}
+        title={`Your ${meta.cadence} moment`}
+        actionLabel={cycle.completedAt ? undefined : 'Edit'}
         onAction={() => navigate(`/plan/${plan.id}/edit`)}
         bleed
       />
       <Screen>
-        <div className={s.hero} data-tier={plan.tier}>
+        <div className={s.hero} data-tier={tier}>
           {plan.trip?.heroImage ? (
             <>
               <Photo src={plan.trip.heroImage} seed={plan.id} className={s.heroImg} alt="" />
@@ -68,21 +89,59 @@ export default function PlanDetailScreen() {
             </>
           ) : null}
           <div className={[s.heroInner, onPhoto ? s.onPhoto : ''].filter(Boolean).join(' ')}>
-            <span className={s.emoji} aria-hidden>
-              {plan.emoji}
-            </span>
+            <span className={s.emoji} aria-hidden>{plan.emoji}</span>
             <p className={s.cadence}>Every {meta.cadence}</p>
             <h1 className={s.title}>{plan.title}</h1>
             <p className={s.when}>
-              <span>{formatPlanDate(plan.date)}</span>
-              {plan.status === 'planned' ? (
-                <span className={s.countdown}>{countdownLabel(today(), plan.date)}</span>
-              ) : (
-                <span className={s.countdown}>Done ✓</span>
-              )}
+              <span>
+                {formatPlanDate(plan.date)}
+                {plan.time ? ` · ${plan.time}` : ''}
+              </span>
+              <span className={s.countdown}>
+                {cycle.completedAt ? 'Done ✓' : countdownLabel(today(), plan.date)}
+              </span>
             </p>
           </div>
         </div>
+
+        {/* Invite state lives on the plan, where the couple already is. */}
+        {!cycle.completedAt ? (
+          <div className={s.inviteRow} data-state={status}>
+            {status === 'planned' ? (
+              <>
+                <p className={s.inviteText}>
+                  {partner.name} doesn't know about this yet.
+                </p>
+                <Button variant="accent" size="sm" onClick={() => setAsking(true)}>
+                  Ask {partner.name} 💌
+                </Button>
+              </>
+            ) : status === 'invited' ? (
+              <>
+                <p className={s.inviteText}>💌 Invite sent — waiting on {partner.name}.</p>
+                <div className={s.inviteActions}>
+                  <Button variant="quiet" size="sm" onClick={() => setAsking(true)}>
+                    Share again
+                  </Button>
+                  {/* No real partner device in the prototype, so acceptance is simulated
+                      rather than faked silently. */}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      dispatch({ type: 'respondToInvite', planId: plan.id, response: 'yes' });
+                      toast.show({ emoji: '❤️', message: `${partner.name} said yes` });
+                    }}
+                  >
+                    Simulate yes
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <p className={s.inviteText}>❤️ You're on. {partner.name} said yes.</p>
+            )}
+          </div>
+        ) : null}
 
         <div className={s.details}>
           {plan.place ? (
@@ -91,16 +150,33 @@ export default function PlanDetailScreen() {
               <span className={s.detailValue}>{plan.place}</span>
             </div>
           ) : null}
-          {plan.budget ? (
+          {plan.trip?.transport ? (
             <div className={s.detail}>
-              <span className={s.detailLabel}>Budget</span>
-              <span className={s.detailValue}>{plan.budget}</span>
+              <span className={s.detailLabel}>Getting there</span>
+              <span className={s.detailValue}>{plan.trip.transport}</span>
             </div>
           ) : null}
-          {plan.notes ? (
+          {plan.cost ? (
+            <div className={s.detail}>
+              <span className={s.detailLabel}>{tier === 'month' ? 'Budget' : 'Cost'}</span>
+              <span className={s.detailValue}>
+                {plan.cost}
+                {plan.reserved ? ' · reserved ✓' : ''}
+              </span>
+            </div>
+          ) : null}
+          {plan.note ? (
             <div className={s.detail}>
               <span className={s.detailLabel}>Notes</span>
-              <span className={s.detailValue}>{plan.notes}</span>
+              <span className={s.detailValue}>{plan.note}</span>
+            </div>
+          ) : null}
+          {plan.link ? (
+            <div className={s.detail}>
+              <span className={s.detailLabel}>Link</span>
+              <a className={s.detailLink} href={plan.link} target="_blank" rel="noopener noreferrer">
+                Open
+              </a>
             </div>
           ) : null}
           <div className={s.detail}>
@@ -112,40 +188,44 @@ export default function PlanDetailScreen() {
           </div>
         </div>
 
-        {plan.status === 'planned' ? (
+        <PlanningHelpers tier={tier} destination={destination} />
+
+        {!cycle.completedAt ? (
           <div className={s.actions}>
             <Button variant="accent" size="lg" block onClick={complete}>
               We did this
             </Button>
-            <ButtonLink to={`/explore?tier=${plan.tier}`} variant="secondary" block>
+            <ButtonLink to={`/explore?cycle=${cycle.id}`} variant="secondary" block>
               Browse other ideas
             </ButtonLink>
           </div>
-        ) : plan.memoryId ? (
+        ) : cycle.memoryId ? (
           <div className={s.done}>
             <p className={s.doneTitle}>Another memory made ✓</p>
-            <p className={s.doneBody}>This one is in your timeline.</p>
-            <ButtonLink to={`/memories/${plan.memoryId}`} variant="secondary" size="sm">
+            <p className={s.doneBody}>This one is in your 777 story.</p>
+            <ButtonLink to={`/memories/${cycle.memoryId}`} variant="secondary" size="sm">
               Open the memory
             </ButtonLink>
           </div>
         ) : (
           <div className={s.done}>
-            <p className={s.doneTitle}>Another memory made ✓</p>
+            <p className={s.doneTitle}>How was it?</p>
             <p className={s.doneBody}>Add a photo and a line each, while it is still fresh.</p>
-            <ButtonLink to={`/memories/new?plan=${plan.id}`} variant="accent" size="sm">
-              Turn it into a memory
+            <ButtonLink to={`/memories/new?cycle=${cycle.id}`} variant="accent" size="sm">
+              Turn this into a memory
             </ButtonLink>
           </div>
         )}
 
         {plan.trip ? <TripSpace plan={plan} /> : null}
       </Screen>
+
+      <InviteSheet plan={plan} tier={tier} open={asking} onClose={() => setAsking(false)} />
     </>
   );
 }
 
-/* ------------------------- Big adventure planning ------------------------- */
+/* ------------------------- Bigger-adventure space ------------------------- */
 
 function TripSpace({ plan }: { plan: Plan }) {
   const { state, dispatch, me } = useStore();
@@ -210,9 +290,7 @@ function TripSpace({ plan }: { plan: Plan }) {
             value={wishDraft}
             onChange={(e) => setWishDraft(e.target.value)}
           />
-          <Button variant="secondary" size="sm" type="submit">
-            Add
-          </Button>
+          <Button variant="secondary" size="sm" type="submit">Add</Button>
         </form>
       </Section>
 
@@ -233,9 +311,7 @@ function TripSpace({ plan }: { plan: Plan }) {
             value={stayDraft}
             onChange={(e) => setStayDraft(e.target.value)}
           />
-          <Button variant="secondary" size="sm" type="submit">
-            Add
-          </Button>
+          <Button variant="secondary" size="sm" type="submit">Add</Button>
         </form>
       </Section>
 
@@ -252,3 +328,5 @@ function TripSpace({ plan }: { plan: Plan }) {
     </div>
   );
 }
+
+export { CYCLE_NOUN };

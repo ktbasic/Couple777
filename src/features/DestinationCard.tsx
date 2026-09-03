@@ -64,7 +64,7 @@ export function MatchReveal({ destination }: { destination: Destination }) {
           size="sm"
           onClick={() => {
             dispatch({ type: 'markMatchSeen', id: destination.id });
-            navigate(`/plan/new/month?destination=${destination.id}`);
+            navigate(`/plan/new?destination=${destination.id}`);
           }}
         >
           Start planning it

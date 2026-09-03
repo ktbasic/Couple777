@@ -14,7 +14,7 @@ import s from './Memories.module.css';
 
 const FILTERS: { value: MemoryKind | 'all'; label: string; emoji?: string }[] = [
   { value: 'all', label: 'Everything' },
-  { value: 'day', label: 'Dates', emoji: '🍷' },
+  { value: 'day', label: '7-day moments', emoji: '🍷' },
   { value: 'week', label: 'Mini adventures', emoji: '🏔️' },
   { value: 'month', label: 'Big adventures', emoji: '✈️' },
   { value: 'milestone', label: 'Milestones', emoji: '❤️' },
@@ -48,7 +48,7 @@ export default function MemoriesScreen() {
     <Screen>
       <ScreenHeader
         eyebrow="Memories"
-        title="Everything you've made together"
+        title="Your 777 story"
         sub={
           month
             ? `Showing ${formatMonthYear(`${month}-01`)}.`

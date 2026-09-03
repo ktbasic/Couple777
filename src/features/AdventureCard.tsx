@@ -4,7 +4,15 @@ import { Photo } from '@/components/ui/Photo';
 import type { AdventureIdea } from '@/lib/types';
 import s from './AdventureCard.module.css';
 
-export function AdventureCard({ idea, index = 0 }: { idea: AdventureIdea; index?: number }) {
+export function AdventureCard({
+  idea,
+  index = 0,
+  cycleId,
+}: {
+  idea: AdventureIdea;
+  index?: number;
+  cycleId?: string;
+}) {
   const navigate = useNavigate();
   return (
     <article className={s.card} style={{ animationDelay: `${index * 70}ms` }}>
@@ -25,9 +33,11 @@ export function AdventureCard({ idea, index = 0 }: { idea: AdventureIdea; index?
             variant="secondary"
             size="sm"
             block
-            onClick={() => navigate(`/plan/new/week?adventure=${idea.id}`)}
+            onClick={() =>
+              navigate(`/plan/new?adventure=${idea.id}${cycleId ? `&cycle=${cycleId}` : ''}`)
+            }
           >
-            Make this our next one
+            Make this the plan
           </Button>
         </div>
       </div>

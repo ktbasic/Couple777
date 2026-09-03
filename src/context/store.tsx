@@ -12,15 +12,18 @@ import type {
   CoupleProfile,
   DailyEntry,
   ID,
+  InviteResponse,
   Memory,
   Note,
   Plan,
   RoomSession,
 } from '@/lib/types';
+import { completeCycle } from '@/lib/cycles';
 import { buildSeedState } from '@/data/seed';
 import { today } from '@/lib/dates';
 
-const STORAGE_KEY = 'couple777:v1';
+// v2: plans hang off cycles now, so v1 state cannot be read forward.
+const STORAGE_KEY = 'couple777:v2';
 
 /* ---------------------------------- Actions --------------------------------- */
 
@@ -44,7 +47,9 @@ type Action =
   | { type: 'setNotifications'; enabled: boolean }
   | { type: 'upsertPlan'; plan: Plan }
   | { type: 'removePlan'; id: ID }
-  | { type: 'completePlan'; id: ID }
+  | { type: 'completeCycle'; cycleId: ID }
+  | { type: 'sendInvite'; planId: ID; message?: string }
+  | { type: 'respondToInvite'; planId: ID; response: InviteResponse }
   | { type: 'upsertMemory'; memory: Memory }
   | { type: 'removeMemory'; id: ID }
   | { type: 'linkMemoryToPlan'; planId: ID; memoryId: ID }
@@ -134,18 +139,56 @@ function reducer(state: AppState, action: Action): AppState {
         plans: exists
           ? state.plans.map((p) => (p.id === action.plan.id ? action.plan : p))
           : [...state.plans, action.plan],
+        // A plan is only ever reachable through its cycle.
+        cycles: state.cycles.map((c) =>
+          c.id === action.plan.cycleId ? { ...c, planId: action.plan.id } : c,
+        ),
       };
     }
 
     case 'removePlan':
-      return { ...state, plans: state.plans.filter((p) => p.id !== action.id) };
+      return {
+        ...state,
+        plans: state.plans.filter((p) => p.id !== action.id),
+        cycles: state.cycles.map((c) => (c.planId === action.id ? { ...c, planId: undefined } : c)),
+      };
 
-    case 'completePlan':
+    case 'completeCycle': {
+      // The engine also closes any smaller cycles this moment overlapped.
+      const { cycles } = completeCycle(state.cycles, action.cycleId);
+      return { ...state, cycles };
+    }
+
+    case 'sendInvite':
       return {
         ...state,
         plans: state.plans.map((p) =>
-          p.id === action.id
-            ? { ...p, status: 'completed', completedAt: new Date().toISOString() }
+          p.id === action.planId
+            ? {
+                ...p,
+                invite: {
+                  ...p.invite,
+                  sentAt: new Date().toISOString(),
+                  message: action.message,
+                },
+              }
+            : p,
+        ),
+      };
+
+    case 'respondToInvite':
+      return {
+        ...state,
+        plans: state.plans.map((p) =>
+          p.id === action.planId && p.invite
+            ? {
+                ...p,
+                invite: {
+                  ...p.invite,
+                  respondedAt: new Date().toISOString(),
+                  response: action.response,
+                },
+              }
             : p,
         ),
       };
@@ -166,8 +209,8 @@ function reducer(state: AppState, action: Action): AppState {
     case 'linkMemoryToPlan':
       return {
         ...state,
-        plans: state.plans.map((p) =>
-          p.id === action.planId ? { ...p, memoryId: action.memoryId } : p,
+        cycles: state.cycles.map((c) =>
+          c.planId === action.planId ? { ...c, memoryId: action.memoryId } : c,
         ),
       };
 

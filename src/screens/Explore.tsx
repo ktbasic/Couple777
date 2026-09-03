@@ -26,6 +26,7 @@ import {
   generateDateIdeas,
 } from '@/lib/generator';
 import { useStore } from '@/context/store';
+import { TIER_META } from '@/lib/dates';
 import { matches, newMatch } from '@/lib/selectors';
 import type {
   AdventureMood,
@@ -41,9 +42,19 @@ import s from './Explore.module.css';
 type Tab = 'day' | 'week' | 'month';
 
 export default function ExploreScreen() {
+  const { state } = useStore();
   const [params, setParams] = useSearchParams();
+
+  // Arriving from a 777 card carries the cycle, and the cycle already knows
+  // the tier — so the couple is never asked what kind of thing they are
+  // planning. Browsing without a cycle keeps the manual tabs.
+  const cycle = state.cycles.find((c) => c.id === params.get('cycle'));
   const tierParam = params.get('tier');
-  const tab: Tab = tierParam === 'week' || tierParam === 'month' ? tierParam : 'day';
+  const tab: Tab = cycle
+    ? cycle.tier
+    : tierParam === 'week' || tierParam === 'month'
+      ? tierParam
+      : 'day';
 
   const setTab = (t: Tab) => {
     params.set('tier', t);
@@ -54,24 +65,37 @@ export default function ExploreScreen() {
     <Screen>
       <ScreenHeader
         eyebrow="Explore"
-        title="What should we do?"
-        sub="Answer as much or as little as you like. The more you say, the better the suggestions."
+        title={cycle ? `Ideas for your ${TIER_META[cycle.tier].cadence} moment` : 'What should we do?'}
+        sub={
+          cycle
+            ? TIER_META[cycle.tier].hint
+            : 'Answer as much or as little as you like. The more you say, the better the suggestions.'
+        }
       />
 
-      <div className={s.tabs}>
-        <Segmented<Tab>
-          value={tab}
-          onChange={setTab}
-          options={[
-            { value: 'day', label: 'Dates' },
-            { value: 'week', label: 'Nearby' },
-            { value: 'month', label: 'Big trips' },
-          ]}
-        />
-      </div>
+      {cycle ? (
+        <p className={s.cycleBanner}>
+          <span aria-hidden>🌿</span>
+          <span>
+            Planning your {TIER_META[cycle.tier].cadence} moment. Whatever you pick counts for it.
+          </span>
+        </p>
+      ) : (
+        <div className={s.tabs}>
+          <Segmented<Tab>
+            value={tab}
+            onChange={setTab}
+            options={[
+              { value: 'day', label: 'Dates' },
+              { value: 'week', label: 'Nearby' },
+              { value: 'month', label: 'Big trips' },
+            ]}
+          />
+        </div>
+      )}
 
-      {tab === 'day' ? <DateIdeasTab /> : null}
-      {tab === 'week' ? <MiniAdventuresTab /> : null}
+      {tab === 'day' ? <DateIdeasTab cycleId={cycle?.id} /> : null}
+      {tab === 'week' ? <MiniAdventuresTab cycleId={cycle?.id} /> : null}
       {tab === 'month' ? <BigAdventuresTab /> : null}
     </Screen>
   );
@@ -79,7 +103,7 @@ export default function ExploreScreen() {
 
 /* ------------------------------ 7 days ---------------------------------- */
 
-function DateIdeasTab() {
+function DateIdeasTab({ cycleId }: { cycleId?: string }) {
   const { state } = useStore();
   const [params, setParams] = useSearchParams();
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -299,7 +323,7 @@ function DateIdeasTab() {
           <SectionHeader title="Saved" sub="Ideas you both liked the look of." />
           <div className={s.results}>
             {saved.map((idea, i) => (
-              <IdeaCard key={idea.id} idea={idea} index={i} />
+              <IdeaCard key={idea.id} idea={idea} index={i} cycleId={cycleId} />
             ))}
           </div>
         </Section>
@@ -310,7 +334,7 @@ function DateIdeasTab() {
 
 /* ------------------------------ 7 weeks --------------------------------- */
 
-function MiniAdventuresTab() {
+function MiniAdventuresTab({ cycleId }: { cycleId?: string }) {
   const { state } = useStore();
   const [distance, setDistance] = useState<Distance | null>(null);
   const [mood, setMood] = useState<AdventureMood | null>(null);
@@ -370,7 +394,7 @@ function MiniAdventuresTab() {
 
       <div className={s.results}>
         {ideas.map((idea, i) => (
-          <AdventureCard key={`${seed}-${idea.id}`} idea={idea} index={i} />
+          <AdventureCard key={`${seed}-${idea.id}`} idea={idea} index={i} cycleId={cycleId} />
         ))}
       </div>
     </>

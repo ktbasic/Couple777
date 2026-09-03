@@ -215,3 +215,16 @@
   color: var(--c-ink);
   text-wrap: pretty;
 }
+
+.sectionKicker {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+  margin-bottom: var(--s-3);
+}
+
+.aheadKicker {
+  margin-top: var(--s-6);
+}

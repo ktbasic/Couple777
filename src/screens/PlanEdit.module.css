@@ -166,3 +166,9 @@
 .delete:hover {
   color: var(--c-accent-ink);
 }
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-3);
+}

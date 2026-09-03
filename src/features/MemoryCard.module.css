@@ -135,6 +135,24 @@
   flex: none;
 }
 
+.rhythm {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+.rhythm[data-kind='day'] { background: var(--c-day-wash); color: var(--c-day-ink); }
+.rhythm[data-kind='week'] { background: var(--c-week-wash); color: var(--c-week-ink); }
+.rhythm[data-kind='month'] { background: var(--c-month-wash); color: var(--c-month-ink); }
+.rhythm[data-kind='milestone'] { background: var(--c-gold-wash); color: var(--c-gold-ink); }
+.rhythm[data-kind='moment'] { background: var(--c-surface-2); color: var(--c-ink-3); }
+
 .meta {
   margin-top: 4px;
   font-size: var(--t-small);

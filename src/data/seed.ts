@@ -1,8 +1,8 @@
-import type { AppState, Memory, Note, Plan } from '@/lib/types';
+import type { AppState, Cycle, Memory, Note, Plan } from '@/lib/types';
 import { DESTINATIONS } from './destinations';
 import { buildHistory } from './history';
 import { photo } from '@/lib/photo';
-import { addDays, addMonths, today, toISODate, fromISODate } from '@/lib/dates';
+import { addDays, addMonths, today, toISODate } from '@/lib/dates';
 
 export const PERSON_A = 'p-a';
 export const PERSON_B = 'p-b';
@@ -12,41 +12,78 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Marian'): AppState {
   const now = today();
   const d = (offset: number) => addDays(now, offset);
 
+  /**
+   * The three live clocks. Each is mid-turn, in a different state, so the
+   * prototype opens showing all of upcoming, confirmed and planned at once.
+   */
+  const cycles: Cycle[] = [
+    {
+      id: 'cy-day',
+      tier: 'day',
+      seq: 29,
+      startDate: d(-4),
+      dueDate: d(3),
+      planId: 'pl-day',
+    },
+    {
+      id: 'cy-week',
+      tier: 'week',
+      seq: 9,
+      startDate: d(-31),
+      dueDate: d(18),
+    },
+    {
+      id: 'cy-month',
+      tier: 'month',
+      seq: 5,
+      startDate: d(-96),
+      dueDate: addMonths(now, 4),
+      planId: 'pl-month',
+    },
+  ];
+
   const plans: Plan[] = [
     {
-      id: 'pl-1',
-      tier: 'day',
+      id: 'pl-day',
+      cycleId: 'cy-day',
       title: 'Dinner at the place on the corner',
       emoji: '🍷',
       date: d(3),
-      status: 'planned',
+      time: '19:30',
       createdBy: PERSON_A,
       surprise: false,
       place: 'Osteria, Fraunhoferstraße',
-      budget: '€70',
-      notes: 'Booked for 19:30. Walk home the long way after.',
+      cost: '€70',
+      note: 'Booked for 19:30. Walk home the long way after.',
+      reserved: true,
+      invite: {
+        sentAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+        message: 'I thought we could have a proper dinner together this week ❤️',
+        respondedAt: new Date(Date.now() - 86400000).toISOString(),
+        response: 'yes',
+      },
     },
     {
-      id: 'pl-2',
-      tier: 'month',
+      id: 'pl-month',
+      cycleId: 'cy-month',
       title: 'Japan',
       emoji: '🗼',
       date: addMonths(now, 4),
       endDate: addDays(addMonths(now, 4), 15),
-      status: 'planned',
       createdBy: PERSON_B,
       surprise: false,
       place: 'Tokyo · Kyoto · Naoshima',
-      budget: '€4,800',
-      notes: 'Flights held, not booked. Decide on the Kyoto leg by the end of the month.',
+      cost: '€4,800',
+      note: 'Flights held, not booked. Decide on the Kyoto leg by the end of the month.',
       trip: {
         destination: 'Japan',
         country: 'Tokyo · Kyoto · Naoshima',
         heroImage: photo('japan', 1200, 900),
+        transport: 'Fly into Tokyo, out of Osaka. Rail pass covers the middle.',
         wishlist: [
           { id: 'w1', label: 'Stay one night in a ryokan', addedBy: PERSON_A },
           { id: 'w2', label: 'The art island — Naoshima', addedBy: PERSON_B },
-          { id: 'w3', label: 'Early morning at Fushimi Inari', addedBy: PERSON_A, done: false },
+          { id: 'w3', label: 'Early morning at Fushimi Inari', addedBy: PERSON_A },
           { id: 'w4', label: 'A proper omakase, once', addedBy: PERSON_B },
           { id: 'w5', label: 'Day trip to Nara for the deer', addedBy: PERSON_A },
         ],
@@ -54,47 +91,9 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Marian'): AppState {
           { id: 's1', label: 'Tokyo — somewhere in Shimokitazawa', addedBy: PERSON_B },
           { id: 's2', label: 'Kyoto — machiya townhouse', addedBy: PERSON_A },
         ],
-        notes:
-          'Two weeks feels right. Fly into Tokyo, out of Osaka. Rail pass covers most of it.',
+        notes: 'Two weeks feels right.',
         budget: '€4,800',
       },
-    },
-    // Completed history, which drives the countdowns and the profile stats.
-    {
-      id: 'pl-h1',
-      tier: 'day',
-      title: 'Pasta at home',
-      emoji: '🍝',
-      date: d(-4),
-      status: 'completed',
-      createdBy: PERSON_B,
-      surprise: false,
-      completedAt: new Date(fromISODate(d(-4))).toISOString(),
-      memoryId: 'm-1',
-    },
-    {
-      id: 'pl-h2',
-      tier: 'week',
-      title: 'Füssen weekend',
-      emoji: '🏔️',
-      date: d(-31),
-      status: 'completed',
-      createdBy: PERSON_A,
-      surprise: false,
-      completedAt: new Date(fromISODate(d(-31))).toISOString(),
-      memoryId: 'm-2',
-    },
-    {
-      id: 'pl-h3',
-      tier: 'month',
-      title: 'Lisbon',
-      emoji: '🇵🇹',
-      date: d(-96),
-      status: 'completed',
-      createdBy: PERSON_B,
-      surprise: false,
-      completedAt: new Date(fromISODate(d(-96))).toISOString(),
-      memoryId: 'm-4',
     },
   ];
 
@@ -114,7 +113,6 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Marian'): AppState {
         [PERSON_B]: 'The garlic was fine. The dancing was not planned and was the best part.',
       },
       privateNotes: {},
-      planId: 'pl-h1',
     },
     {
       id: 'm-2',
@@ -136,7 +134,6 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Marian'): AppState {
         [PERSON_B]: 'Walking the gorge in the rain with nobody else there.',
       },
       privateNotes: {},
-      planId: 'pl-h2',
     },
     {
       id: 'm-3',
@@ -175,7 +172,6 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Marian'): AppState {
         [PERSON_B]: 'You singing badly on the tram. Repeatedly.',
       },
       privateNotes: {},
-      planId: 'pl-h3',
     },
     {
       id: 'm-5',
@@ -237,6 +233,8 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Marian'): AppState {
 
   return {
     onboarded: false,
+    rhythmStart: d(-4),
+    cycles: [...cycles, ...history.cycles],
     couple: {
       id: 'c-1',
       people: [

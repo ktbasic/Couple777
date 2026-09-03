@@ -9,11 +9,11 @@ import { useToast } from '@/components/ui/Toast';
 import { AvatarPicker } from '@/features/AvatarPicker';
 import { useStore } from '@/context/store';
 import {
-  allRituals,
   matches,
   memoryYear,
   milestones,
   relationshipStats,
+  ritualViews,
 } from '@/lib/selectors';
 import { TIER_META, countdownLabel, durationTogether, formatMonthYear, today } from '@/lib/dates';
 import type { ID } from '@/lib/types';
@@ -33,7 +33,7 @@ export default function UsScreen() {
   const editing = state.couple.people.find((p) => p.id === editingId) ?? null;
 
   const stats = relationshipStats(state);
-  const rituals = allRituals(state);
+  const rituals = ritualViews(state);
   const matched = matches(state);
   const marks = milestones(state);
   const year = memoryYear(state);
@@ -173,21 +173,23 @@ export default function UsScreen() {
         <div className={s.rhythm}>
           {rituals.map((r) => (
             <button
-              key={r.tier}
+              key={r.cycle.id}
               type="button"
               className={s.rhythmRow}
-              data-tier={r.tier}
-              onClick={() => navigate(r.plan ? `/plan/${r.plan.id}` : `/plan/new/${r.tier}`)}
+              data-tier={r.cycle.tier}
+              onClick={() =>
+                navigate(r.plan ? `/plan/${r.plan.id}` : `/plan/new?cycle=${r.cycle.id}`)
+              }
             >
               <ProgressRing progress={r.progress} size={38} stroke={3} />
               <span className={s.rhythmMain}>
-                <span className={s.rhythmTitle}>{TIER_META[r.tier].plural}</span>
+                <span className={s.rhythmTitle}>{TIER_META[r.cycle.tier].plural}</span>
                 <span className={s.rhythmBody}>
                   {r.plan
-                    ? `Next one ${countdownLabel(now, r.targetDate).toLowerCase()}`
+                    ? `Next one ${countdownLabel(now, r.cycle.dueDate).toLowerCase()}`
                     : r.overdue
-                      ? 'Due — nothing planned'
-                      : `Due in ${countdownLabel(now, r.targetDate).toLowerCase()}`}
+                      ? 'Open — nothing planned'
+                      : `Due in ${countdownLabel(now, r.cycle.dueDate).toLowerCase()}`}
                 </span>
               </span>
               {CHEV}

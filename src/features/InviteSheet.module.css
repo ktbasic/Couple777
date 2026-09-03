@@ -1,0 +1,126 @@
+.summary {
+  display: flex;
+  gap: var(--s-4);
+  align-items: center;
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  margin-bottom: var(--s-5);
+}
+
+.emoji {
+  flex: none;
+  font-size: 22px;
+}
+
+.title {
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.when {
+  margin-top: 2px;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+}
+
+.area {
+  width: 100%;
+  min-height: 96px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  border-radius: var(--r-md);
+  padding: var(--s-4);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--c-ink);
+  resize: vertical;
+  font-family: var(--f-ui);
+}
+.area:focus {
+  outline: none;
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 3px var(--c-accent-wash);
+}
+
+.label {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+  margin-bottom: var(--s-2);
+}
+
+.preview {
+  margin-top: var(--s-5);
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-accent-wash);
+  border: 1px solid var(--c-accent-edge);
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--c-ink-2);
+  white-space: pre-wrap;
+}
+
+.previewLabel {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-accent-ink);
+  margin-bottom: var(--s-2);
+}
+
+.actions {
+  margin-top: var(--s-6);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-2);
+}
+
+.cancel {
+  text-align: center;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-4);
+  padding: var(--s-3);
+}
+.cancel:hover {
+  color: var(--c-ink-2);
+}
+
+/* A small envelope lift on send. */
+.sent {
+  text-align: center;
+  padding: var(--s-8) var(--s-5);
+}
+
+.sentIcon {
+  font-size: 40px;
+  display: block;
+  animation: envelope 700ms var(--ease) both;
+}
+
+@keyframes envelope {
+  0% { opacity: 0; transform: translateY(14px) scale(0.8); }
+  55% { opacity: 1; transform: translateY(-6px) scale(1.08); }
+  100% { opacity: 1; transform: none; }
+}
+
+.sentTitle {
+  margin-top: var(--s-4);
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
+}
+
+.sentBody {
+  margin: var(--s-3) auto 0;
+  max-width: 30ch;
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--c-ink-3);
+}
