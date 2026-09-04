@@ -74,7 +74,7 @@ export default function MeSetupScreen() {
         label="Your name"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Marian"
+        placeholder="Type your name"
       />
 
       <fieldset className={s.group}>

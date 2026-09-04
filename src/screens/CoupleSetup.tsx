@@ -274,7 +274,7 @@ export default function CoupleSetupScreen() {
                 label="Their name"
                 value={partnerName}
                 onChange={(e) => setPartnerName(e.target.value)}
-                placeholder="Marian"
+                placeholder="Type their name"
                 autoComplete="off"
                 maxLength={40}
                 autoFocus

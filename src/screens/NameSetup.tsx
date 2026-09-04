@@ -82,7 +82,7 @@ export default function NameSetupScreen() {
           label="Your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Katy"
+          placeholder="Type your name"
           autoComplete="given-name"
           autoFocus
           maxLength={40}
