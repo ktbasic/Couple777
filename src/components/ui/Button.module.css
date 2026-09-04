@@ -116,11 +116,11 @@
 .glow::before {
   content: '';
   position: absolute;
-  inset: -16px -12px;
+  inset: -13px -10px;
   border-radius: inherit;
   background: var(--g-accent);
-  filter: blur(22px);
-  opacity: 0.55;
+  filter: blur(20px);
+  opacity: 0.42;
   z-index: -1;
   pointer-events: none;
   animation: aura 4.6s var(--ease-soft) infinite;
@@ -145,8 +145,8 @@
  * on the busiest background in onboarding, not just the emptiest.
  */
 @keyframes aura {
-  0%, 100% { opacity: 0.45; transform: scale(0.965); }
-  50%      { opacity: 0.95; transform: scale(1.07); }
+  0%, 100% { opacity: 0.38; transform: scale(0.975); }
+  50%      { opacity: 0.7;  transform: scale(1.04); }
 }
 
 /*
