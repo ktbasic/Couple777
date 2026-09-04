@@ -4,41 +4,48 @@ That screen has a decorative layer behind it — the ringed planet with a
 traveller perched on it. It is a **placed image**, not something the app
 draws, so the artwork stays exactly as it was made.
 
-**The app is already wired for it. The file is the only thing missing.**
+**It is in and working.** You uploaded `public/onboarding-cosmos.png`; what
+the app actually serves is `public/onboarding-cosmos.webp`, re-encoded from it
+at quality 88.
 
-## Adding it
+## Why WebP
 
-Drop the artwork here:
+The PNG is 1.1MB. The WebP is 362KB for the same 1136x1385 pixels — a 68%
+saving on a file that loads on a phone, often on mobile data, for a decoration.
+Quality 88 rather than something lower because the artwork is almost entirely
+soft gradients, and those are what lossy compression bands first.
 
+The PNG stays in `public/` as the source you uploaded. Nothing fetches it, so
+it costs a little space in the repo and nothing at runtime; delete it whenever
+you like.
+
+### Re-exporting
+
+Replace the PNG, then regenerate the WebP. There is no image tooling installed
+here, but Chromium is, and it will do the conversion:
+
+```js
+// with the png served over http (canvas taints on file://)
+const c = document.createElement('canvas');
+c.width = img.naturalWidth; c.height = img.naturalHeight;
+c.getContext('2d').drawImage(img, 0, 0);
+c.toDataURL('image/webp', 0.88);
 ```
-public/onboarding-cosmos.png
-```
 
-That is all. `public/` is copied verbatim into the build, so the next deploy
-picks it up — there is no import to add and no code to change.
+Or just ask, and I will redo it.
 
-## What the file should be
+## What a replacement should be
 
 | | |
 | --- | --- |
-| **Path** | `public/onboarding-cosmos.png` |
-| **Format** | PNG with a transparent background, or WebP (see below) |
-| **Size** | around 900–1200px on the long edge is plenty; it is never shown larger than a phone screen |
-| **Background** | **transparent** — the page's own pink shows through, which is what makes it sit in the screen rather than on it |
-| **Weight** | keep it under ~300KB; it loads on a phone, often on mobile data |
+| **Format** | PNG or WebP with a **transparent background** |
+| **Size** | 1100-1200px on the long edge covers a phone at 3x |
+| **Weight** | under ~400KB once encoded |
 
-A transparent background is the one that actually matters. Exported on a
-white or pink rectangle, the artwork will read as a pasted card no matter what
-the CSS does around it.
-
-### If you would rather ship WebP
-
-Smaller, and every browser this app targets reads it. Change the one line in
-`src/screens/CoupleSetup.module.css`:
-
-```css
-background-image: url('/onboarding-cosmos.webp');
-```
+The transparent background is the one that matters. Exported on a white or
+pink rectangle, the artwork reads as a pasted card no matter what the CSS does
+around it. The piece you sent is 64% semi-transparent and 0% fully opaque —
+soft throughout — which is exactly why it sits in the page so well.
 
 ## How it is placed
 
@@ -55,8 +62,7 @@ To move it to a different question, change `q === 3` in
 `src/screens/CoupleSetup.tsx` — the questions are zero-indexed, so
 `0` is the partner's name and `4` is "Together since?".
 
-## Until the file is there
+## If the file ever goes missing
 
 Nothing breaks. It is a CSS background, so a missing file simply does not
-paint: no broken-image icon, no gap in the layout, and the screen reads
-exactly as it does today.
+paint: no broken-image icon, no gap in the layout, and the screen still reads.
