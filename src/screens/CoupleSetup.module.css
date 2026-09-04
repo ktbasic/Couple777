@@ -456,3 +456,26 @@
   color: var(--c-ink-4);
   line-height: 1.45;
 }
+
+/*
+ * A breath of the page's own colour under the footer.
+ *
+ * On the last question the button and the skip link sit over the artwork, and
+ * a planet is a poor backdrop for either — the glow washes out against it and
+ * the skip link loses its contrast. This lifts them off the scene without
+ * cutting the picture short. Near-invisible on the questions with no artwork,
+ * since it is barely darker than what is already there.
+ */
+.foot::before {
+  content: '';
+  position: absolute;
+  inset: -34px -26px -44px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    118% 100% at 50% 58%,
+    rgba(253, 240, 242, 0.92) 0%,
+    rgba(253, 240, 242, 0.55) 52%,
+    rgba(253, 240, 242, 0) 78%
+  );
+}

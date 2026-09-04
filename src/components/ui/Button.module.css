@@ -116,11 +116,11 @@
 .glow::before {
   content: '';
   position: absolute;
-  inset: -7px -5px;
+  inset: -16px -12px;
   border-radius: inherit;
   background: var(--g-accent);
-  filter: blur(15px);
-  opacity: 0.36;
+  filter: blur(22px);
+  opacity: 0.55;
   z-index: -1;
   pointer-events: none;
   animation: aura 4.6s var(--ease-soft) infinite;
@@ -132,7 +132,60 @@
   animation: none;
 }
 
+/*
+ * Reaches further and sits brighter than a glow on a plain ground would need
+ * to. The last question puts this button over the artwork, and a soft pink
+ * halo on top of a soft pink planet is a halo nobody can see — it has to
+ * carry on the busiest background in onboarding, not just the emptiest.
+ */
+/*
+ * Reaches further and sits brighter than a glow on a plain ground would need
+ * to. The last question puts this button over the artwork, and a soft pink
+ * halo on top of a soft pink planet is a halo nobody can see — it has to carry
+ * on the busiest background in onboarding, not just the emptiest.
+ */
 @keyframes aura {
-  0%, 100% { opacity: 0.32; transform: scale(0.975); }
-  50%      { opacity: 0.58; transform: scale(1.035); }
+  0%, 100% { opacity: 0.45; transform: scale(0.965); }
+  50%      { opacity: 0.95; transform: scale(1.07); }
+}
+
+/*
+ * And a slow sheen across the face of the button.
+ *
+ * The aura alone reads as a light behind the pill; this is light moving over
+ * it, which is what makes the thing look lit rather than outlined. It spends
+ * most of its cycle parked off the edge — the sweep is a moment, not a
+ * texture, which is the line between premium and arcade.
+ *
+ * The gradient's position moves rather than the element, so it stays inside
+ * the pill without the button needing an overflow clip — which it cannot have,
+ * because the aura above lives outside its bounds.
+ */
+.glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 26%,
+    rgba(255, 255, 255, 0.1) 40%,
+    rgba(255, 255, 255, 0.26) 50%,
+    rgba(255, 255, 255, 0.1) 60%,
+    transparent 74%
+  );
+  background-size: 260% 100%;
+  background-repeat: no-repeat;
+  animation: sheen 5.4s var(--ease-soft) infinite;
+}
+
+.glow:disabled::after {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes sheen {
+  0%        { background-position: 175% 0; }
+  46%, 100% { background-position: -75% 0; }
 }
