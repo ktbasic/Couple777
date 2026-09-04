@@ -519,7 +519,6 @@ export default function CoupleSetupScreen() {
             variant="accent"
             size="lg"
             block
-            glow
             disabled={q === 0 && !partnerName.trim()}
             onClick={forward}
           >

@@ -187,7 +187,6 @@ export default function NameSetupScreen() {
           variant="accent"
           size="lg"
           block
-          glow
           disabled={busy || !name.trim()}
           onClick={() => void save()}
         >
