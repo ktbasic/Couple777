@@ -96,3 +96,43 @@
   font-size: 1.05em;
   line-height: 1;
 }
+
+/*
+ * A slow aura under the primary action.
+ *
+ * Drawn on a pseudo-element sitting behind the button's own background rather
+ * than as an animated box-shadow: this way the loop touches only opacity and
+ * transform, so it stays on the compositor and never repaints the button or
+ * its text. z-index:-1 puts it under the gradient, which is what makes it read
+ * as light escaping from behind the edge instead of a ring drawn around it.
+ *
+ * Deliberately slow and low-contrast — the point is that the button looks
+ * alive, not that it demands the tap.
+ */
+.glow {
+  position: relative;
+}
+
+.glow::before {
+  content: '';
+  position: absolute;
+  inset: -7px -5px;
+  border-radius: inherit;
+  background: var(--g-accent);
+  filter: blur(15px);
+  opacity: 0.36;
+  z-index: -1;
+  pointer-events: none;
+  animation: aura 4.6s var(--ease-soft) infinite;
+}
+
+/* Nothing to invite a tap toward while the action is unavailable. */
+.glow:disabled::before {
+  opacity: 0;
+  animation: none;
+}
+
+@keyframes aura {
+  0%, 100% { opacity: 0.32; transform: scale(0.975); }
+  50%      { opacity: 0.58; transform: scale(1.035); }
+}

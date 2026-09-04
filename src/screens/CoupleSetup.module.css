@@ -339,3 +339,52 @@
   0%, 100% { transform: translate(0, 0) rotate(0deg); }
   50%      { transform: translate(-3px, 2px) rotate(-3deg); }
 }
+
+/* ---------- The scenic layer ---------- */
+
+/*
+ * A placed artwork rather than a drawn one, so the piece keeps whatever the
+ * illustrator made — see docs/ONBOARDING_ART.md for the file it wants.
+ *
+ * It is a CSS background rather than an <img> on purpose: if the file is not
+ * there the rule simply does not paint. No broken-image glyph, no gap in the
+ * layout, and the screen reads exactly as it did before.
+ *
+ * The radial mask is what keeps it scenery. A rectangular artwork with a hard
+ * edge halfway up a screen reads as a sticker; fading it out in every
+ * direction from its own corner is what makes it sit *in* the page.
+ */
+.cosmos {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 62%;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url('/onboarding-cosmos.png');
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: contain;
+  opacity: 0.85;
+  -webkit-mask-image: radial-gradient(115% 105% at 76% 88%, #000 44%, transparent 84%);
+  mask-image: radial-gradient(115% 105% at 76% 88%, #000 44%, transparent 84%);
+  animation: cosmosIn 900ms var(--ease-soft) both;
+}
+
+@keyframes cosmosIn {
+  from { opacity: 0; transform: translateY(10px) scale(1.02); }
+  to   { opacity: 0.85; transform: none; }
+}
+
+/* The text, the field and the button all sit above the scenery. */
+.wizard {
+  position: relative;
+}
+
+.progress,
+.question,
+.foot {
+  position: relative;
+  z-index: 1;
+}

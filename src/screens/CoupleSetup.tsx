@@ -272,6 +272,8 @@ export default function CoupleSetupScreen() {
 
   return (
     <Screen className={s.wizard}>
+      {q === 3 ? <div className={s.cosmos} aria-hidden /> : null}
+
       <div className={s.progress} aria-hidden>
         {Array.from({ length: BAR }).map((_, i) => (
           <span key={i} className={[s.tick, i <= q + 1 ? s.tickOn : ''].filter(Boolean).join(' ')} />
@@ -465,7 +467,14 @@ export default function CoupleSetupScreen() {
 
       <div className={s.foot}>
         {q === QUESTIONS - 1 ? (
-          <Button variant="accent" size="lg" block disabled={busy} onClick={() => void create()}>
+          <Button
+            variant="accent"
+            size="lg"
+            block
+            glow
+            disabled={busy}
+            onClick={() => void create()}
+          >
             {busy ? 'Making your space…' : 'Create our space'}
           </Button>
         ) : q === 0 || q === 3 ? (
@@ -473,6 +482,7 @@ export default function CoupleSetupScreen() {
             variant="accent"
             size="lg"
             block
+            glow
             disabled={q === 0 && !partnerName.trim()}
             onClick={forward}
           >

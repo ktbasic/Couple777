@@ -9,13 +9,15 @@ interface Common {
   variant?: Variant;
   size?: Size;
   block?: boolean;
+  /** A slow aura under the button. For a screen's one main action only. */
+  glow?: boolean;
   icon?: ReactNode;
   children: ReactNode;
   className?: string;
 }
 
-function classes({ variant = 'primary', size = 'md', block, className }: Common) {
-  return [s.base, s[variant], s[size], block ? s.block : '', className ?? '']
+function classes({ variant = 'primary', size = 'md', block, glow, className }: Common) {
+  return [s.base, s[variant], s[size], block ? s.block : '', glow ? s.glow : '', className ?? '']
     .filter(Boolean)
     .join(' ');
 }
@@ -24,6 +26,7 @@ export function Button({
   variant,
   size,
   block,
+  glow,
   icon,
   children,
   className,
@@ -32,7 +35,7 @@ export function Button({
   return (
     <button
       type="button"
-      className={classes({ variant, size, block, children, className })}
+      className={classes({ variant, size, block, glow, children, className })}
       {...rest}
     >
       {icon ? <span className={s.icon}>{icon}</span> : null}
@@ -46,6 +49,7 @@ export function ButtonLink({
   variant,
   size,
   block,
+  glow,
   icon,
   children,
   className,
@@ -55,7 +59,7 @@ export function ButtonLink({
     <Link
       to={to}
       state={state}
-      className={classes({ variant, size, block, children, className })}
+      className={classes({ variant, size, block, glow, children, className })}
     >
       {icon ? <span className={s.icon}>{icon}</span> : null}
       {children}
