@@ -178,6 +178,14 @@ interface TravellerProps {
   faceFlip?: boolean;
   /** The wake behind them. Off for a single traveller in a small frame. */
   trail?: boolean;
+  /**
+   * One eye winks instead of both blinking.
+   *
+   * A blink caught in a still frame reads as a mistake — two eyes drawn as
+   * two flat lines. A wink never does: it is the same closed eye, but with
+   * an open one beside it saying the closure was on purpose.
+   */
+  wink?: boolean;
 }
 
 /** One eye: the dark almond, then its two catchlights. */
@@ -194,7 +202,7 @@ function Eye({ x, y, rx, ry, flip }: {
   );
 }
 
-function Traveller({ uid, tone, faceFlip = false, trail = true }: TravellerProps) {
+function Traveller({ uid, tone, faceFlip = false, trail = true, wink = false }: TravellerProps) {
   const c = TONES[tone];
   const a = ANATOMY[tone];
   const g = (name: string) => `${uid}-${tone}-${name}`;
@@ -297,8 +305,12 @@ function Traveller({ uid, tone, faceFlip = false, trail = true }: TravellerProps
 
         {/* Three-quarters forward, so the gaze lands on the other one. */}
         <g className={s.face}>
-          <g className={tone === 'cool' ? s.blinkAlt : s.blink}>
+          {/* Separate groups so one can close without the other. For the
+              pair both carry the same blink and so still close together. */}
+          <g className={wink ? undefined : tone === 'cool' ? s.blinkAlt : s.blink}>
             <Eye x={-1} y={4} rx={7.6} ry={8} flip={faceFlip} />
+          </g>
+          <g className={wink ? s.wink : tone === 'cool' ? s.blinkAlt : s.blink}>
             <Eye x={15} y={3} rx={7.2} ry={7.6} flip={faceFlip} />
           </g>
 
@@ -412,7 +424,7 @@ export function CosmicGreeter() {
       <g transform="translate(92 86) rotate(4) scale(0.84)">
         <g className={s.greeterFloat}>
           <g transform="scale(-1 1)">
-            <Traveller uid={uid} tone="warm" faceFlip trail={false} />
+            <Traveller uid={uid} tone="warm" faceFlip trail={false} wink />
           </g>
         </g>
       </g>

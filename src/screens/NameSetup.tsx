@@ -30,6 +30,20 @@ const ONBOARDING_STEPS = 6;
  * What the traveller says. First word only — a bubble is a small place, and
  * "Hi, Katharina Elisabeth!" is not a greeting, it is a form field read aloud.
  */
+/*
+ * Optional, and stored where it costs nobody a migration: profiles already
+ * carries a relationship_preferences document, and nothing else writes to it
+ * on this path. A dedicated column would be tidier and can come later — it
+ * would mean running SQL against a project that is already live.
+ */
+const IDENTITIES = [
+  { value: 'woman', label: 'Woman' },
+  { value: 'man', label: 'Man' },
+  { value: 'non-binary', label: 'Non-binary' },
+  { value: 'self-describe', label: 'Self-describe' },
+  { value: 'unsaid', label: 'Prefer not to say' },
+];
+
 function greetingFor(name: string): string {
   const first = name.trim().split(/\s+/)[0] ?? '';
   return first ? `Hi, ${first}!` : 'Hi there!';
@@ -52,6 +66,8 @@ export default function NameSetupScreen() {
   const next = params.get('next') || '/couple';
 
   const [name, setName] = useState('');
+  const [identity, setIdentity] = useState('');
+  const [selfDescribed, setSelfDescribed] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,7 +84,19 @@ export default function NameSetupScreen() {
     setBusy(true);
     setError(null);
     try {
-      await repo.upsertProfile(user.id, { display_name: trimmed });
+      await repo.upsertProfile(user.id, {
+        display_name: trimmed,
+        ...(identity
+          ? {
+              relationship_preferences: {
+                gender: identity,
+                ...(identity === 'self-describe' && selfDescribed.trim()
+                  ? { genderNote: selfDescribed.trim() }
+                  : {}),
+              },
+            }
+          : {}),
+      });
       navigate(next, { replace: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -84,45 +112,64 @@ export default function NameSetupScreen() {
         ))}
       </div>
 
-      {/* Three flexible gaps rather than one. All the slack used to pool
-          above the button, which packed everything else against the top —
-          spreading it is what makes the screen breathe. */}
       <div className={s.gapTop} />
 
-      <div className={s.hero}>
-        <div>
-          <h1 className={s.title}>What should we call you?</h1>
-          <p className={s.body}>
-            This is the name your partner sees on everything you share together.
-          </p>
-        </div>
-
-        <div className={s.art}>
-          {/* Live, so the greeting becomes theirs as they type it. */}
-          <span className={s.bubble}>{greetingFor(name)}</span>
-          <CosmicGreeter />
-        </div>
+      <div className={s.head}>
+        <h1 className={s.title}>What should we call you?</h1>
+        <p className={s.body}>
+          This is the name your partner sees on everything you share together.
+        </p>
       </div>
 
-      <div className={s.gapMid} />
+      <div className={s.hero}>
+        {/* Live, so the greeting becomes theirs as they type it. */}
+        <span className={s.bubble}>{greetingFor(name)}</span>
+        <CosmicGreeter />
+      </div>
 
-      <form
-        className={s.form}
-        onSubmit={(e) => {
-          e.preventDefault();
-          void save();
-        }}
-      >
+      <div className={s.fields}>
         <Input
           label="Your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Type your name"
           autoComplete="given-name"
-          autoFocus
           maxLength={40}
           required
         />
+
+        <fieldset className={s.identity}>
+          <legend className={s.legend}>
+            How do you identify?
+            <span className={s.optional}>(optional)</span>
+          </legend>
+          <div className={s.chips}>
+            {IDENTITIES.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                className={s.chip}
+                aria-pressed={identity === o.value}
+                onClick={() => setIdentity(identity === o.value ? '' : o.value)}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+
+          {identity === 'self-describe' ? (
+            <div className={s.selfDescribe}>
+              <Input
+                label="In your words"
+                value={selfDescribed}
+                onChange={(e) => setSelfDescribed(e.target.value)}
+                placeholder="However you describe yourself"
+                maxLength={40}
+                autoFocus
+              />
+            </div>
+          ) : null}
+        </fieldset>
 
         <p className={s.privacy}>
           <LockIcon />
@@ -130,7 +177,7 @@ export default function NameSetupScreen() {
         </p>
 
         {error ? <p className={s.error}>{error}</p> : null}
-      </form>
+      </div>
 
       <div className={s.gapBottom} />
 
@@ -143,7 +190,7 @@ export default function NameSetupScreen() {
           disabled={busy || !name.trim()}
           onClick={() => void save()}
         >
-          {busy ? 'One moment…' : 'That’s me'}
+          {busy ? 'One moment…' : 'Continue'}
         </Button>
       </div>
     </Screen>

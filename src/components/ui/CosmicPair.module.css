@@ -246,3 +246,17 @@
   0%, 100% { transform: translate(0, 0) rotate(0deg); }
   50%      { transform: translate(-3px, -5px) rotate(1.6deg); }
 }
+
+/* A wink, not a blink. Held a touch longer than a blink so it reads as
+   deliberate, and slower so it stays charming rather than twitchy. */
+.wink {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: wink 5.4s var(--ease-soft) infinite;
+}
+
+@keyframes wink {
+  0%, 62%, 100% { transform: scaleY(1); }
+  70%, 78%      { transform: scaleY(0.08); }
+  86%           { transform: scaleY(1); }
+}
