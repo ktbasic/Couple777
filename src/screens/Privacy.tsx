@@ -66,9 +66,18 @@ export function hasSeenPrivacy(userId: string): boolean {
 export default function PrivacyScreen() {
   const navigate = useNavigate();
   const { state } = useStore();
-  /* One at a time. Two open cards on a screen this small is just the old
-     all-at-once layout with extra steps. */
-  const [open, setOpen] = useState<string | null>(null);
+  /* Each card keeps its own state. Closing one because another was opened
+     takes the choice away from the person reading: four short explanations
+     are worth comparing side by side, and a card that shuts itself while you
+     are looking at the next one is a card you have to go back for. */
+  const [open, setOpen] = useState<ReadonlySet<string>>(() => new Set());
+
+  const toggle = (tone: string) =>
+    setOpen((current) => {
+      const next = new Set(current);
+      if (!next.delete(tone)) next.add(tone);
+      return next;
+    });
 
   return (
     <div className={s.frame}>
@@ -90,8 +99,8 @@ export default function PrivacyScreen() {
                   type="button"
                   className={s.privacyCard}
                   data-tone={card.tone}
-                  aria-pressed={open === card.tone}
-                  onClick={() => setOpen(open === card.tone ? null : card.tone)}
+                  aria-pressed={open.has(card.tone)}
+                  onClick={() => toggle(card.tone)}
                   style={{
                     animationDelay: `${i * 90}ms`,
                     // Staggered so the four never catch the light together.
