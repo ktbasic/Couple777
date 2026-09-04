@@ -1,0 +1,52 @@
+.screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-6);
+  padding: var(--s-7) var(--s-6) calc(var(--s-7) + var(--safe-b));
+}
+
+.top {
+  text-align: center;
+}
+
+.title {
+  font-family: var(--f-display);
+  font-size: var(--t-display-l);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--c-ink);
+  text-wrap: balance;
+}
+
+.body {
+  margin-top: var(--s-3);
+  font-size: var(--t-body);
+  color: var(--c-ink-3);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-4);
+}
+
+.error {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+  font-size: var(--t-small);
+  font-weight: 500;
+}
+
+.fine {
+  text-align: center;
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+  line-height: 1.5;
+}

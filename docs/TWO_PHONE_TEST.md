@@ -16,11 +16,13 @@ a phone" at the bottom.
 | --- | --- | --- |
 | 1 | Open the app | The 777 animation, then "Love is great. Life is busy." |
 | 2 | Tap through: Start → the questions → **Let's try 777** | "Save your Couple777" |
-| 3 | **Continue with email**, put in a name, an email and a password | "Check your email" (or straight in, if you turned confirmation off) |
-| 4 | Come back to the app | "How do you want to start?" |
-| 5 | **Create our space**. Partner's name **Marian**, a date, a city | "Bring Marian in ❤️" with a code like **K7-4M2P** |
-| 6 | **Share invite** | Your phone's share sheet — WhatsApp, Messages, whatever you have |
-| 7 | Send it to phone 2 | — |
+| 3 | **Continue with email**, put in an email and a password. No name is asked for here | "Check your email" (or straight in, if you turned confirmation off) |
+| 4 | Come back to the app | "What should we call you?" |
+| 5 | Type **Katy**, then **That's me** | "How do you want to start?" |
+| 6 | **Create our space** | Five questions, one at a time, with a progress bar along the top |
+| 7 | Partner's name **Marian** → Dating → Same city → Munich → a date, or **Skip for now** | "Bring Marian in ❤️" with a code like **K7-4M2P** |
+| 8 | **Share invite** | Your phone's share sheet — WhatsApp, Messages, whatever you have |
+| 9 | Send it to phone 2 | — |
 
 Write the code down. You will want it if the link goes astray.
 
@@ -59,6 +61,7 @@ Write the code down. You will want it if the link goes astray.
 | 21 | Katy | Plan something and mark it a **surprise** | Marian cannot see it at all until its day — not the title, not that it exists |
 | 22 | Either | Add a **private** line to a memory | The other person sees the shared line, never the private one |
 | 23 | Both | **Us → Settings → Sign out**, then sign back in | Everything still there: the space, the plans, the memories |
+| 24 | Either | Look anywhere a name appears — Home, the bell, an invite | Your name, never your email address. The address appears only under **Settings → Your account** |
 
 That last one matters most. It is the difference between an account and a
 browser tab.

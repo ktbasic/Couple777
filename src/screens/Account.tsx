@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Field';
@@ -23,15 +23,27 @@ function useNext(): string {
 }
 
 export default function AccountScreen() {
-  const { signUpWithEmail, signInWithEmail, signInWithProvider } = useAuth();
+  const { signUpWithEmail, signInWithEmail, signInWithProvider, user } = useAuth();
+  const navigate = useNavigate();
   const next = useNext();
   const [mode, setMode] = useState<Mode>('choose');
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentConfirmation, setSentConfirmation] = useState(false);
+
+  /*
+   * Signing in is not the end of the journey, and this screen has no way of
+   * knowing whether a project requires email confirmation — so it waits for a
+   * real session rather than guessing, and moves on the moment one appears.
+   * Everyone lands on the name step: it is the one thing every account needs
+   * and the one thing sign-up no longer asks for.
+   */
+  useEffect(() => {
+    if (!user) return;
+    navigate(`/me/name?next=${encodeURIComponent(next)}`, { replace: true });
+  }, [user, next, navigate]);
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true);
@@ -123,7 +135,7 @@ export default function AccountScreen() {
             e.preventDefault();
             void run(async () => {
               if (mode === 'email-up') {
-                await signUpWithEmail(email, password, name);
+                await signUpWithEmail(email, password);
                 // Whether a confirmation email is required is a project
                 // setting, so ask the session rather than assuming: if we are
                 // signed in already, the app moves on by itself.
@@ -134,16 +146,6 @@ export default function AccountScreen() {
             });
           }}
         >
-          {mode === 'email-up' ? (
-            <Input
-              label="Your name"
-              value={name}
-              autoComplete="given-name"
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Katy"
-              required
-            />
-          ) : null}
           <Input
             label="Email"
             type="email"

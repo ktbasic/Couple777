@@ -19,7 +19,7 @@ export interface AuthValue {
   user: User | null;
   loading: boolean;
   configured: boolean;
-  signUpWithEmail(email: string, password: string, displayName: string): Promise<void>;
+  signUpWithEmail(email: string, password: string): Promise<void>;
   signInWithEmail(email: string, password: string): Promise<void>;
   signInWithProvider(provider: OAuthProvider, next?: string): Promise<void>;
   signOut(): Promise<void>;
@@ -84,20 +84,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUpWithEmail = useCallback(
-    async (email: string, password: string, displayName: string) => {
-      if (!supabase) throw new Error('Couple777 is not connected to a backend yet.');
-      const { error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        // Picked up by the handle_new_user trigger, so the profile has a name
-        // from the very first render rather than an empty header.
-        options: { data: { display_name: displayName.trim() } },
-      });
-      if (error) throw error;
-    },
-    [],
-  );
+  /*
+    * Deliberately no display name here. An email address is a login, not a
+    * name, and a sign-up form that asks for both in one breath is where the
+    * two get conflated. The account is created nameless and /me/name asks
+    * properly, once, on a screen of its own.
+    */
+  const signUpWithEmail = useCallback(async (email: string, password: string) => {
+    if (!supabase) throw new Error('Couple777 is not connected to a backend yet.');
+    const { error } = await supabase.auth.signUp({ email: email.trim(), password });
+    if (error) throw error;
+  }, []);
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
     if (!supabase) throw new Error('Couple777 is not connected to a backend yet.');

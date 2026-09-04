@@ -9,8 +9,8 @@ import { useAuth } from '@/context/auth';
 import s from './Settings.module.css';
 
 export default function SettingsScreen() {
-  const { state, dispatch, partner, reset } = useStore();
-  const { signOut } = useAuth();
+  const { state, dispatch, partner, me, reset } = useStore();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -88,6 +88,22 @@ export default function SettingsScreen() {
                 </span>
               </p>
             ))}
+          </div>
+        </section>
+
+        {/* The only place the email belongs. It is how you sign in, not who
+            you are — everywhere else in the app you are your display name. */}
+        <section className={s.group}>
+          <p className={s.groupLabel}>Your account</p>
+          <div className={s.rows}>
+            <div className={s.row}>
+              <div className={s.rowMain}>
+                <p className={s.rowTitle}>{me.name}</p>
+                <p className={s.rowBody}>
+                  {user?.email ? `Signed in as ${user.email}` : 'Signed in'}
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 

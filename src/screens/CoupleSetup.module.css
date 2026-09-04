@@ -102,3 +102,119 @@
   font-size: var(--t-small);
   font-weight: 500;
 }
+
+/* ---------- Making a space, one question at a time ---------- */
+
+/*
+ * The five questions used to be five fields stacked on one screen, which read
+ * as paperwork: you saw everything being asked of you before you had answered
+ * anything. One at a time costs the same taps and feels like a conversation.
+ */
+.wizard {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  padding: var(--s-6) var(--s-6) calc(var(--s-6) + var(--safe-b));
+}
+
+.progress {
+  flex: none;
+  display: flex;
+  gap: 6px;
+}
+
+.tick {
+  height: 3px;
+  flex: 1;
+  border-radius: var(--r-full);
+  background: var(--c-hairline);
+  transition: background-color var(--d-base) var(--ease);
+}
+
+.tickOn {
+  background: var(--c-accent);
+}
+
+/* Keyed on the question index, so each answer replays the entrance. */
+.question {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-5);
+  animation: rise var(--d-slow) var(--ease) both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.qTitle {
+  font-family: var(--f-display);
+  font-size: var(--t-display-l);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.16;
+  color: var(--c-ink);
+  text-wrap: balance;
+}
+
+.qBody {
+  margin-top: var(--s-3);
+  font-size: var(--t-body);
+  color: var(--c-ink-3);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--c-hairline);
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--d-fast) var(--ease),
+    background-color var(--d-fast) var(--ease),
+    transform var(--d-fast) var(--ease);
+}
+
+.option:active {
+  transform: scale(0.985);
+}
+
+.option[data-on] {
+  border-color: var(--c-accent);
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+}
+
+.optionEmoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.foot {
+  flex: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-2);
+}

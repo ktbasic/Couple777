@@ -12,6 +12,7 @@ import JoinInviteScreen from './screens/JoinInvite';
 import NeedsSetupScreen from './screens/NeedsSetup';
 import PrivacyScreen, { hasSeenPrivacy } from './screens/Privacy';
 import MeSetupScreen from './screens/MeSetup';
+import NameSetupScreen from './screens/NameSetup';
 import HomeScreen from './screens/Home';
 import ExploreScreen from './screens/Explore';
 import MemoriesScreen from './screens/Memories';
@@ -72,6 +73,7 @@ export function App() {
         {/* The partner's way in. Deliberately reachable signed-out. */}
         <Route path="/join/:code" element={<JoinInviteScreen />} />
         <Route path="/privacy" element={<PrivacyScreen />} />
+        <Route path="/me/name" element={<NameSetupScreen />} />
         <Route path="/me/setup" element={<MeSetupScreen />} />
 
           {/* Tabbed surfaces */}
