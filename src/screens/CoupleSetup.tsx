@@ -62,6 +62,7 @@ export default function CoupleSetupScreen() {
   const [nameChecked, setNameChecked] = useState(false);
   const [partnerName, setPartnerName] = useState('');
   const [partnerGender, setPartnerGender] = useState('');
+  const [partnerCity, setPartnerCity] = useState('');
   const [partnerGenderNote, setPartnerGenderNote] = useState('');
   const [since, setSince] = useState('');
   const [status, setStatus] = useState('');
@@ -146,6 +147,7 @@ export default function CoupleSetupScreen() {
                   : {}),
               }
             : {}),
+          ...(partnerCity.trim() ? { partnerCity: partnerCity.trim() } : {}),
         } as never,
         rhythmStart: today(),
       });
@@ -254,13 +256,20 @@ export default function CoupleSetupScreen() {
     );
   }
 
-  /* One question, one answer, next. The choice questions advance on the tap
-     that answers them — a Continue button under a list of five options asks
-     you to say the same thing twice. */
-  const QUESTIONS = 5;
+  /* One question, one answer, next. The relationship question advances on the
+     tap that answers it — a Continue button under a list of five options asks
+     you to say the same thing twice. Closeness cannot: answering it opens a
+     follow-up underneath, and a screen that leaves the moment it grows is a
+     screen nobody gets to read. */
+  const QUESTIONS = 4;
   /* The bar spans the whole of onboarding, and the name step already spent
-     the first segment — so these five continue it rather than restarting. */
-  const BAR = 6;
+     the first segment — so these four continue it rather than restarting. */
+  const BAR = 5;
+  /* Living together and sharing a city both mean one place to suggest things
+     in; the other two mean two. */
+  const nearby = distance === 'together' || distance === 'same-area';
+  const apart = distance === 'different-cities' || distance === 'long-distance';
+
   const back = () => (q === 0 ? setStep('choose') : setQ(q - 1));
   const forward = () => setQ((current) => Math.min(QUESTIONS - 1, current + 1));
 
@@ -272,6 +281,9 @@ export default function CoupleSetupScreen() {
 
   return (
     <Screen className={s.wizard}>
+      {/* The city question it used to sit behind is now folded into the one
+          above, and that screen is far too busy to carry a picture. It moves
+          to the last question, which is a single date field and has the room. */}
       {q === 3 ? <div className={s.cosmos} aria-hidden /> : null}
 
       <div className={s.progress} aria-hidden>
@@ -391,7 +403,8 @@ export default function CoupleSetupScreen() {
             <div>
               <h1 className={s.qTitle}>How close are you two?</h1>
               <p className={s.qBody}>
-                A weeknight looks different at ten minutes away than at ten hours.
+                We&rsquo;ll use this to suggest dates and mini adventures that actually fit
+                your lives.
               </p>
             </div>
             <div className={s.options}>
@@ -401,43 +414,67 @@ export default function CoupleSetupScreen() {
                   type="button"
                   className={s.option}
                   data-on={distance === o.value || undefined}
-                  onClick={() => answer(setDistance, o.value)}
+                  onClick={() => setDistance(o.value)}
                 >
                   <span className={s.optionEmoji} aria-hidden>{o.emoji}</span>
                   {o.label}
                 </button>
               ))}
             </div>
+
+            {/* Same screen, opened underneath the answer. Two people in one
+                place need one city; two people in two places need both, and
+                asking for the second only when it exists is the difference
+                between a conversation and a form. */}
+            {nearby ? (
+              <div className={s.reveal} key="near">
+                <div className={s.revealInner}>
+                  <p className={s.followUp}>What city are you based in?</p>
+                  <Input
+                    label="Your city"
+                    value={homeBase}
+                    onChange={(e) => setHomeBase(e.target.value)}
+                    placeholder="Type your city"
+                    autoComplete="address-level2"
+                    maxLength={60}
+                  />
+                  <p className={s.followUpHint}>
+                    Used for nearby date ideas and mini adventures.
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
+            {apart ? (
+              <div className={s.reveal} key="apart">
+                <div className={s.revealInner}>
+                  <p className={s.followUp}>Where are you both based?</p>
+                  <Input
+                    label="Your city"
+                    value={homeBase}
+                    onChange={(e) => setHomeBase(e.target.value)}
+                    placeholder="Type your city"
+                    autoComplete="address-level2"
+                    maxLength={60}
+                  />
+                  <Input
+                    label={`${partnerName.trim() || 'Your partner'}\u2019s city`}
+                    value={partnerCity}
+                    onChange={(e) => setPartnerCity(e.target.value)}
+                    placeholder="Type their city"
+                    autoComplete="off"
+                    maxLength={60}
+                  />
+                  <p className={s.followUpHint}>
+                    We&rsquo;ll use this to suggest ideas in both places.
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </>
         ) : null}
 
         {q === 3 ? (
-          <>
-            <div>
-              <h1 className={s.qTitle}>Where are you based?</h1>
-              <p className={s.qBody}>So the ideas are places you could actually go tonight.</p>
-            </div>
-            <form
-              className={s.form}
-              onSubmit={(e) => {
-                e.preventDefault();
-                forward();
-              }}
-            >
-              <Input
-                label="Your city"
-                value={homeBase}
-                onChange={(e) => setHomeBase(e.target.value)}
-                placeholder="Munich"
-                autoComplete="address-level2"
-                maxLength={60}
-                autoFocus
-              />
-            </form>
-          </>
-        ) : null}
-
-        {q === 4 ? (
           <>
             <div>
               <h1 className={s.qTitle}>Together since?</h1>
@@ -477,7 +514,7 @@ export default function CoupleSetupScreen() {
           >
             {busy ? 'Making your space…' : 'Create our space'}
           </Button>
-        ) : q === 0 || q === 3 ? (
+        ) : q === 0 || q === 2 ? (
           <Button
             variant="accent"
             size="lg"

@@ -20,7 +20,7 @@ a phone" at the bottom.
 | 4 | Come back to the app | "What should we call you?" |
 | 5 | Type **Katy**, then **That's me** | "How do you want to start?" |
 | 6 | **Create our space** | Five questions, one at a time, with a progress bar along the top |
-| 7 | Partner's name **Marian** → Dating → Same city → Munich → a date, or **Skip for now** | "Bring Marian in ❤️" with a code like **K7-4M2P** |
+| 7 | Partner's name **Marian** → Dating → **Same city**, then the city field that opens under it → a date, or **Skip for now** | "Bring Marian in ❤️" with a code like **K7-4M2P** |
 | 8 | **Share invite** | Your phone's share sheet — WhatsApp, Messages, whatever you have |
 | 9 | Send it to phone 2 | — |
 

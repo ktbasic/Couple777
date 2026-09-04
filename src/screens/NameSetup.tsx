@@ -22,9 +22,9 @@ import s from './NameSetup.module.css';
  * never what gets offered back.
  */
 
-/* Six segments, of which this is the first: the name, then the five questions
+/* Five segments, of which this is the first: the name, then the four questions
    that make the space. One flow, one bar. */
-const ONBOARDING_STEPS = 6;
+const ONBOARDING_STEPS = 5;
 
 /**
  * What the traveller says. First word only — a bubble is a small place, and

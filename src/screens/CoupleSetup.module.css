@@ -415,3 +415,44 @@
   position: relative;
   z-index: 1;
 }
+
+/* ---------- The follow-up that opens under an answer ---------- */
+
+/*
+ * A real expansion, not a fade pretending to be one: the grid row goes from
+ * 0fr to 1fr, which animates the actual height, so everything under it is
+ * pushed down rather than being covered by something appearing on top.
+ * `overflow: hidden` on the inner element is what makes the 0fr state clip
+ * instead of spill.
+ */
+.reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  animation: expand 360ms var(--ease) forwards;
+}
+
+.revealInner {
+  overflow: hidden;
+  display: grid;
+  gap: var(--s-3);
+}
+
+@keyframes expand {
+  from { grid-template-rows: 0fr; opacity: 0; }
+  to   { grid-template-rows: 1fr; opacity: 1; }
+}
+
+/* Asked in the same voice as the question above it, one size down — it is a
+   follow-up, not a second question competing with the first. */
+.followUp {
+  font-size: var(--t-title);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+
+.followUpHint {
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+  line-height: 1.45;
+}
