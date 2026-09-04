@@ -1,0 +1,150 @@
+/*
+ * The drift.
+ *
+ * Two rules hold this together. Placement lives on an outer <g> as a
+ * transform *attribute* and the animation on an inner <g> as a CSS transform,
+ * because CSS wins outright over the attribute — animate the same element and
+ * the traveller snaps to the top-left corner on the first frame. And every
+ * animated group gets `transform-box: fill-box`, since an SVG element's
+ * transform-origin otherwise resolves against the whole 320x240 viewBox, so a
+ * 1-degree tilt becomes a swing around the middle of the picture.
+ *
+ * Nothing here animates anything but transform and opacity, so the whole loop
+ * stays on the compositor and costs a phone nothing to keep running.
+ *
+ * The global prefers-reduced-motion rule in styles/global.css stops all of it
+ * for anyone who has asked for that; the drawing is composed to stand still
+ * just as well.
+ */
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* ---------- The two travellers ---------- */
+
+.left,
+.right {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.left {
+  animation: driftWarm 9s var(--ease-soft) infinite;
+}
+
+.right {
+  /* Eleven against nine: the pair drifts in and out of phase over roughly a
+     minute and a half, so the loop never announces itself. */
+  animation: driftCool 11s var(--ease-soft) infinite;
+}
+
+@keyframes driftWarm {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(4px, -6px) rotate(1.2deg); }
+  50%  { transform: translate(7px, 1px) rotate(0deg); }
+  75%  { transform: translate(2px, 6px) rotate(-1.1deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes driftCool {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(-5px, 5px) rotate(-1.2deg); }
+  50%  { transform: translate(-8px, -2px) rotate(0deg); }
+  75%  { transform: translate(-3px, -6px) rotate(1.1deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* ---------- Breathing ---------- */
+
+.breathe {
+  transform-box: fill-box;
+  transform-origin: 50% 60%;
+  animation: breathe 5.5s var(--ease-soft) infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.025); }
+}
+
+/* ---------- Antennae, a beat behind the drift ---------- */
+
+.antennae {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: sway 4.2s var(--ease-soft) infinite;
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-2.4deg); }
+  50%      { transform: rotate(2.4deg); }
+}
+
+/* ---------- The hand that keeps almost arriving ---------- */
+
+.reach {
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+  animation: reach 6.5s var(--ease-soft) infinite;
+}
+
+@keyframes reach {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(2px, -1px); }
+}
+
+/* ---------- What is happening between them ---------- */
+
+.heart {
+  transform-box: fill-box;
+  transform-origin: 50% 70%;
+  animation: beat 3.6s var(--ease-soft) infinite;
+}
+
+@keyframes beat {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%      { transform: scale(1.09) translateY(-3px); }
+}
+
+.trail {
+  animation: wake 9s var(--ease-soft) infinite;
+}
+
+@keyframes wake {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1; }
+}
+
+.planet {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: adrift 16s var(--ease-soft) infinite;
+}
+
+@keyframes adrift {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-4px, 5px); }
+}
+
+/* ---------- Starlight ---------- */
+
+.tw1,
+.tw2,
+.tw3 {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.tw1 { animation: twinkle 4.4s var(--ease-soft) infinite; }
+.tw2 { animation: twinkle 5.9s var(--ease-soft) 0.8s infinite; }
+.tw3 { animation: twinkle 7.1s var(--ease-soft) 1.9s infinite; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.45; transform: scale(0.88); }
+  50%      { opacity: 1;    transform: scale(1.1); }
+}

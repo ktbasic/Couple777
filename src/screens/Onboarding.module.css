@@ -147,15 +147,42 @@
   text-wrap: pretty;
 }
 
+/* ---------- Welcome (step 0) ---------- */
+
+/* A column that fills the body, so `margin-top: auto` on the warm line has
+   something to push against and the illustration keeps the middle. */
+.welcome {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Four more words than the line it replaced, so it steps down one size rather
+   than pushing the illustration off the bottom of a small phone. */
+.titleWelcome {
+  font-size: var(--t-display-l);
+  max-width: 18ch;
+}
+
+/* Pulled out to the edges of the body's padding: the universe should not look
+   like it stops where the text does. */
+.hero {
+  margin: var(--s-6) calc(var(--s-5) * -1) 0;
+  flex: 1;
+  min-height: 148px;
+  display: flex;
+  align-items: center;
+}
+
+/* No longer a card. A quiet line handing over to the button underneath it. */
 .warmLine {
-  margin-top: var(--s-6);
-  padding: var(--s-4) var(--s-5);
-  border-radius: var(--r-md);
-  background: var(--c-accent-wash);
-  border: 1px solid var(--c-accent-edge);
-  font-size: var(--t-body);
+  margin-top: auto;
+  padding-top: var(--s-5);
+  text-align: center;
+  font-size: var(--t-small);
   font-weight: 500;
-  color: var(--c-ink-2);
+  color: var(--c-ink-3);
   line-height: 1.5;
   text-wrap: pretty;
 }

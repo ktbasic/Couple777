@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { savePendingOnboarding } from '@/lib/pendingOnboarding';
 import { AppIcon } from '@/components/ui/Logo777';
+import { CosmicPair } from '@/components/ui/CosmicPair';
 import { Button } from '@/components/ui/Button';
 import type { CoupleVibe, Wish } from '@/lib/types';
 import s from './Onboarding.module.css';
@@ -118,18 +119,31 @@ export default function OnboardingScreen() {
 
 /* --------------------------------- Steps --------------------------------- */
 
+/*
+ * The illustration is the hero here, so the step is a column that fills the
+ * body: title and lede at the top, the pair in the middle taking whatever room
+ * is left, and the warm line pushed down to sit just above the button as the
+ * last thing read before tapping it.
+ */
 function Welcome() {
   return (
-    <div className={s.step}>
+    <div className={[s.step, s.welcome].join(' ')}>
       <div className={s.mark}>
         <AppIcon tone="on-accent" className={s.markGlyph} />
         <span className={s.markWord}>Couple777</span>
       </div>
       <p className={s.eyebrow}>A private space for two</p>
-      <h1 className={s.title}>Love is great. Life is busy.</h1>
+      <h1 className={[s.title, s.titleWelcome].join(' ')}>
+        In a huge universe, you found each other.
+      </h1>
       <p className={s.lede}>
         Couple777 helps make sure the good stuff doesn't keep getting postponed.
       </p>
+
+      <div className={s.hero}>
+        <CosmicPair />
+      </div>
+
       <p className={s.warmLine}>Starting is already a pretty good sign. ❤️</p>
     </div>
   );
