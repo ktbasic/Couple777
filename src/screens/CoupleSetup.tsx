@@ -236,6 +236,9 @@ export default function CoupleSetupScreen() {
      that answers them — a Continue button under a list of five options asks
      you to say the same thing twice. */
   const QUESTIONS = 5;
+  /* The bar spans the whole of onboarding, and the name step already spent
+     the first segment — so these five continue it rather than restarting. */
+  const BAR = 6;
   const back = () => (q === 0 ? setStep('choose') : setQ(q - 1));
   const forward = () => setQ((current) => Math.min(QUESTIONS - 1, current + 1));
 
@@ -248,8 +251,8 @@ export default function CoupleSetupScreen() {
   return (
     <Screen className={s.wizard}>
       <div className={s.progress} aria-hidden>
-        {Array.from({ length: QUESTIONS }).map((_, i) => (
-          <span key={i} className={[s.tick, i <= q ? s.tickOn : ''].filter(Boolean).join(' ')} />
+        {Array.from({ length: BAR }).map((_, i) => (
+          <span key={i} className={[s.tick, i <= q + 1 ? s.tickOn : ''].filter(Boolean).join(' ')} />
         ))}
       </div>
 

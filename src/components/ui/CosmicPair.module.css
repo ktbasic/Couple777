@@ -219,3 +219,30 @@
   0%, 100% { opacity: 0.4;  transform: scale(0.86); }
   50%      { opacity: 0.95; transform: scale(1.12); }
 }
+
+/* ---------- One traveller, saying hello ---------- */
+
+.greeter {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  /* Arrives with a small overshoot, then hands over to the idle float. */
+  animation: popIn 620ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.72) translateY(14px) rotate(-6deg); }
+  100% { opacity: 1; transform: none; }
+}
+
+.greeterFloat {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: greeterFloat 6.5s var(--ease-soft) 620ms infinite;
+}
+
+@keyframes greeterFloat {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50%      { transform: translate(-3px, -5px) rotate(1.6deg); }
+}

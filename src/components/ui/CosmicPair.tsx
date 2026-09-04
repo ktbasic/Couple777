@@ -176,6 +176,8 @@ interface TravellerProps {
    * reading as two beings in the same sky.
    */
   faceFlip?: boolean;
+  /** The wake behind them. Off for a single traveller in a small frame. */
+  trail?: boolean;
 }
 
 /** One eye: the dark almond, then its two catchlights. */
@@ -192,7 +194,7 @@ function Eye({ x, y, rx, ry, flip }: {
   );
 }
 
-function Traveller({ uid, tone, faceFlip = false }: TravellerProps) {
+function Traveller({ uid, tone, faceFlip = false, trail = true }: TravellerProps) {
   const c = TONES[tone];
   const a = ANATOMY[tone];
   const g = (name: string) => `${uid}-${tone}-${name}`;
@@ -243,7 +245,7 @@ function Traveller({ uid, tone, faceFlip = false }: TravellerProps) {
         </radialGradient>
       </defs>
 
-      <path className={s.trail} d={a.trail} fill={`url(#${g('trail')})`} />
+      {trail ? <path className={s.trail} d={a.trail} fill={`url(#${g('trail')})`} /> : null}
 
       {/* Two legs, and nothing else back here. The old third shape hung
           between them and turned the silhouette into four legs with an
@@ -351,6 +353,70 @@ function Sparkle({ x, y, r, fill, className }: {
           Q ${x - w} ${y - w} ${x} ${y - r} Z`}
       fill={fill}
     />
+  );
+}
+
+/**
+ * One traveller, leaning in from the edge of a screen to say hello.
+ *
+ * The same creature as the welcome screen's pair, drawn from the same anatomy
+ * and the same tones — a second, separately-drawn alien would read as a
+ * different species one screen later. It is mirrored so its face and its
+ * reaching arm point back at the text rather than off the edge, and its wake
+ * is switched off: there is nothing here for it to have flown in from.
+ *
+ * It arrives with a small overshoot and then settles into the same idle float
+ * as its counterpart, so the greeting lands and the screen keeps breathing.
+ */
+export function CosmicGreeter() {
+  const uid = `cg-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+
+  return (
+    <svg
+      className={s.greeter}
+      viewBox="0 0 170 150"
+      role="img"
+      aria-label="A small traveller waving hello"
+    >
+      <defs>
+        <linearGradient id={`${uid}-heart`} x1="0" y1="0" x2="0.4" y2="1">
+          <stop offset="0%" stopColor="#FCA98D" />
+          <stop offset="100%" stopColor="#F26C93" />
+        </linearGradient>
+      </defs>
+
+      <g className={s.dustA}>
+        <Sparkle className={s.tw1} x={22} y={42} r={6} fill="#F8C983" />
+        <Sparkle className={s.tw2} x={152} y={36} r={5} fill="#A9B6EE" />
+        <circle className={s.tw3} cx="16" cy="98" r="3" fill="#F3B0C6" opacity="0.8" />
+      </g>
+      <g className={s.dustB}>
+        <Sparkle className={s.tw3} x={158} y={86} r={5} fill="#F3A9C6" />
+        <circle className={s.tw1} cx="46" cy="132" r="2.8" fill="#B6BEEF" opacity="0.7" />
+      </g>
+
+      {/* A small heart, at the shoulder rather than in the middle of things.
+          Placement outside, animation inside — a CSS transform replaces the
+          attribute, and with both on one node the heart snaps to the origin. */}
+      <g transform="translate(150 124)">
+        <g className={s.heart}>
+          <path
+            d="M 0 5.5 C -5.5 1.3, -8 -1.7, -8 -4.7 C -8 -7.7, -5.8 -9.7, -3.3 -9.7
+               C -1.4 -9.7, 0 -8.3, 0 -7.2 C 0 -8.3, 1.4 -9.7, 3.3 -9.7
+               C 5.8 -9.7, 8 -7.7, 8 -4.7 C 8 -1.7, 5.5 1.3, 0 5.5 Z"
+            fill={`url(#${uid}-heart)`}
+          />
+        </g>
+      </g>
+
+      <g transform="translate(92 86) rotate(4) scale(0.84)">
+        <g className={s.greeterFloat}>
+          <g transform="scale(-1 1)">
+            <Traveller uid={uid} tone="warm" faceFlip trail={false} />
+          </g>
+        </g>
+      </g>
+    </svg>
   );
 }
 
