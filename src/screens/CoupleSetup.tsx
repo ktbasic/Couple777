@@ -14,8 +14,9 @@ import { InviteShare } from '@/features/InviteShare';
 import s from './CoupleSetup.module.css';
 
 /**
- * "Who are you doing 777 with?" — the step that turns one account into a
- * shared space. Everything the couple answers here is couple-level and is
+ * "How do you want to start?" — the step that turns one account into a
+ * shared space. The question is about which of the two doors you take, so the
+ * two buttons under it are the answer; the couple's own details come after. Everything the couple answers here is couple-level and is
  * asked once, of the first person; the partner who joins by link is never
  * asked any of it again.
  */
@@ -124,7 +125,7 @@ export default function CoupleSetupScreen() {
     return (
       <Screen className={s.screen}>
         <div className={s.top}>
-          <h1 className={s.title}>Who are you doing 777 with?</h1>
+          <h1 className={s.title}>How do you want to start?</h1>
           <p className={s.body}>
             Couple777 is built for two. One of you starts the space, the other joins with a code.
           </p>

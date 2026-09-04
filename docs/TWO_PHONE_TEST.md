@@ -17,7 +17,7 @@ a phone" at the bottom.
 | 1 | Open the app | The 777 animation, then "Love is great. Life is busy." |
 | 2 | Tap through: Start → the questions → **Let's try 777** | "Save your Couple777" |
 | 3 | **Continue with email**, put in a name, an email and a password | "Check your email" (or straight in, if you turned confirmation off) |
-| 4 | Come back to the app | "Who are you doing 777 with?" |
+| 4 | Come back to the app | "How do you want to start?" |
 | 5 | **Create our space**. Partner's name **Marian**, a date, a city | "Bring Marian in ❤️" with a code like **K7-4M2P** |
 | 6 | **Share invite** | Your phone's share sheet — WhatsApp, Messages, whatever you have |
 | 7 | Send it to phone 2 | — |
