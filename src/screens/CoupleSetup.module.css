@@ -218,3 +218,124 @@
   grid-template-columns: minmax(0, 1fr);
   gap: var(--s-2);
 }
+
+/* ---------- Question 1: naming the partner ---------- */
+
+/* This one carries more than the others — a question, a field, an optional
+   one, and the traveller — so it flows from the top rather than centring. */
+.questionFill {
+  justify-content: flex-start;
+  gap: var(--s-5);
+}
+
+.qHead {
+  text-align: center;
+}
+
+.identity {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.legend {
+  display: block;
+  padding: 0;
+  margin-bottom: var(--s-3);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+}
+
+.optional {
+  margin-left: 5px;
+  font-weight: 500;
+  color: var(--c-ink-4);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 9px 14px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--c-hairline);
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+  cursor: pointer;
+  transition:
+    border-color var(--d-fast) var(--ease),
+    background-color var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease),
+    transform var(--d-fast) var(--ease);
+}
+
+.chip:active {
+  transform: scale(0.97);
+}
+
+.chip[aria-pressed='true'] {
+  border-color: var(--c-accent);
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+}
+
+.selfDescribe {
+  margin-top: var(--s-3);
+  animation: revealField var(--d-base) var(--ease) both;
+}
+
+@keyframes revealField {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- The partner, waving from the bottom of the screen ---------- */
+
+.mascot {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: 52% minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.mascotNote {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+/*
+ * A handwritten aside. Caveat rides along on the Google Fonts request the app
+ * already makes for Inter, so it costs a family rather than a connection —
+ * and the generic `cursive` keyword is not dependable: on a machine with no
+ * script face it resolves to a serif, which just reads as the wrong font.
+ */
+.hand {
+  font-family: 'Caveat', 'Bradley Hand', 'Snell Roundhand', 'Segoe Script', cursive;
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--c-accent-ink);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.arrow {
+  color: var(--c-accent);
+  /* Points back at the traveller, and leans a little as it does. */
+  animation: nudge 3.6s var(--ease-soft) infinite;
+}
+
+@keyframes nudge {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50%      { transform: translate(-3px, 2px) rotate(-3deg); }
+}

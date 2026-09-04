@@ -380,8 +380,9 @@ function Sparkle({ x, y, r, fill, className }: {
  * It arrives with a small overshoot and then settles into the same idle float
  * as its counterpart, so the greeting lands and the screen keeps breathing.
  */
-export function CosmicGreeter() {
+export function CosmicGreeter({ tone = 'warm' }: { tone?: 'warm' | 'cool' }) {
   const uid = `cg-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  const heartFill = tone === 'cool' ? ['#B9A6F2', '#8E79DD'] : ['#FCA98D', '#F26C93'];
 
   return (
     <svg
@@ -392,8 +393,8 @@ export function CosmicGreeter() {
     >
       <defs>
         <linearGradient id={`${uid}-heart`} x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0%" stopColor="#FCA98D" />
-          <stop offset="100%" stopColor="#F26C93" />
+          <stop offset="0%" stopColor={heartFill[0]} />
+          <stop offset="100%" stopColor={heartFill[1]} />
         </linearGradient>
       </defs>
 
@@ -424,7 +425,7 @@ export function CosmicGreeter() {
       <g transform="translate(92 86) rotate(4) scale(0.84)">
         <g className={s.greeterFloat}>
           <g transform="scale(-1 1)">
-            <Traveller uid={uid} tone="warm" faceFlip trail={false} wink />
+            <Traveller uid={uid} tone={tone} faceFlip trail={false} wink />
           </g>
         </g>
       </g>

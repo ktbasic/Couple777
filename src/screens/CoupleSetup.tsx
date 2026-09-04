@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Field';
+import { CosmicGreeter } from '@/components/ui/CosmicPair';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/context/auth';
 import { useStore } from '@/context/store';
@@ -32,6 +33,15 @@ const RELATIONSHIP = [
   { value: 'unsaid', label: 'Rather not say', emoji: '🤫' },
 ];
 
+/* The same five as the name step, asked about the other person. */
+const IDENTITIES = [
+  { value: 'woman', label: 'Woman' },
+  { value: 'man', label: 'Man' },
+  { value: 'non-binary', label: 'Non-binary' },
+  { value: 'self-describe', label: 'Self-describe' },
+  { value: 'unsaid', label: 'Prefer not to say' },
+];
+
 const CLOSENESS = [
   { value: 'together', label: 'We live together', emoji: '🏠' },
   { value: 'same-area', label: 'Same city', emoji: '🚲' },
@@ -51,6 +61,8 @@ export default function CoupleSetupScreen() {
   const [q, setQ] = useState(0);
   const [nameChecked, setNameChecked] = useState(false);
   const [partnerName, setPartnerName] = useState('');
+  const [partnerGender, setPartnerGender] = useState('');
+  const [partnerGenderNote, setPartnerGenderNote] = useState('');
   const [since, setSince] = useState('');
   const [status, setStatus] = useState('');
   const [distance, setDistance] = useState('');
@@ -124,7 +136,17 @@ export default function CoupleSetupScreen() {
         relationshipStatus: status || 'unsaid',
         distanceSetup: distance || undefined,
         homeBase: homeBase || undefined,
-        profile: (pending?.coupleProfile ?? state.couple.profile) as never,
+        profile: {
+          ...(pending?.coupleProfile ?? state.couple.profile),
+          ...(partnerGender
+            ? {
+                partnerGender,
+                ...(partnerGender === 'self-describe' && partnerGenderNote.trim()
+                  ? { partnerGenderNote: partnerGenderNote.trim() }
+                  : {}),
+              }
+            : {}),
+        } as never,
         rhythmStart: today(),
       });
       // The three clocks start the moment the space exists.
@@ -257,15 +279,20 @@ export default function CoupleSetupScreen() {
       </div>
 
       {/* Keyed on the index so each question replays the entrance. */}
-      <div className={s.question} key={q}>
+      <div
+        className={[s.question, q === 0 ? s.questionFill : ''].filter(Boolean).join(' ')}
+        key={q}
+      >
         {q === 0 ? (
           <>
-            <div>
-              <h1 className={s.qTitle}>What&rsquo;s your partner&rsquo;s name?</h1>
+            <div className={s.qHead}>
+              <h1 className={s.qTitle}>What should we call your partner?</h1>
               <p className={s.qBody}>
-                It is what the whole app calls them, so use whatever you call them.
+                We&rsquo;ll use this name across Couple777, so enter what you usually call
+                them.
               </p>
             </div>
+
             <form
               className={s.form}
               onSubmit={(e) => {
@@ -274,16 +301,63 @@ export default function CoupleSetupScreen() {
               }}
             >
               <Input
-                label="Their name"
+                label="Partner&rsquo;s name"
                 value={partnerName}
                 onChange={(e) => setPartnerName(e.target.value)}
-                placeholder="Type their name"
+                placeholder="Type your partner&rsquo;s name"
                 autoComplete="off"
                 maxLength={40}
-                autoFocus
                 required
               />
             </form>
+
+            <fieldset className={s.identity}>
+              <legend className={s.legend}>
+                How do they identify?
+                <span className={s.optional}>(optional)</span>
+              </legend>
+              <div className={s.chips}>
+                {IDENTITIES.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    className={s.chip}
+                    aria-pressed={partnerGender === o.value}
+                    onClick={() =>
+                      setPartnerGender(partnerGender === o.value ? '' : o.value)
+                    }
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+
+              {partnerGender === 'self-describe' ? (
+                <div className={s.selfDescribe}>
+                  <Input
+                    label="In their words"
+                    value={partnerGenderNote}
+                    onChange={(e) => setPartnerGenderNote(e.target.value)}
+                    placeholder="However they describe themselves"
+                    maxLength={40}
+                    autoFocus
+                  />
+                </div>
+              ) : null}
+            </fieldset>
+
+            {/* The other traveller, waiting to be named. */}
+            <div className={s.mascot}>
+              <CosmicGreeter tone="cool" />
+              <div className={s.mascotNote}>
+                <span className={s.hand}>
+                  {partnerName.trim()
+                    ? `This is ${partnerName.trim().split(/\s+/)[0]}`
+                    : 'This is your person'}
+                </span>
+                <ArrowDoodle />
+              </div>
+            </div>
           </>
         ) : null}
 
@@ -425,5 +499,28 @@ export default function CoupleSetupScreen() {
         )}
       </div>
     </Screen>
+  );
+}
+
+/** A small hand-drawn arrow, curving back toward the traveller beside it. */
+function ArrowDoodle() {
+  return (
+    <svg className={s.arrow} viewBox="0 0 62 40" width="56" height="36" aria-hidden>
+      <path
+        d="M 56 5 C 50 20, 38 31, 16 33"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 25 26 L 14 33.4 L 25 38"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

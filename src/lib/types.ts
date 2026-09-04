@@ -97,6 +97,14 @@ export interface CoupleProfile {
   proximity: Proximity;
   seeFrequency?: SeeFrequency;
   vibes: CoupleVibe[];
+  /**
+   * How the partner identifies, if the first person said. Optional, and kept
+   * here in the couple's own document rather than in a column, because the
+   * partner has no account of their own yet to hold it — and once they do,
+   * what they say about themselves on their profile is the better answer.
+   */
+  partnerGender?: string;
+  partnerGenderNote?: string;
 }
 
 export interface Couple {
