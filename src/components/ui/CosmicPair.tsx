@@ -75,42 +75,91 @@ function limb(
 /* -------------------------------------------------------------------------- */
 
 /*
- * Head at (0, 0); everything else trails down and back to the left.
+ * Two anatomies, not one mirrored twice.
  *
- * The two legs are deliberately splayed either side of the body axis. Bring
- * their angles together and they fuse into one flipper, which is the single
- * fastest way to lose the creature.
+ * A perfect mirror reads as a logo. These two differ in every measurement
+ * that shows — how far the torso runs, where the arm points, how wide the
+ * legs splay, which way the antennae lean — so the pair reads as two beings
+ * who happen to be drifting the same way rather than one drawn backwards.
  *
- * Nothing reaches past y = -42: that is the inside of the helmet, and an
- * antenna poking through the glass is instantly wrong.
+ * The proportions are deliberately unhuman: a big head, a short round torso,
+ * and stubby limbs. Lengthen the arms and legs even slightly and they stop
+ * being plush and start being people.
+ *
+ * Nothing reaches past y = -34, which is the inside of the helmet.
  */
-const TORSO      = limb(-6, 18, -44, 32, 23, 15, -5);
-const LEG_UPPER  = limb(-38, 28, -74, 50, 11, 4, -9);
-const LEG_LOWER  = limb(-32, 40, -58, 70, 10, 4, 5);
-const ARM_BACK   = limb(-16, 26, -26, 56, 9, 4.5, -5);
-const ARM_FRONT  = limb(6, 24, 54, 12, 9.5, 4.5, 9);
-const BAND       = limb(-22, 14, -40, 24, 13, 10.5, 0);
-const ANTENNA_L  = limb(-11, -20, -17, -31, 3, 1.7, -2);
-const ANTENNA_R  = limb(7, -22, 10, -32, 3, 1.7, 2);
-/* Narrow where it leaves them, wide and gone by the corner. It falls away
-   below the body — level with it, it reads as a stripe through the picture. */
-const TRAIL      = limb(-42, 50, -180, 104, 14, 28, 14);
+interface Anatomy {
+  torso: string;
+  legUpper: string;
+  legLower: string;
+  armBack: string;
+  armFront: string;
+  band: string;
+  antennaL: string;
+  antennaR: string;
+  trail: string;
+  hand: [number, number, number];
+  ballL: [number, number, number];
+  ballR: [number, number, number];
+}
 
+const ANATOMY: Record<'warm' | 'cool', Anatomy> = {
+  /* Leaning into the drift, arm high, legs wide. */
+  warm: {
+    torso:    limb(-4, 19, -32, 31, 21, 16, -4),
+    legUpper: limb(-27, 25, -56, 28, 9.5, 4.5, -8),
+    legLower: limb(-25, 34, -46, 56, 8.5, 4.5, 5),
+    armBack:  limb(-14, 25, -25, 47, 8.5, 4.5, -5),
+    armFront: limb(6, 21, 41, 10, 9, 4.8, 7),
+    band:     limb(-16, 13, -30, 21, 12, 10, 0),
+    antennaL: limb(-10, -19, -16, -27, 2.8, 1.5, -1.5),
+    antennaR: limb(7, -20, 10, -28, 2.8, 1.5, 1.5),
+    trail:    limb(-34, 40, -168, 86, 9, 19, 16),
+    hand:     [42, 9, 5.2],
+    ballL:    [-17, -29, 3.4],
+    ballR:    [10, -30, 3.4],
+  },
+  /* Rounder, sitting back a little, arm lower and legs tucked. */
+  cool: {
+    torso:    limb(-5, 20, -29, 33, 22, 17, -3),
+    legUpper: limb(-25, 28, -52, 34, 9.5, 4.5, -7),
+    legLower: limb(-23, 36, -41, 58, 8.5, 4.5, 4),
+    armBack:  limb(-13, 27, -22, 48, 8.5, 4.5, -4),
+    armFront: limb(6, 24, 40, 16, 9, 4.8, 6),
+    band:     limb(-15, 15, -27, 22, 12, 10, 0),
+    antennaL: limb(-10, -20, -17, -26, 2.8, 1.5, -2),
+    antennaR: limb(7, -20, 11, -27, 2.8, 1.5, 2),
+    trail:    limb(-32, 42, -162, 92, 9, 18, 14),
+    hand:     [41, 15, 5.2],
+    ballL:    [-18, -28, 3.4],
+    ballR:    [11, -29, 3.4],
+  },
+};
+
+/*
+ * `band` is no longer a dark panel. A hard navy block turned these into things
+ * wearing space suits; a soft wash of the creature's own deep tone reads as
+ * the shadowed side of something plush.
+ */
 const TONES = {
   warm: {
-    light: '#FDBE98',
-    mid:   '#F8907F',
-    deep:  '#EF6F8E',
-    band:  '#8A6BA6',
-    tip:   '#F4837F',
+    headLight: '#FFD9BC',
+    light:     '#FDBE98',
+    lightMid:  '#FBA68B',
+    mid:       '#F8907F',
+    deep:      '#EF6F8E',
+    band:      '#D97E93',
+    tip:       '#F79683',
     trail: ['#FBCBA9', '#F5A8C2', '#E9B9E4'],
   },
   cool: {
-    light: '#9CC0F7',
-    mid:   '#8496F0',
-    deep:  '#9071DF',
-    band:  '#454372',
-    tip:   '#8AA2F2',
+    headLight: '#C6DBFB',
+    light:     '#9CC0F7',
+    lightMid:  '#8FADF4',
+    mid:       '#8496F0',
+    deep:      '#9071DF',
+    band:      '#7F87D4',
+    tip:       '#95AEF4',
     trail: ['#BFD0F9', '#C0B4F2', '#E4C2E8'],
   },
 } as const;
@@ -136,24 +185,26 @@ function Eye({ x, y, rx, ry, flip }: {
   const f = flip ? -1 : 1;
   return (
     <>
-      <ellipse cx={x} cy={y} rx={rx} ry={ry} fill="#241E2B" />
-      <circle cx={x - 2.6 * f} cy={y - 3.4} r="3" fill="#FFFFFF" />
-      <circle cx={x + 2.7 * f} cy={y + 3.6} r="1.5" fill="#FFFFFF" opacity="0.85" />
+      <ellipse cx={x} cy={y} rx={rx} ry={ry} fill="#2A2333" />
+      <circle cx={x - 2.5 * f} cy={y - 2.7} r="3.5" fill="#FFFFFF" />
+      <circle cx={x + 2.7 * f} cy={y + 3.2} r="2" fill="#FFFFFF" opacity="0.9" />
     </>
   );
 }
 
 function Traveller({ uid, tone, faceFlip = false }: TravellerProps) {
   const c = TONES[tone];
+  const a = ANATOMY[tone];
   const g = (name: string) => `${uid}-${tone}-${name}`;
 
   return (
     <>
       <defs>
         {/* Lighter at the head, deeper at the trailing end. */}
-        <linearGradient id={g('body')} x1="24" y1="-24" x2="-72" y2="62" gradientUnits="userSpaceOnUse">
+        <linearGradient id={g('body')} x1="22" y1="-22" x2="-58" y2="56" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor={c.light} />
-          <stop offset="55%" stopColor={c.mid} />
+          <stop offset="32%" stopColor={c.lightMid} />
+          <stop offset="62%" stopColor={c.mid} />
           <stop offset="100%" stopColor={c.deep} />
         </linearGradient>
         <linearGradient id={g('arm')} x1="0" y1="24" x2="56" y2="12" gradientUnits="userSpaceOnUse">
@@ -161,95 +212,113 @@ function Traveller({ uid, tone, faceFlip = false }: TravellerProps) {
           <stop offset="100%" stopColor={c.tip} />
         </linearGradient>
         {/* The head reads round because the light sits off to one side. */}
-        <radialGradient id={g('head')} cx="0.34" cy="0.28" r="0.86">
-          <stop offset="0%" stopColor={c.light} />
+        <radialGradient id={g('head')} cx="0.33" cy="0.26" r="0.9">
+          <stop offset="0%" stopColor={c.headLight} />
+          <stop offset="45%" stopColor={c.light} />
           <stop offset="100%" stopColor={c.mid} />
         </radialGradient>
         <linearGradient id={g('trail')} x1="-250" y1="6" x2="-40" y2="48" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor={c.trail[2]} stopOpacity="0" />
-          <stop offset="45%" stopColor={c.trail[1]} stopOpacity="0.32" />
-          <stop offset="100%" stopColor={c.trail[0]} stopOpacity="0.68" />
+          <stop offset="45%" stopColor={c.trail[1]} stopOpacity="0.26" />
+          <stop offset="100%" stopColor={c.trail[0]} stopOpacity="0.55" />
         </linearGradient>
         {/* Glass: nothing in the middle, a breath of tint at the rim. */}
-        {/* Glass is only visible at its edges. Almost nothing through the
-            middle, a swell of white toward the rim, and a band of the
-            traveller's own colour right at it — without that last stop the
-            bubble disappears entirely against a pale background. */}
+        {/* Glass is only visible at its edges, and here it stays quiet: the
+            head is the character, the helmet is context. */}
         <radialGradient id={g('glass')} cx="0.4" cy="0.34" r="0.6">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.03" />
-          <stop offset="62%" stopColor="#FFFFFF" stopOpacity="0.26" />
-          <stop offset="88%" stopColor="#FFFFFF" stopOpacity="0.5" />
-          <stop offset="97%" stopColor={c.light} stopOpacity="0.5" />
-          <stop offset="100%" stopColor={c.light} stopOpacity="0.16" />
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.02" />
+          <stop offset="66%" stopColor="#FFFFFF" stopOpacity="0.15" />
+          <stop offset="90%" stopColor="#FFFFFF" stopOpacity="0.3" />
+          <stop offset="97%" stopColor={c.light} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={c.light} stopOpacity="0.1" />
+        </radialGradient>
+        {/* Laid over the body: light off the top-left, the colour deepening
+            into the underside. Two gradients on one shape is the difference
+            between a rounded thing and a flat one with a highlight on it. */}
+        <radialGradient id={g('volume')} cx="0.3" cy="0.16" r="0.95">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.34" />
+          <stop offset="42%" stopColor="#FFFFFF" stopOpacity="0.06" />
+          <stop offset="72%" stopColor={c.deep} stopOpacity="0.05" />
+          <stop offset="100%" stopColor={c.deep} stopOpacity="0.26" />
         </radialGradient>
       </defs>
 
-      <path className={s.trail} d={TRAIL} fill={`url(#${g('trail')})`} />
+      <path className={s.trail} d={a.trail} fill={`url(#${g('trail')})`} />
 
-      <path d={LEG_UPPER} fill={`url(#${g('body')})`} />
-      <path d={LEG_LOWER} fill={`url(#${g('body')})`} />
-      <path className={s.armBack} d={ARM_BACK} fill={`url(#${g('body')})`} />
+      <path d={a.legUpper} fill={`url(#${g('body')})`} />
+      <path d={a.legLower} fill={`url(#${g('body')})`} />
+      <path className={s.armBack} d={a.armBack} fill={`url(#${g('body')})`} />
 
       <g className={s.breathe}>
-        <path d={TORSO} fill={`url(#${g('body')})`} />
-        {/* The one dark note in the whole picture, and the only thing keeping
-            a soft gradient creature from dissolving into the background. */}
-        <path d={BAND} fill={c.band} opacity="0.85" />
+        <path d={a.torso} fill={`url(#${g('body')})`} />
+        {/* A soft wash, not a panel. */}
+        <path d={a.band} fill={c.band} opacity="0.3" />
         {/* Where the head meets the body, very faintly. */}
-        <ellipse cx="-14" cy="14" rx="20" ry="12" fill={c.deep} opacity="0.14" />
+        <ellipse cx="-12" cy="14" rx="18" ry="11" fill={c.deep} opacity="0.12" />
+        {/* And the shading that rounds the trailing mass off. Two gradients on
+            one shape is the difference between a rounded thing and a flat one
+            with a highlight sitting on top of it. */}
+        <path d={a.torso} fill={`url(#${g('volume')})`} />
+        <path d={a.legUpper} fill={`url(#${g('volume')})`} opacity="0.7" />
+        <path d={a.legLower} fill={`url(#${g('volume')})`} opacity="0.7" />
 
         {/* Arm and hand in one group: rotating a circle about its own centre
             does nothing, so a separately-animated hand would stay behind. */}
         <g className={s.reach}>
-          <path d={ARM_FRONT} fill={`url(#${g('arm')})`} />
-          <circle cx="55" cy="11" r="5.6" fill={c.tip} />
+          <path d={a.armFront} fill={`url(#${g('arm')})`} />
+          <circle cx={a.hand[0]} cy={a.hand[1]} r={a.hand[2]} fill={c.tip} />
         </g>
 
         <g className={s.antennae}>
-          <path d={ANTENNA_L} fill={c.mid} />
-          <circle cx="-18" cy="-33" r="4" fill={c.mid} />
-          <path d={ANTENNA_R} fill={c.mid} />
-          <circle cx="10" cy="-33" r="4" fill={c.mid} />
+          <path d={a.antennaL} fill={c.lightMid} />
+          <circle cx={a.ballL[0]} cy={a.ballL[1]} r={a.ballL[2]} fill={c.lightMid} />
+          <path d={a.antennaR} fill={c.lightMid} />
+          <circle cx={a.ballR[0]} cy={a.ballR[1]} r={a.ballR[2]} fill={c.lightMid} />
         </g>
 
         <circle cx="0" cy="0" r="26" fill={`url(#${g('head')})`} />
         {/* A soft sheen high on the head, under the glass. */}
-        <ellipse cx="-9" cy="-11" rx="13" ry="9" fill="#FFFFFF" opacity="0.16"
+        <ellipse cx="-9" cy="-11" rx="14" ry="9.5" fill="#FFFFFF" opacity="0.2"
           transform="rotate(-28 -9 -11)" />
+        {/* A whisper of the deep tone along the lower edge, so the head reads
+            as a ball rather than a disc. */}
+        <ellipse cx="8" cy="15" rx="18" ry="10" fill={c.deep} opacity="0.1" />
 
         {/* Three-quarters forward, so the gaze lands on the other one. */}
         <g className={s.face}>
           <g className={s.blink}>
-            <Eye x={-1} y={4} rx={7} ry={8.6} flip={faceFlip} />
-            <Eye x={15.5} y={2.5} rx={6.6} ry={8.2} flip={faceFlip} />
+            <Eye x={-1} y={4} rx={7.6} ry={8} flip={faceFlip} />
+            <Eye x={15} y={3} rx={7.2} ry={7.6} flip={faceFlip} />
           </g>
 
+          {/* Barely there. A bigger mouth pulls the eye down off the eyes,
+              which are the whole charm of the face. */}
           <path
-            d="M 3.4 17.6 C 3.4 16.7, 4.2 16.3, 7.4 16.3 C 10.6 16.3, 11.4 16.7, 11.4 17.6
-               C 11.4 21.2, 9.6 23, 7.4 23 C 5.2 23, 3.4 21.2, 3.4 17.6 Z"
-            fill="#5E2036"
+            d="M 4.4 16.4 C 4.4 15.9, 5 15.7, 7.2 15.7 C 9.4 15.7, 10 15.9, 10 16.4
+               C 10 18.7, 8.8 19.8, 7.2 19.8 C 5.6 19.8, 4.4 18.7, 4.4 16.4 Z"
+            fill="#6B2A40"
           />
           <path
-            d="M 5.2 20.4 C 6 19.9, 8.8 19.9, 9.6 20.4 C 9.3 22.2, 8.5 23, 7.4 23
-               C 6.3 23, 5.5 22.2, 5.2 20.4 Z"
-            fill="#F2778F"
+            d="M 5.6 18.1 C 6.2 17.8, 8.2 17.8, 8.8 18.1 C 8.6 19.3, 8 19.8, 7.2 19.8
+               C 6.4 19.8, 5.8 19.3, 5.6 18.1 Z"
+            fill="#F5899E"
           />
         </g>
 
         {/* The helmet goes over everything, antennae included — it is the
             reason they read as travellers rather than as animals. */}
-        <circle cx="1" cy="-4" r="34" fill={`url(#${g('glass')})`} />
-        <circle cx="1" cy="-4" r="34" fill="none" stroke={c.light}
-          strokeWidth="1.2" opacity="0.45" />
+        <circle cx="1" cy="-3" r="31" fill={`url(#${g('glass')})`} />
+        <circle cx="1" cy="-3" r="31" fill="none" stroke={c.light}
+          strokeWidth="1" opacity="0.28" />
         {/* Two catchlights on the glass, at the angle a single light would
             put them, and one long arc opposite. */}
-        <ellipse cx="-14" cy="-19" rx="9.5" ry="5.6" fill="#FFFFFF" opacity="0.78"
-          transform="rotate(-40 -14 -19)" />
-        <circle cx="-24" cy="-5" r="3.2" fill="#FFFFFF" opacity="0.58" />
+        <ellipse cx="-13" cy="-18" rx="8" ry="4.6" fill="#FFFFFF" opacity="0.6"
+          transform="rotate(-40 -13 -18)" />
+        <circle cx="-22" cy="-5" r="2.6" fill="#FFFFFF" opacity="0.45" />
         <path
-          d="M 23 -26 A 34 34 0 0 1 32 -7"
-          stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round"
-          fill="none" opacity="0.4"
+          d="M 21 -24 A 31 31 0 0 1 29 -7"
+          stroke="#FFFFFF" strokeWidth="2.4" strokeLinecap="round"
+          fill="none" opacity="0.3"
         />
       </g>
     </>
@@ -355,13 +424,13 @@ export function CosmicPair() {
       {/* ---- The two of them ---- */}
       {/* Placement on the outer group, motion on the inner: a CSS transform
           replaces the transform attribute rather than adding to it. */}
-      <g transform="translate(111 108) scale(0.94)">
+      <g transform="translate(112 108) rotate(-6) scale(0.92)">
         <g className={s.left}>
           <Traveller uid={uid} tone="warm" />
         </g>
       </g>
 
-      <g transform="translate(232 113) scale(0.94)">
+      <g transform="translate(232 122) rotate(5) scale(0.9)">
         <g className={s.right}>
           <g transform="scale(-1 1)">
             <Traveller uid={uid} tone="cool" faceFlip />
@@ -370,17 +439,17 @@ export function CosmicPair() {
       </g>
 
       {/* What is happening in the gap between their hands. */}
-      <g transform="translate(171 92)">
+      <g transform="translate(172 113)">
         <g className={s.heart}>
           <path
-            d="M 0 10 C -10 2.5, -14.5 -3, -14.5 -8.5 C -14.5 -14, -10.5 -17.5, -6 -17.5
-               C -2.5 -17.5, 0 -15.2, 0 -13 C 0 -15.2, 2.5 -17.5, 6 -17.5
-               C 10.5 -17.5, 14.5 -14, 14.5 -8.5 C 14.5 -3, 10 2.5, 0 10 Z"
+            d="M 0 6.6 C -6.6 1.6, -9.6 -2, -9.6 -5.6 C -9.6 -9.2, -7 -11.6, -4 -11.6
+               C -1.7 -11.6, 0 -10, 0 -8.6 C 0 -10, 1.7 -11.6, 4 -11.6
+               C 7 -11.6, 9.6 -9.2, 9.6 -5.6 C 9.6 -2, 6.6 1.6, 0 6.6 Z"
             fill={`url(#${uid}-heart)`}
           />
           <path
-            d="M -21 -20 L -26 -27 M 0 -25 L 0 -34 M 21 -20 L 26 -27"
-            stroke="#F5789F" strokeWidth="2.8" strokeLinecap="round" opacity="0.65"
+            d="M -13 -13 L -16.5 -17 M 0 -16 L 0 -21.5 M 13 -13 L 16.5 -17"
+            stroke="#F5899E" strokeWidth="2" strokeLinecap="round" opacity="0.55"
           />
         </g>
       </g>
