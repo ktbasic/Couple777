@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/context/store';
 import { Button } from '@/components/ui/Button';
@@ -22,25 +23,25 @@ const PRIVACY_CARDS = [
     tone: 'shared' as const,
     Icon: IconShared,
     title: 'Shared',
-    body: 'Plans, trips, memories, and the conversations you finish together.',
+    body: 'Plans, trips, memories, and conversations you did together.',
   },
   {
     tone: 'private' as const,
     Icon: IconPrivate,
-    title: 'Just yours',
-    body: 'Private notes, and the private line on any memory. Never shared.',
+    title: 'Private',
+    body: 'Notes and reflections only you can see.',
   },
   {
     tone: 'surprise' as const,
     Icon: IconSurprise,
     title: 'Surprise',
-    body: 'They see that something is planned. Not what it is.',
+    body: 'Your partner knows something is planned, except the details.',
   },
   {
     tone: 'reveal' as const,
     Icon: IconReveal,
-    title: 'Revealed together',
-    body: 'Daily answers stay sealed until you have both written one.',
+    title: 'Reveal together',
+    body: 'Daily answers stay hidden until both of you respond.',
   },
 ];
 
@@ -65,27 +66,50 @@ export function hasSeenPrivacy(userId: string): boolean {
 export default function PrivacyScreen() {
   const navigate = useNavigate();
   const { state } = useStore();
+  /* One at a time. Two open cards on a screen this small is just the old
+     all-at-once layout with extra steps. */
+  const [open, setOpen] = useState<string | null>(null);
+
   return (
     <div className={s.frame}>
       <div className={s.app}>
         <div className={s.body}>
           <div className={s.step}>
-            <p className={s.eyebrow}>Before you start</p>
-            <h1 className={s.title}>Some things are ours. Some are just yours.</h1>
-            <p className={s.lede}>A shared space only works if there is a private one too.</p>
+            <h1 className={s.title}>How your space works</h1>
+            <p className={s.lede}>
+              Some things are shared, some stay private, and some only reveal when
+              you&rsquo;re both ready.
+            </p>
+
+            <p className={s.privacyHint}>Tap each card to see how it works</p>
 
             <div className={s.privacyGrid}>
               {PRIVACY_CARDS.map((card, i) => (
-                <div
+                <button
                   key={card.tone}
+                  type="button"
                   className={s.privacyCard}
                   data-tone={card.tone}
-                  style={{ animationDelay: `${i * 90}ms` }}
+                  aria-pressed={open === card.tone}
+                  onClick={() => setOpen(open === card.tone ? null : card.tone)}
+                  style={{
+                    animationDelay: `${i * 90}ms`,
+                    // Staggered so the four never catch the light together.
+                    ['--sheen-delay' as string]: `${i * 800}ms`,
+                  }}
                 >
-                  <card.Icon size={34} />
-                  <p className={s.privacyTitle}>{card.title}</p>
-                  <p className={s.privacyBody}>{card.body}</p>
-                </div>
+                  <span className={s.privacyInner}>
+                    <span className={[s.privacyFace, s.privacyFront].join(' ')}>
+                      <card.Icon size={34} />
+                      <span className={s.privacyTitle}>{card.title}</span>
+                    </span>
+                    {/* Present in the DOM either way, so a screen reader gets
+                        the explanation without having to flip anything. */}
+                    <span className={[s.privacyFace, s.privacyBack].join(' ')}>
+                      <span className={s.privacyBody}>{card.body}</span>
+                    </span>
+                  </span>
+                </button>
               ))}
             </div>
           </div>

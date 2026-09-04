@@ -476,13 +476,79 @@
   gap: var(--s-3);
 }
 
+/*
+ * A flip card.
+ *
+ * The two faces are stacked in one grid cell rather than absolutely
+ * positioned, which is the whole trick: a grid cell takes the height of its
+ * tallest child, so the card sizes itself to whichever face has more words.
+ * Position them absolutely and the parent collapses, and you are back to
+ * guessing a fixed height that some phone somewhere will clip.
+ */
 .privacyCard {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  perspective: 900px;
+  animation: rise var(--d-slow) var(--ease) both;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.privacyInner {
+  display: grid;
+  transform-style: preserve-3d;
+  /* Slow enough to watch, short enough not to be in the way. */
+  transition:
+    transform 620ms cubic-bezier(0.22, 0.68, 0.24, 1),
+    box-shadow var(--d-base) var(--ease);
+  border-radius: var(--r-lg);
+  box-shadow: var(--e-1);
+}
+
+.privacyCard[aria-pressed='true'] .privacyInner {
+  transform: rotateY(180deg);
+}
+
+/* Lifts under the thumb, and stays lifted while it is open. */
+.privacyCard:active .privacyInner {
+  box-shadow: 0 10px 22px -12px rgba(44, 36, 48, 0.34);
+}
+
+.privacyCard[aria-pressed='true'] .privacyInner {
+  box-shadow: 0 12px 26px -14px rgba(44, 36, 48, 0.32);
+}
+
+.privacyFace {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 132px;
   padding: var(--s-5) var(--s-4);
   border-radius: var(--r-lg);
   background: var(--c-surface);
   border: 1px solid var(--c-hairline-soft);
-  box-shadow: var(--e-1);
-  animation: rise var(--d-slow) var(--ease) both;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+/* Both faces centre their own content, so the card reads the same weight
+   whichever way up it is — a top-aligned icon over empty space looks like
+   something failed to load. */
+.privacyFront {
+  justify-content: center;
+  gap: 2px;
+}
+
+.privacyBack {
+  transform: rotateY(180deg);
+  justify-content: center;
 }
 
 .privacyCard[data-tone='shared'] { color: var(--c-day-ink); }
@@ -500,9 +566,57 @@
 }
 
 .privacyBody {
-  margin-top: 4px;
   font-size: var(--t-small);
   line-height: 1.5;
   color: var(--c-ink-3);
   text-wrap: pretty;
 }
+
+/*
+ * The sheen that runs across a closed card.
+ *
+ * Staggered per card so the four never catch the light at once — a row of
+ * cards shimmering in unison reads as a loading state. It stops the moment a
+ * card is open: a moving highlight over text someone is trying to read is
+ * just glare.
+ */
+.privacyFront::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.55) 44%,
+    rgba(238, 93, 145, 0.13) 50%,
+    rgba(255, 255, 255, 0.55) 56%,
+    transparent 70%
+  );
+  background-size: 280% 100%;
+  background-repeat: no-repeat;
+  animation: cardSheen 6.5s var(--ease-soft) infinite;
+  animation-delay: var(--sheen-delay, 0ms);
+}
+
+.privacyCard[aria-pressed='true'] .privacyFront::after {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes cardSheen {
+  0%        { background-position: 190% 0; }
+  38%, 100% { background-position: -90% 0; }
+}
+
+.privacyHint {
+  margin-top: var(--s-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+}
+
