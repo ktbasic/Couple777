@@ -736,9 +736,21 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
     }
 
     case 'renamePerson': {
-      if (action.personId !== userId) return false;
-      await repo.upsertProfile(userId, { display_name: action.name });
-      return true;
+      if (action.personId === userId) {
+        await repo.upsertProfile(userId, { display_name: action.name });
+        return true;
+      }
+      /*
+       * A partner who has joined owns their own name — the profiles policy
+       * only lets you update your own row, and that is right. Before they
+       * join there is no account and no row: the name on screen is simply
+       * what the first person called them, and that lives on the couple.
+       */
+      if (!space.couple.partnerJoined) {
+        await repo.updateCouple(space.coupleId, { partner_2_name: action.name });
+        return true;
+      }
+      return false;
     }
 
     default:

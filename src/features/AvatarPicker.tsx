@@ -58,7 +58,7 @@ export function AvatarPicker({
   open: boolean;
   onClose: () => void;
 }) {
-  const { dispatch } = useStore();
+  const { dispatch, me, state } = useStore();
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +66,27 @@ export function AvatarPicker({
   const [tab, setTab] = useState<AvatarGroup>(
     () => AVATARS.find((a) => a.id === person.avatarId)?.group ?? 'People',
   );
+  const [renaming, setRenaming] = useState(false);
+  const [draft, setDraft] = useState(person.name);
+
+  /*
+   * You can change your own name and face. You can change what your partner
+   * is called only until they have an account of their own — after that the
+   * name and the avatar are theirs, on their row, behind a policy that only
+   * lets a person edit their own. Offering the control anyway would produce a
+   * change that looks saved and is gone on the next load.
+   */
+  const isMe = person.id === me.id;
+  const editable = isMe || !state.couple.partnerJoined;
+
+  const saveName = () => {
+    const next = draft.trim();
+    if (next && next !== person.name) {
+      dispatch({ type: 'renamePerson', personId: person.id, name: next });
+      toast.show({ emoji: '\u270F\uFE0F', message: 'Name updated' });
+    }
+    setRenaming(false);
+  };
 
   // The sheet stays open so the preview at the top updates under your thumb
   // and you can try a few. Closing on the first tap made it a one-shot guess.
@@ -92,15 +113,73 @@ export function AvatarPicker({
       <div className={s.current}>
         <Avatar person={person} size={54} />
         <div className={s.currentMain}>
-          <p className={s.currentName}>{person.name}</p>
-          <p className={s.currentHint}>
-            {person.avatarUrl ? 'Using a photo' : 'Using a Couple777 avatar'}
-          </p>
+          {renaming ? (
+            <form
+              className={s.nameForm}
+              onSubmit={(e) => {
+                e.preventDefault();
+                saveName();
+              }}
+            >
+              <input
+                className={s.nameInput}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                maxLength={40}
+                autoFocus
+                aria-label="Name"
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setRenaming(false);
+                }}
+              />
+              <button type="submit" className={s.nameSave} disabled={!draft.trim()}>
+                Save
+              </button>
+              <button
+                type="button"
+                className={s.nameCancel}
+                onClick={() => setRenaming(false)}
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <>
+              <div className={s.nameRow}>
+                <p className={s.currentName}>{person.name}</p>
+                {editable ? (
+                  <button
+                    type="button"
+                    className={s.editName}
+                    aria-label={`Change ${isMe ? 'your' : `${person.name}'s`} name`}
+                    onClick={() => {
+                      setDraft(person.name);
+                      setRenaming(true);
+                    }}
+                  >
+                    <PencilIcon />
+                  </button>
+                ) : null}
+              </div>
+              <p className={s.currentHint}>
+                {person.avatarUrl ? 'Using a photo' : 'Using a Couple777 avatar'}
+              </p>
+            </>
+          )}
         </div>
       </div>
 
+      {!editable ? (
+        <p className={s.theirs}>
+          {person.name} picks their own name and avatar on their phone. Yours is the
+          one you can change here.
+        </p>
+      ) : null}
+
       {error ? <p className={s.error}>{error}</p> : null}
 
+      {editable ? (
+        <>
       <label className={s.upload}>
         <span aria-hidden>📷</span>
         Upload a photo
@@ -162,11 +241,29 @@ export function AvatarPicker({
         );
       })}
 
+        </>
+      ) : null}
+
       <div className={s.done}>
         <Button variant="accent" block onClick={onClose}>
           Done
         </Button>
       </div>
     </Sheet>
+  );
+}
+
+/** A small pencil, drawn so it takes the ink colour around it. */
+function PencilIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden>
+      <path
+        d="M10.6 2.4a1.6 1.6 0 0 1 2.3 2.3L5.6 12 2.5 13.5 4 10.4z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
