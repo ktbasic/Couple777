@@ -2,8 +2,7 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: var(--s-6);
-  padding: var(--s-6) var(--s-6) calc(var(--s-6) + var(--safe-b));
+  padding: var(--s-6) var(--s-6) calc(var(--s-7) + var(--safe-b));
 }
 
 /* Same six-segment bar the couple questions use — this is the first of the
@@ -25,33 +24,29 @@
   background: var(--c-accent);
 }
 
-.mark {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+.gapTop {
+  flex: 0.9 1 var(--s-8);
+  min-height: var(--s-8);
 }
 
-.markGlyph {
-  width: 40px;
-  flex: none;
-  box-shadow: var(--e-accent);
+.gapMid {
+  flex: 0.8 1 var(--s-7);
+  min-height: var(--s-7);
 }
 
-.markWord {
-  font-family: var(--f-display);
-  font-size: var(--t-title);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+.gapBottom {
+  flex: 1.5 1 var(--s-9);
+  min-height: var(--s-8);
 }
 
 /* Text left, traveller right. The art column is a fraction rather than a fixed
    width so the heading keeps its own measure on a narrow phone. */
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 46%;
+  flex: none;
+  grid-template-columns: minmax(0, 1fr) 47%;
   align-items: center;
-  gap: var(--s-3);
+  gap: var(--s-4);
 }
 
 .title {
@@ -65,7 +60,7 @@
 }
 
 .body {
-  margin-top: var(--s-3);
+  margin-top: var(--s-4);
   font-size: var(--t-body);
   color: var(--c-ink-3);
   line-height: 1.5;
@@ -127,9 +122,10 @@
 }
 
 .form {
+  flex: none;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--s-3);
+  gap: var(--s-4);
 }
 
 /* Quiet on purpose: reassurance that announces itself stops reassuring. */
@@ -145,11 +141,6 @@
 .lock {
   flex: none;
   color: var(--c-ink-4);
-}
-
-.spacer {
-  flex: 1;
-  min-height: var(--s-6);
 }
 
 .foot {

@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Field';
-import { AppIcon } from '@/components/ui/Logo777';
 import { CosmicGreeter } from '@/components/ui/CosmicPair';
 import { useAuth } from '@/context/auth';
 import * as repo from '@/lib/db/repo';
@@ -85,10 +84,10 @@ export default function NameSetupScreen() {
         ))}
       </div>
 
-      <div className={s.mark}>
-        <AppIcon tone="on-accent" className={s.markGlyph} />
-        <span className={s.markWord}>Couple777</span>
-      </div>
+      {/* Three flexible gaps rather than one. All the slack used to pool
+          above the button, which packed everything else against the top —
+          spreading it is what makes the screen breathe. */}
+      <div className={s.gapTop} />
 
       <div className={s.hero}>
         <div>
@@ -104,6 +103,8 @@ export default function NameSetupScreen() {
           <CosmicGreeter />
         </div>
       </div>
+
+      <div className={s.gapMid} />
 
       <form
         className={s.form}
@@ -131,7 +132,7 @@ export default function NameSetupScreen() {
         {error ? <p className={s.error}>{error}</p> : null}
       </form>
 
-      <div className={s.spacer} />
+      <div className={s.gapBottom} />
 
       <div className={s.foot}>
         <Button
