@@ -136,13 +136,23 @@
   background: var(--c-accent);
 }
 
-/* Keyed on the question index, so each answer replays the entrance. */
+/*
+ * Keyed on the question index, so each answer replays the entrance.
+ *
+ * Anchored to the top, not centred. Centring looks fine on any one question
+ * and is wrong across the set: the block's height follows its content, so a
+ * question with five chips sits high and one with a single field sits low,
+ * and the heading jumps down the screen as you answer. Starting them all from
+ * the same offset costs a little dead space under the short ones and keeps
+ * the title still.
+ */
 .question {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: clamp(var(--s-6), 5vh, var(--s-8));
   gap: var(--s-5);
   animation: rise var(--d-slow) var(--ease) both;
 }
@@ -221,10 +231,9 @@
 
 /* ---------- Question 1: naming the partner ---------- */
 
-/* This one carries more than the others — a question, a field, an optional
-   one, and the traveller — so it flows from the top rather than centring. */
+/* Carries more than the others — a question, a field, an optional one, and
+   the traveller — so its own spacing is a little tighter. */
 .questionFill {
-  justify-content: flex-start;
   gap: var(--s-5);
 }
 
@@ -365,7 +374,19 @@
   background-image: url('/onboarding-cosmos.webp');
   background-repeat: no-repeat;
   background-position: center bottom;
-  background-size: contain;
+  /*
+   * Sized by width, not `contain`.
+   *
+   * The artwork is cropped at its own right edge — the big planet runs off the
+   * side of the source file. At full width that cut sits past the edge of the
+   * phone and nobody sees it. `contain` on a short viewport (Safari with its
+   * bars showing) becomes height-limited instead, drawing the image narrower
+   * than the screen and pulling that cut inward, where it reads as a hard
+   * vertical line through the planet. Locking the width keeps it off-screen;
+   * any excess height is clipped at the top, which is exactly where the mask
+   * has already faded it out.
+   */
+  background-size: 100% auto;
   opacity: 0.82;
   /*
    * A vertical fade, not a radial one. The artwork already carries its own
