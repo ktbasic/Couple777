@@ -286,7 +286,7 @@ function Traveller({ uid, tone, faceFlip = false }: TravellerProps) {
 
         {/* Three-quarters forward, so the gaze lands on the other one. */}
         <g className={s.face}>
-          <g className={s.blink}>
+          <g className={tone === 'cool' ? s.blinkAlt : s.blink}>
             <Eye x={-1} y={4} rx={7.6} ry={8} flip={faceFlip} />
             <Eye x={15} y={3} rx={7.2} ry={7.6} flip={faceFlip} />
           </g>

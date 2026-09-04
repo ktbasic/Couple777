@@ -37,6 +37,7 @@
 .dustA,
 .dustB,
 .blink,
+.blinkAlt,
 .tw1,
 .tw2,
 .tw3 {
@@ -52,26 +53,26 @@
 }
 
 .left {
-  animation: driftWarm 6s var(--ease-soft) infinite;
+  animation: driftWarm 5.5s var(--ease-soft) infinite;
 }
 
 .right {
-  /* Six against seven and a half: the pair slides in and out of phase over
-     half a minute, so the loop never announces itself as one. */
-  animation: driftCool 7.5s var(--ease-soft) infinite;
+  /* Five and a half against seven: the pair slides in and out of phase over
+     roughly half a minute, so the loop never announces itself as one. */
+  animation: driftCool 7s var(--ease-soft) infinite;
 }
 
 /* Diagonally inward and back out again — along the axis they are flying,
    never straight up and down, which reads as bobbing rather than drifting. */
 @keyframes driftWarm {
   0%   { transform: translate(0, 0) rotate(0deg); }
-  50%  { transform: translate(5px, -4px) rotate(1.4deg); }
+  50%  { transform: translate(9px, -7px) rotate(2.4deg); }
   100% { transform: translate(0, 0) rotate(0deg); }
 }
 
 @keyframes driftCool {
   0%   { transform: translate(0, 0) rotate(0deg); }
-  50%  { transform: translate(-5px, -3px) rotate(-1.4deg); }
+  50%  { transform: translate(-9px, -6px) rotate(-2.4deg); }
   100% { transform: translate(0, 0) rotate(0deg); }
 }
 
@@ -84,7 +85,7 @@
 
 @keyframes breathe {
   0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.022); }
+  50%      { transform: scale(1.04); }
 }
 
 /* ---------- Antennae and limbs, each a beat behind the body ---------- */
@@ -95,8 +96,8 @@
 }
 
 @keyframes sway {
-  0%, 100% { transform: rotate(-2.6deg); }
-  50%      { transform: rotate(2.6deg); }
+  0%, 100% { transform: rotate(-4deg); }
+  50%      { transform: rotate(4deg); }
 }
 
 /* The hand that keeps almost arriving. Pivots at the shoulder, so the
@@ -108,7 +109,7 @@
 
 @keyframes reach {
   0%, 100% { transform: rotate(0deg); }
-  50%      { transform: rotate(-2.6deg); }
+  50%      { transform: rotate(-4.5deg); }
 }
 
 .armBack {
@@ -117,8 +118,8 @@
 }
 
 @keyframes trailArm {
-  0%, 100% { transform: rotate(1.6deg); }
-  50%      { transform: rotate(-1.6deg); }
+  0%, 100% { transform: rotate(2.6deg); }
+  50%      { transform: rotate(-2.6deg); }
 }
 
 .trail {
@@ -133,15 +134,27 @@
 /* ---------- A blink, rarely ---------- */
 
 /* Almost all of this timeline is eyes-open; the lid only moves across the
-   last few percent, which is what makes it a blink and not a pulse. */
-.blink {
-  animation: blink 7.4s var(--ease-soft) infinite;
+   last few percent, which is what makes it a blink and not a pulse. The
+   percentages stay fixed as the duration drops, so a shorter cycle shortens
+   the blink itself too and it never turns into a slow wink.
+   
+   The two of them run different cycles on purpose: blinking in unison is the
+   one piece of symmetry that survives having two separate anatomies, and it
+   reads as a single puppet with two heads. */
+.blink,
+.blinkAlt {
+  animation-name: blink;
+  animation-timing-function: var(--ease-soft);
+  animation-iteration-count: infinite;
 }
 
+.blink    { animation-duration: 5s; }
+.blinkAlt { animation-duration: 6.2s; animation-delay: 1.4s; }
+
 @keyframes blink {
-  0%, 92%, 100% { transform: scaleY(1); }
-  95%           { transform: scaleY(0.08); }
-  98%           { transform: scaleY(1); }
+  0%, 90%, 100% { transform: scaleY(1); }
+  94%           { transform: scaleY(0.08); }
+  97.5%         { transform: scaleY(1); }
 }
 
 /* ---------- What is happening between them ---------- */
@@ -153,7 +166,7 @@
 
 @keyframes beat {
   0%, 100% { transform: scale(1) translateY(0); }
-  50%      { transform: scale(1.07) translateY(-3px); }
+  50%      { transform: scale(1.12) translateY(-5px); }
 }
 
 /* ---------- Parallax: three depths, three speeds ---------- */
@@ -164,7 +177,7 @@
 
 @keyframes parallaxFar {
   0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(-3px, 3px); }
+  50%      { transform: translate(-5px, 5px); }
 }
 
 .planet {
@@ -173,7 +186,7 @@
 
 @keyframes adrift {
   0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(-4px, 4px); }
+  50%      { transform: translate(-6px, 6px); }
 }
 
 /* The two dust layers move against each other, which is what sells depth —
@@ -184,7 +197,7 @@
 
 @keyframes parallaxA {
   0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(4px, -3px); }
+  50%      { transform: translate(7px, -5px); }
 }
 
 .dustB {
@@ -193,7 +206,7 @@
 
 @keyframes parallaxB {
   0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(-4px, 3px); }
+  50%      { transform: translate(-7px, 5px); }
 }
 
 .tw1 { animation: twinkle 4.4s var(--ease-soft) infinite; }
