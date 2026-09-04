@@ -610,11 +610,12 @@
   38%, 100% { background-position: -90% 0; }
 }
 
+/* Left, like the title and the line above it. Centring one line in a block
+   of left-aligned text just breaks the edge everything else is reading from. */
 .privacyHint {
   margin-top: var(--s-5);
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
   font-size: var(--t-small);
   color: var(--c-ink-4);
