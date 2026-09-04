@@ -1,20 +1,21 @@
 /*
  * The drift.
  *
- * Two rules hold this together. Placement lives on an outer <g> as a
- * transform *attribute* and the animation on an inner <g> as a CSS transform,
- * because CSS wins outright over the attribute — animate the same element and
- * the traveller snaps to the top-left corner on the first frame. And every
- * animated group gets `transform-box: fill-box`, since an SVG element's
- * transform-origin otherwise resolves against the whole 320x240 viewBox, so a
- * 1-degree tilt becomes a swing around the middle of the picture.
+ * Two SVG traps hold this together, and both fail silently:
  *
- * Nothing here animates anything but transform and opacity, so the whole loop
- * stays on the compositor and costs a phone nothing to keep running.
+ *   - A CSS transform *replaces* the transform attribute rather than composing
+ *     with it. So placement lives on an outer <g> as an attribute and the
+ *     animation on an inner <g> in CSS. Animate the same node and the
+ *     traveller snaps to the top-left corner on the first frame.
+ *   - An SVG element's transform-origin resolves against the whole 340x260
+ *     viewBox by default, so a one-degree tilt becomes a swing around the
+ *     middle of the picture. Every animated group sets transform-box: fill-box.
  *
- * The global prefers-reduced-motion rule in styles/global.css stops all of it
- * for anyone who has asked for that; the drawing is composed to stand still
- * just as well.
+ * Nothing animates but transform and opacity, so the whole loop stays on the
+ * compositor and costs a phone nothing to keep running. The global
+ * prefers-reduced-motion rule in styles/global.css stops all of it for anyone
+ * who has asked for that, and the drawing is composed to hold still just as
+ * well.
  */
 
 .svg {
@@ -24,115 +25,18 @@
   overflow: visible;
 }
 
-/* ---------- The two travellers ---------- */
-
 .left,
-.right {
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  will-change: transform;
-}
-
-.left {
-  animation: driftWarm 9s var(--ease-soft) infinite;
-}
-
-.right {
-  /* Eleven against nine: the pair drifts in and out of phase over roughly a
-     minute and a half, so the loop never announces itself. */
-  animation: driftCool 11s var(--ease-soft) infinite;
-}
-
-@keyframes driftWarm {
-  0%   { transform: translate(0, 0) rotate(0deg); }
-  25%  { transform: translate(4px, -6px) rotate(1.2deg); }
-  50%  { transform: translate(7px, 1px) rotate(0deg); }
-  75%  { transform: translate(2px, 6px) rotate(-1.1deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
-}
-
-@keyframes driftCool {
-  0%   { transform: translate(0, 0) rotate(0deg); }
-  25%  { transform: translate(-5px, 5px) rotate(-1.2deg); }
-  50%  { transform: translate(-8px, -2px) rotate(0deg); }
-  75%  { transform: translate(-3px, -6px) rotate(1.1deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
-}
-
-/* ---------- Breathing ---------- */
-
-.breathe {
-  transform-box: fill-box;
-  transform-origin: 50% 60%;
-  animation: breathe 5.5s var(--ease-soft) infinite;
-}
-
-@keyframes breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.025); }
-}
-
-/* ---------- Antennae, a beat behind the drift ---------- */
-
-.antennae {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: sway 4.2s var(--ease-soft) infinite;
-}
-
-@keyframes sway {
-  0%, 100% { transform: rotate(-2.4deg); }
-  50%      { transform: rotate(2.4deg); }
-}
-
-/* ---------- The hand that keeps almost arriving ---------- */
-
-.reach {
-  transform-box: fill-box;
-  transform-origin: 0% 50%;
-  animation: reach 6.5s var(--ease-soft) infinite;
-}
-
-@keyframes reach {
-  0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(2px, -1px); }
-}
-
-/* ---------- What is happening between them ---------- */
-
-.heart {
-  transform-box: fill-box;
-  transform-origin: 50% 70%;
-  animation: beat 3.6s var(--ease-soft) infinite;
-}
-
-@keyframes beat {
-  0%, 100% { transform: scale(1) translateY(0); }
-  50%      { transform: scale(1.09) translateY(-3px); }
-}
-
-.trail {
-  animation: wake 9s var(--ease-soft) infinite;
-}
-
-@keyframes wake {
-  0%, 100% { opacity: 0.85; }
-  50%      { opacity: 1; }
-}
-
-.planet {
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  animation: adrift 16s var(--ease-soft) infinite;
-}
-
-@keyframes adrift {
-  0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(-4px, 5px); }
-}
-
-/* ---------- Starlight ---------- */
-
+.right,
+.breathe,
+.antennae,
+.reach,
+.armBack,
+.heart,
+.planet,
+.far,
+.dustA,
+.dustB,
+.blink,
 .tw1,
 .tw2,
 .tw3 {
@@ -140,11 +44,163 @@
   transform-origin: 50% 50%;
 }
 
+/* ---------- The two travellers ---------- */
+
+.left,
+.right {
+  will-change: transform;
+}
+
+.left {
+  animation: driftWarm 6s var(--ease-soft) infinite;
+}
+
+.right {
+  /* Six against seven and a half: the pair slides in and out of phase over
+     half a minute, so the loop never announces itself as one. */
+  animation: driftCool 7.5s var(--ease-soft) infinite;
+}
+
+/* Diagonally inward and back out again — along the axis they are flying,
+   never straight up and down, which reads as bobbing rather than drifting. */
+@keyframes driftWarm {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  50%  { transform: translate(5px, -4px) rotate(1.4deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes driftCool {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  50%  { transform: translate(-5px, -3px) rotate(-1.4deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* ---------- Breathing ---------- */
+
+.breathe {
+  transform-origin: 62% 34%;
+  animation: breathe 5s var(--ease-soft) infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.022); }
+}
+
+/* ---------- Antennae and limbs, each a beat behind the body ---------- */
+
+.antennae {
+  transform-origin: 50% 100%;
+  animation: sway 4.6s var(--ease-soft) infinite;
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-2.6deg); }
+  50%      { transform: rotate(2.6deg); }
+}
+
+/* The hand that keeps almost arriving. Pivots at the shoulder, so the
+   fingertips travel and the joint does not. */
+.reach {
+  transform-origin: 15% 70%;
+  animation: reach 6s var(--ease-soft) infinite;
+}
+
+@keyframes reach {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-2.6deg); }
+}
+
+.armBack {
+  transform-origin: 40% 6%;
+  animation: trailArm 7.5s var(--ease-soft) infinite;
+}
+
+@keyframes trailArm {
+  0%, 100% { transform: rotate(1.6deg); }
+  50%      { transform: rotate(-1.6deg); }
+}
+
+.trail {
+  animation: wake 6s var(--ease-soft) infinite;
+}
+
+@keyframes wake {
+  0%, 100% { opacity: 0.9; }
+  50%      { opacity: 1; }
+}
+
+/* ---------- A blink, rarely ---------- */
+
+/* Almost all of this timeline is eyes-open; the lid only moves across the
+   last few percent, which is what makes it a blink and not a pulse. */
+.blink {
+  animation: blink 7.4s var(--ease-soft) infinite;
+}
+
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95%           { transform: scaleY(0.08); }
+  98%           { transform: scaleY(1); }
+}
+
+/* ---------- What is happening between them ---------- */
+
+.heart {
+  transform-origin: 50% 72%;
+  animation: beat 4s var(--ease-soft) infinite;
+}
+
+@keyframes beat {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%      { transform: scale(1.07) translateY(-3px); }
+}
+
+/* ---------- Parallax: three depths, three speeds ---------- */
+
+.far {
+  animation: parallaxFar 22s var(--ease-soft) infinite;
+}
+
+@keyframes parallaxFar {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-3px, 3px); }
+}
+
+.planet {
+  animation: adrift 16s var(--ease-soft) infinite;
+}
+
+@keyframes adrift {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-4px, 4px); }
+}
+
+/* The two dust layers move against each other, which is what sells depth —
+   one layer drifting on its own just looks like the whole image sliding. */
+.dustA {
+  animation: parallaxA 13s var(--ease-soft) infinite;
+}
+
+@keyframes parallaxA {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(4px, -3px); }
+}
+
+.dustB {
+  animation: parallaxB 17s var(--ease-soft) infinite;
+}
+
+@keyframes parallaxB {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-4px, 3px); }
+}
+
 .tw1 { animation: twinkle 4.4s var(--ease-soft) infinite; }
 .tw2 { animation: twinkle 5.9s var(--ease-soft) 0.8s infinite; }
 .tw3 { animation: twinkle 7.1s var(--ease-soft) 1.9s infinite; }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.45; transform: scale(0.88); }
-  50%      { opacity: 1;    transform: scale(1.1); }
+  0%, 100% { opacity: 0.4;  transform: scale(0.86); }
+  50%      { opacity: 0.95; transform: scale(1.12); }
 }
