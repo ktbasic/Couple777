@@ -92,7 +92,7 @@ interface Anatomy {
   torso: string;
   legUpper: string;
   legLower: string;
-  armBack: string;
+  armLower: string;
   armFront: string;
   band: string;
   antennaL: string;
@@ -106,30 +106,30 @@ interface Anatomy {
 const ANATOMY: Record<'warm' | 'cool', Anatomy> = {
   /* Leaning into the drift, arm high, legs wide. */
   warm: {
-    torso:    limb(-4, 19, -32, 31, 21, 16, -4),
-    legUpper: limb(-27, 25, -56, 28, 9.5, 4.5, -8),
-    legLower: limb(-25, 34, -46, 56, 8.5, 4.5, 5),
-    armBack:  limb(-14, 25, -25, 47, 8.5, 4.5, -5),
+    torso:    limb(-2, 16, -22, 28, 22, 20, -3),
+    legUpper: limb(-24, 24, -52, 22, 10, 6, -4),
+    legLower: limb(-22, 34, -48, 42, 9.5, 6, 3),
+    armLower: limb(2, 30, 26, 36, 9, 5.5, 3),
     armFront: limb(6, 21, 41, 10, 9, 4.8, 7),
-    band:     limb(-16, 13, -30, 21, 12, 10, 0),
+    band:     limb(-10, 11, -22, 18, 12.5, 11.5, 0),
     antennaL: limb(-10, -19, -16, -27, 2.8, 1.5, -1.5),
     antennaR: limb(7, -20, 10, -28, 2.8, 1.5, 1.5),
-    trail:    limb(-34, 40, -168, 86, 9, 19, 16),
+    trail:    limb(-34, 38, -168, 84, 9, 19, 16),
     hand:     [42, 9, 5.2],
     ballL:    [-17, -29, 3.4],
     ballR:    [10, -30, 3.4],
   },
   /* Rounder, sitting back a little, arm lower and legs tucked. */
   cool: {
-    torso:    limb(-5, 20, -29, 33, 22, 17, -3),
-    legUpper: limb(-25, 28, -52, 34, 9.5, 4.5, -7),
-    legLower: limb(-23, 36, -41, 58, 8.5, 4.5, 4),
-    armBack:  limb(-13, 27, -22, 48, 8.5, 4.5, -4),
+    torso:    limb(-3, 17, -20, 30, 23, 20, -2),
+    legUpper: limb(-22, 26, -48, 26, 10, 6, -3),
+    legLower: limb(-20, 36, -44, 44, 9.5, 6, 3),
+    armLower: limb(2, 32, 24, 40, 9, 5.5, 2),
     armFront: limb(6, 24, 40, 16, 9, 4.8, 6),
-    band:     limb(-15, 15, -27, 22, 12, 10, 0),
+    band:     limb(-9, 13, -20, 20, 12.5, 11.5, 0),
     antennaL: limb(-10, -20, -17, -26, 2.8, 1.5, -2),
     antennaR: limb(7, -20, 11, -27, 2.8, 1.5, 2),
-    trail:    limb(-32, 42, -162, 92, 9, 18, 14),
+    trail:    limb(-32, 40, -162, 90, 9, 18, 14),
     hand:     [41, 15, 5.2],
     ballL:    [-18, -28, 3.4],
     ballR:    [11, -29, 3.4],
@@ -245,9 +245,14 @@ function Traveller({ uid, tone, faceFlip = false }: TravellerProps) {
 
       <path className={s.trail} d={a.trail} fill={`url(#${g('trail')})`} />
 
+      {/* Two legs, and nothing else back here. The old third shape hung
+          between them and turned the silhouette into four legs with an
+          unfortunate thing in the middle; the second arm belongs at the
+          front, alongside the reaching one. The torso's own trailing cap is
+          the hip — nearly as wide as its shoulder, which is what makes the
+          rear read as round rather than tapered. */}
       <path d={a.legUpper} fill={`url(#${g('body')})`} />
       <path d={a.legLower} fill={`url(#${g('body')})`} />
-      <path className={s.armBack} d={a.armBack} fill={`url(#${g('body')})`} />
 
       <g className={s.breathe}>
         <path d={a.torso} fill={`url(#${g('body')})`} />
@@ -261,6 +266,10 @@ function Traveller({ uid, tone, faceFlip = false }: TravellerProps) {
         <path d={a.torso} fill={`url(#${g('volume')})`} />
         <path d={a.legUpper} fill={`url(#${g('volume')})`} opacity="0.7" />
         <path d={a.legLower} fill={`url(#${g('volume')})`} opacity="0.7" />
+
+        {/* The second arm, low and forward under the reaching one. */}
+        <path className={s.armLower} d={a.armLower} fill={`url(#${g('body')})`} />
+        <path className={s.armLower} d={a.armLower} fill={`url(#${g('volume')})`} opacity="0.5" />
 
         {/* Arm and hand in one group: rotating a circle about its own centre
             does nothing, so a separately-animated hand would stay behind. */}

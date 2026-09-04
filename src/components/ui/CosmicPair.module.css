@@ -30,7 +30,7 @@
 .breathe,
 .antennae,
 .reach,
-.armBack,
+.armLower,
 .heart,
 .planet,
 .far,
@@ -53,26 +53,28 @@
 }
 
 .left {
-  animation: driftWarm 5.5s var(--ease-soft) infinite;
+  animation: driftWarm 6s var(--ease-soft) infinite;
 }
 
 .right {
-  /* Five and a half against seven: the pair slides in and out of phase over
-     roughly half a minute, so the loop never announces itself as one. */
-  animation: driftCool 7s var(--ease-soft) infinite;
+  /* Six against seven and a half. Held deliberately small: the two cycles
+     drift out of phase, so a big swing means one traveller lunges at the
+     heart while the other is pulling away, and the reach stops looking
+     mutual. Amplitude is what keeps it fair, not synchronisation. */
+  animation: driftCool 7.5s var(--ease-soft) infinite;
 }
 
 /* Diagonally inward and back out again — along the axis they are flying,
    never straight up and down, which reads as bobbing rather than drifting. */
 @keyframes driftWarm {
   0%   { transform: translate(0, 0) rotate(0deg); }
-  50%  { transform: translate(9px, -7px) rotate(2.4deg); }
+  50%  { transform: translate(5px, -4px) rotate(1.4deg); }
   100% { transform: translate(0, 0) rotate(0deg); }
 }
 
 @keyframes driftCool {
   0%   { transform: translate(0, 0) rotate(0deg); }
-  50%  { transform: translate(-9px, -6px) rotate(-2.4deg); }
+  50%  { transform: translate(-5px, -3px) rotate(-1.4deg); }
   100% { transform: translate(0, 0) rotate(0deg); }
 }
 
@@ -85,7 +87,7 @@
 
 @keyframes breathe {
   0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.04); }
+  50%      { transform: scale(1.022); }
 }
 
 /* ---------- Antennae and limbs, each a beat behind the body ---------- */
@@ -96,8 +98,8 @@
 }
 
 @keyframes sway {
-  0%, 100% { transform: rotate(-4deg); }
-  50%      { transform: rotate(4deg); }
+  0%, 100% { transform: rotate(-2.6deg); }
+  50%      { transform: rotate(2.6deg); }
 }
 
 /* The hand that keeps almost arriving. Pivots at the shoulder, so the
@@ -109,17 +111,17 @@
 
 @keyframes reach {
   0%, 100% { transform: rotate(0deg); }
-  50%      { transform: rotate(-4.5deg); }
+  50%      { transform: rotate(-2.6deg); }
 }
 
-.armBack {
+.armLower {
   transform-origin: 40% 6%;
   animation: trailArm 7.5s var(--ease-soft) infinite;
 }
 
 @keyframes trailArm {
-  0%, 100% { transform: rotate(2.6deg); }
-  50%      { transform: rotate(-2.6deg); }
+  0%, 100% { transform: rotate(1.6deg); }
+  50%      { transform: rotate(-1.6deg); }
 }
 
 .trail {
@@ -166,7 +168,7 @@
 
 @keyframes beat {
   0%, 100% { transform: scale(1) translateY(0); }
-  50%      { transform: scale(1.12) translateY(-5px); }
+  50%      { transform: scale(1.07) translateY(-3px); }
 }
 
 /* ---------- Parallax: three depths, three speeds ---------- */
@@ -177,7 +179,7 @@
 
 @keyframes parallaxFar {
   0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(-5px, 5px); }
+  50%      { transform: translate(-3px, 3px); }
 }
 
 .planet {
@@ -186,7 +188,7 @@
 
 @keyframes adrift {
   0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(-6px, 6px); }
+  50%      { transform: translate(-4px, 4px); }
 }
 
 /* The two dust layers move against each other, which is what sells depth —
@@ -197,7 +199,7 @@
 
 @keyframes parallaxA {
   0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(7px, -5px); }
+  50%      { transform: translate(4px, -3px); }
 }
 
 .dustB {
@@ -206,7 +208,7 @@
 
 @keyframes parallaxB {
   0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(-7px, 5px); }
+  50%      { transform: translate(-4px, 3px); }
 }
 
 .tw1 { animation: twinkle 4.4s var(--ease-soft) infinite; }
