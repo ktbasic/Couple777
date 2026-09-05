@@ -1,6 +1,6 @@
 import { ButtonLink } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
-import { promptForDate } from '@/data/prompts';
+import { DAILY_LABEL, promptForDate } from '@/data/prompts';
 import { useStore } from '@/context/store';
 import { dailyEntry, dailyStatus } from '@/lib/selectors';
 import { today } from '@/lib/dates';
@@ -80,7 +80,7 @@ export function DailyCard({ compact }: { compact?: boolean }) {
         <span className={s.kindMark} aria-hidden>
           {SPARK}
         </span>
-        Today's question
+        {DAILY_LABEL}
       </p>
 
       {prompt.kind === 'quote' && prompt.quote ? (

@@ -4,7 +4,7 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { useToast } from '@/components/ui/Toast';
 import { useStore } from '@/context/store';
-import { PROMPT_KIND_LABEL, partnerReplyFor, promptForDate } from '@/data/prompts';
+import { DAILY_LABEL, partnerReplyFor, promptForDate } from '@/data/prompts';
 import { dailyEntry, dailyStatus } from '@/lib/selectors';
 import { cueFromText, cueToParams } from '@/lib/generator';
 import { today } from '@/lib/dates';
@@ -55,10 +55,10 @@ export default function DailyQuestionScreen() {
 
   return (
     <>
-      <BackBar title="Today" fallbackTo="/talk" />
+      <BackBar title="Back" fallbackTo="/talk" />
       <Screen>
         <header className={s.head}>
-          <p className={s.kind}>{PROMPT_KIND_LABEL[prompt.kind]}</p>
+          <p className={s.kind}>{DAILY_LABEL}</p>
           {prompt.kind === 'quote' && prompt.quote ? (
             <blockquote className={s.quote}>
               {prompt.quote}

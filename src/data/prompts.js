@@ -86,14 +86,15 @@ export function promptForDate(iso) {
         h = (h * 33 + iso.charCodeAt(i)) >>> 0;
     return DAILY_PROMPTS[h % DAILY_PROMPTS.length];
 }
-export const PROMPT_KIND_LABEL = {
-    question: "Tonight's question",
-    memory: 'A memory to dig up',
-    appreciation: 'Something to notice',
-    playful: 'Just for fun',
-    reflection: 'Worth sitting with',
-    quote: 'Something to think about',
-};
+/**
+ * What the daily prompt is called, wherever it appears.
+ *
+ * It used to be named by kind — "A memory to dig up", "Just for fun" — which
+ * meant the card on Home and the screen it opened could introduce the same
+ * question under two different names in the space of one tap. It is the same
+ * question either way, so it has one name.
+ */
+export const DAILY_LABEL = "Today's question";
 /**
  * The line under the greeting on Home. One per day, about love, connection,
  * growth, or making time on purpose — never generic motivation.
