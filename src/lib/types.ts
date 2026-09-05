@@ -58,6 +58,8 @@ export interface Person {
   avatarId?: string;
   /** Optional, and never asked for during onboarding. */
   age?: number;
+  /** Free text — "UX designer", "student", "between things". Also optional. */
+  occupation?: string;
   initial: string;
 }
 

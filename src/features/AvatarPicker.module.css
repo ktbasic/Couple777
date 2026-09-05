@@ -8,6 +8,13 @@
   margin-bottom: var(--s-5);
 }
 
+/* The row centres on the face while it is two lines tall. Once the form
+   opens it is much taller than the avatar, and centring leaves the face
+   floating beside the middle of it. */
+.currentEditing {
+  align-items: flex-start;
+}
+
 .currentMain {
   flex: 1;
   min-width: 0;
@@ -253,12 +260,39 @@
   text-align: left;
 }
 
-.ageForm {
+/* Two optional fields, stacked and labelled, because "What do you do?" needs
+   room for its helper line and a bare input row could not say which box was
+   which. */
+.detailsForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: 100%;
+  margin-top: var(--s-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+}
+
+.fieldHelp {
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  line-height: 1.4;
+}
+
+.detailsActions {
   display: flex;
   align-items: center;
   gap: var(--s-2);
-  margin-top: var(--s-2);
-  flex-wrap: wrap;
 }
 
 .ageInput {
@@ -279,17 +313,21 @@
   border-color: var(--c-accent);
 }
 
-.ageRemove {
+.jobInput {
+  width: 100%;
   height: 38px;
   padding: 0 var(--s-3);
-  border: 0;
   border-radius: var(--r-sm);
-  background: none;
+  border: 1px solid var(--c-accent-edge);
+  background: var(--c-surface);
   font: inherit;
-  font-size: var(--t-small);
-  font-weight: 600;
-  color: var(--c-ink-3);
-  cursor: pointer;
+  font-size: var(--t-body);
+  color: var(--c-ink);
+}
+
+.jobInput:focus {
+  outline: none;
+  border-color: var(--c-accent);
 }
 
 /* The age line is a button when it is yours to change, so it needs the

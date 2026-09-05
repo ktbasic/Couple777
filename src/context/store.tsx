@@ -86,7 +86,7 @@ type Action =
     }
   | { type: 'setPartnerJoined'; joined: boolean }
   | { type: 'setPersonAvatar'; personId: ID; avatarId?: string; avatarUrl?: string }
-  | { type: 'setPersonAge'; personId: ID; age?: number }
+  | { type: 'setPersonDetails'; personId: ID; age?: number; occupation?: string }
   | { type: 'renamePerson'; personId: ID; name: string }
   | { type: 'markNotificationsRead'; ids: ID[] }
   | { type: 'setNotifications'; enabled: boolean }
@@ -152,13 +152,15 @@ function reducer(state: AppState, action: Action): AppState {
         },
       };
 
-    case 'setPersonAge':
+    case 'setPersonDetails':
       return {
         ...state,
         couple: {
           ...state.couple,
           people: state.couple.people.map((p) =>
-            p.id === action.personId ? { ...p, age: action.age } : p,
+            p.id === action.personId
+              ? { ...p, age: action.age, occupation: action.occupation }
+              : p,
           ) as AppState['couple']['people'],
         },
       };
@@ -747,7 +749,7 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
       return true;
     }
 
-    case 'setPersonAge': {
+    case 'setPersonDetails': {
       if (action.personId !== userId) return false;
       /*
        * Read, merge, write. The preferences document also holds the identity
@@ -758,6 +760,8 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
       const prefs = { ...((profile?.relationship_preferences as Record<string, unknown>) ?? {}) };
       if (action.age == null) delete prefs.age;
       else prefs.age = action.age;
+      if (!action.occupation) delete prefs.occupation;
+      else prefs.occupation = action.occupation;
       await repo.upsertProfile(userId, { relationship_preferences: prefs as never });
       return true;
     }

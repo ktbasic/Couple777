@@ -29,12 +29,16 @@ function day(value) {
     return value.length > 10 ? value.slice(0, 10) : value;
 }
 /* --------------------------------- Mapping --------------------------------- */
-/* Age lives in the profile's own preferences document rather than a column of
-   its own — the same place the identity answer goes — so adding it needed no
-   migration against a project that is already live. */
+/* Age and occupation live in the profile's own preferences document rather
+   than columns of their own — the same place the identity answer goes — so
+   adding them needed no migration against a project that is already live. */
 function ageFrom(prefs) {
     const raw = prefs?.age;
     return typeof raw === 'number' && Number.isFinite(raw) ? raw : undefined;
+}
+function occupationFrom(prefs) {
+    const raw = prefs?.occupation;
+    return typeof raw === 'string' && raw.trim() ? raw : undefined;
 }
 function personFromProfile(p) {
     const name = p.display_name || 'You';
@@ -42,6 +46,7 @@ function personFromProfile(p) {
         id: p.id,
         name,
         age: ageFrom(p.relationship_preferences),
+        occupation: occupationFrom(p.relationship_preferences),
         avatarId: p.avatar_type === 'avatar' ? (p.avatar_value ?? undefined) : undefined,
         avatarUrl: p.avatar_type === 'photo' ? (p.avatar_value ?? undefined) : undefined,
         initial: name.charAt(0).toUpperCase() || '?',

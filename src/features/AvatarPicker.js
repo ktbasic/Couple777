@@ -46,8 +46,9 @@ export function AvatarPicker({ person, open, onClose, }) {
     const [tab, setTab] = useState(() => AVATARS.find((a) => a.id === person.avatarId)?.group ?? 'People');
     const [renaming, setRenaming] = useState(false);
     const [draft, setDraft] = useState(person.name);
-    const [editingAge, setEditingAge] = useState(false);
+    const [editingDetails, setEditingDetails] = useState(false);
     const [ageDraft, setAgeDraft] = useState(person.age ? String(person.age) : '');
+    const [jobDraft, setJobDraft] = useState(person.occupation ?? '');
     /*
      * You can change your own name and face. You can change what your partner
      * is called only until they have an account of their own — after that the
@@ -65,20 +66,37 @@ export function AvatarPicker({ person, open, onClose, }) {
         }
         setRenaming(false);
     };
-    const saveAge = () => {
-        const parsed = Number.parseInt(ageDraft, 10);
-        // A range wide enough for anyone real and narrow enough to catch a typo.
-        if (!Number.isFinite(parsed) || parsed < 13 || parsed > 120)
+    /*
+     * Both fields are optional, so an empty one is an answer: it clears what was
+     * there. A number that could not be an age is not an answer, though — that
+     * is a typo, and saving it would be worse than keeping the form open.
+     */
+    const parsedAge = Number.parseInt(ageDraft, 10);
+    const ageValid = Number.isFinite(parsedAge) && parsedAge >= 13 && parsedAge <= 120;
+    const ageBad = Boolean(ageDraft.trim()) && !ageValid;
+    const openDetails = () => {
+        setAgeDraft(person.age ? String(person.age) : '');
+        setJobDraft(person.occupation ?? '');
+        setEditingDetails(true);
+    };
+    const saveDetails = () => {
+        if (ageBad)
             return;
-        dispatch({ type: 'setPersonAge', personId: person.id, age: parsed });
+        dispatch({
+            type: 'setPersonDetails',
+            personId: person.id,
+            age: ageValid ? parsedAge : undefined,
+            occupation: jobDraft.trim() || undefined,
+        });
         toast.show({ emoji: '\u2728', message: 'Profile updated' });
-        setEditingAge(false);
+        setEditingDetails(false);
     };
-    const clearAge = () => {
-        dispatch({ type: 'setPersonAge', personId: person.id, age: undefined });
-        setAgeDraft('');
-        setEditingAge(false);
-    };
+    /* Age and what you do, on one line, in that order, and only what exists. */
+    const summary = person.age && person.occupation
+        ? `${person.age} \u00B7 ${person.occupation}`
+        : person.age
+            ? `${person.age} years old`
+            : (person.occupation ?? null);
     // The sheet stays open so the preview at the top updates under your thumb
     // and you can try a few. Closing on the first tap made it a one-shot guess.
     const choose = (avatarId) => {
@@ -98,7 +116,7 @@ export function AvatarPicker({ person, open, onClose, }) {
             setError("That image couldn't be read. Try a different one.");
         }
     };
-    return (_jsxs(Sheet, { open: open, onClose: onClose, title: `${person.name}'s avatar`, children: [_jsxs("div", { className: s.current, children: [_jsx(Avatar, { person: person, size: 54 }), _jsx("div", { className: s.currentMain, children: renaming ? (_jsxs("form", { className: s.nameForm, onSubmit: (e) => {
+    return (_jsxs(Sheet, { open: open, onClose: onClose, title: `${person.name}'s avatar`, children: [_jsxs("div", { className: [s.current, isMe && editingDetails ? s.currentEditing : ''].filter(Boolean).join(' '), children: [_jsx(Avatar, { person: person, size: 54 }), _jsx("div", { className: s.currentMain, children: renaming ? (_jsxs("form", { className: s.nameForm, onSubmit: (e) => {
                                 e.preventDefault();
                                 saveName();
                             }, children: [_jsx("input", { className: s.nameInput, value: draft, onChange: (e) => setDraft(e.target.value), maxLength: 40, autoFocus: true, "aria-label": "Name", onKeyDown: (e) => {
@@ -107,16 +125,13 @@ export function AvatarPicker({ person, open, onClose, }) {
                                     } }), _jsx("button", { type: "submit", className: s.nameSave, disabled: !draft.trim(), children: "Save" }), _jsx("button", { type: "button", className: s.nameCancel, onClick: () => setRenaming(false), children: "Cancel" })] })) : (_jsxs(_Fragment, { children: [_jsxs("div", { className: s.nameRow, children: [_jsx("p", { className: s.currentName, children: person.name }), editable ? (_jsx("button", { type: "button", className: s.editName, "aria-label": `Change ${isMe ? 'your' : `${person.name}'s`} name`, onClick: () => {
                                                 setDraft(person.name);
                                                 setRenaming(true);
-                                            }, children: _jsx(PencilIcon, {}) })) : null] }), isMe && editingAge ? (_jsxs("form", { className: s.ageForm, onSubmit: (e) => {
+                                            }, children: _jsx(PencilIcon, {}) })) : null] }), isMe && editingDetails ? (_jsxs("form", { className: s.detailsForm, onSubmit: (e) => {
                                         e.preventDefault();
-                                        saveAge();
-                                    }, children: [_jsx("input", { className: s.ageInput, value: ageDraft, onChange: (e) => setAgeDraft(e.target.value.replace(/[^0-9]/g, '')), inputMode: "numeric", maxLength: 3, autoFocus: true, "aria-label": "Age", placeholder: "Age", onKeyDown: (e) => {
-                                                if (e.key === 'Escape')
-                                                    setEditingAge(false);
-                                            } }), _jsx("button", { type: "submit", className: s.nameSave, disabled: !ageDraft.trim(), children: "Save" }), person.age ? (_jsx("button", { type: "button", className: s.ageRemove, onClick: clearAge, children: "Remove" })) : null, _jsx("button", { type: "button", className: s.nameCancel, onClick: () => setEditingAge(false), children: "Cancel" })] })) : isMe ? (_jsx("button", { type: "button", className: person.age ? s.currentHint : s.addAge, onClick: () => {
-                                        setAgeDraft(person.age ? String(person.age) : '');
-                                        setEditingAge(true);
-                                    }, children: person.age ? `${person.age} years old` : 'Add your age' })) : (_jsx("p", { className: s.currentHint, children: person.age ? `${person.age} years old` : 'No age shared' }))] })) })] }), !editable ? (_jsxs("p", { className: s.theirs, children: [person.name, " picks their own name and avatar on their phone. Yours is the one you can change here."] })) : null, error ? _jsx("p", { className: s.error, children: error }) : null, editable ? (_jsxs(_Fragment, { children: [_jsxs("label", { className: s.upload, children: [_jsx("span", { "aria-hidden": true, children: "\uD83D\uDCF7" }), "Upload a photo", _jsx("input", { ref: fileRef, type: "file", accept: "image/*", hidden: true, onChange: (e) => {
+                                        saveDetails();
+                                    }, onKeyDown: (e) => {
+                                        if (e.key === 'Escape')
+                                            setEditingDetails(false);
+                                    }, children: [_jsxs("label", { className: s.field, children: [_jsx("span", { className: s.fieldLabel, children: "Age" }), _jsx("input", { className: s.ageInput, value: ageDraft, onChange: (e) => setAgeDraft(e.target.value.replace(/[^0-9]/g, '')), inputMode: "numeric", maxLength: 3, autoFocus: true, "aria-label": "Age", placeholder: "Age" })] }), _jsxs("label", { className: s.field, children: [_jsx("span", { className: s.fieldLabel, children: "What do you do?" }), _jsx("input", { className: s.jobInput, value: jobDraft, onChange: (e) => setJobDraft(e.target.value), maxLength: 60, autoComplete: "organization-title", placeholder: "Designer, student, doctor\u2026" }), _jsx("span", { className: s.fieldHelp, children: "Optional \u2014 helps tailor ideas to your lifestyle." })] }), _jsxs("div", { className: s.detailsActions, children: [_jsx("button", { type: "submit", className: s.nameSave, disabled: ageBad, children: "Save" }), _jsx("button", { type: "button", className: s.nameCancel, onClick: () => setEditingDetails(false), children: "Cancel" })] })] })) : isMe ? (_jsx("button", { type: "button", className: summary ? s.currentHint : s.addAge, onClick: openDetails, children: summary ?? 'Add your age' })) : (_jsx("p", { className: s.currentHint, children: summary ?? 'Nothing shared yet' }))] })) })] }), !editable ? (_jsxs("p", { className: s.theirs, children: [person.name, " picks their own name and avatar on their phone. Yours is the one you can change here."] })) : null, error ? _jsx("p", { className: s.error, children: error }) : null, editable ? (_jsxs(_Fragment, { children: [_jsxs("label", { className: s.upload, children: [_jsx("span", { "aria-hidden": true, children: "\uD83D\uDCF7" }), "Upload a photo", _jsx("input", { ref: fileRef, type: "file", accept: "image/*", hidden: true, onChange: (e) => {
                                     const file = e.target.files?.[0];
                                     if (file)
                                         void upload(file);

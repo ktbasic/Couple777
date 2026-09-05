@@ -84,12 +84,14 @@ function reducer(state, action) {
                         : p),
                 },
             };
-        case 'setPersonAge':
+        case 'setPersonDetails':
             return {
                 ...state,
                 couple: {
                     ...state.couple,
-                    people: state.couple.people.map((p) => p.id === action.personId ? { ...p, age: action.age } : p),
+                    people: state.couple.people.map((p) => p.id === action.personId
+                        ? { ...p, age: action.age, occupation: action.occupation }
+                        : p),
                 },
             };
         case 'renamePerson':
@@ -562,7 +564,7 @@ async function persist(action, ctx) {
             });
             return true;
         }
-        case 'setPersonAge': {
+        case 'setPersonDetails': {
             if (action.personId !== userId)
                 return false;
             /*
@@ -576,6 +578,10 @@ async function persist(action, ctx) {
                 delete prefs.age;
             else
                 prefs.age = action.age;
+            if (!action.occupation)
+                delete prefs.occupation;
+            else
+                prefs.occupation = action.occupation;
             await repo.upsertProfile(userId, { relationship_preferences: prefs });
             return true;
         }

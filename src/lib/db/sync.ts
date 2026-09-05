@@ -68,12 +68,17 @@ export interface CoupleSpace {
 
 /* --------------------------------- Mapping --------------------------------- */
 
-/* Age lives in the profile's own preferences document rather than a column of
-   its own — the same place the identity answer goes — so adding it needed no
-   migration against a project that is already live. */
+/* Age and occupation live in the profile's own preferences document rather
+   than columns of their own — the same place the identity answer goes — so
+   adding them needed no migration against a project that is already live. */
 function ageFrom(prefs: Json): number | undefined {
   const raw = (prefs as { age?: unknown } | null)?.age;
   return typeof raw === 'number' && Number.isFinite(raw) ? raw : undefined;
+}
+
+function occupationFrom(prefs: Json): string | undefined {
+  const raw = (prefs as { occupation?: unknown } | null)?.occupation;
+  return typeof raw === 'string' && raw.trim() ? raw : undefined;
 }
 
 function personFromProfile(p: ProfileRow): Person {
@@ -82,6 +87,7 @@ function personFromProfile(p: ProfileRow): Person {
     id: p.id,
     name,
     age: ageFrom(p.relationship_preferences),
+    occupation: occupationFrom(p.relationship_preferences),
     avatarId: p.avatar_type === 'avatar' ? (p.avatar_value ?? undefined) : undefined,
     avatarUrl: p.avatar_type === 'photo' ? (p.avatar_value ?? undefined) : undefined,
     initial: name.charAt(0).toUpperCase() || '?',

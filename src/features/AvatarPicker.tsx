@@ -68,8 +68,9 @@ export function AvatarPicker({
   );
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState(person.name);
-  const [editingAge, setEditingAge] = useState(false);
+  const [editingDetails, setEditingDetails] = useState(false);
   const [ageDraft, setAgeDraft] = useState(person.age ? String(person.age) : '');
+  const [jobDraft, setJobDraft] = useState(person.occupation ?? '');
 
   /*
    * You can change your own name and face. You can change what your partner
@@ -90,20 +91,40 @@ export function AvatarPicker({
     setRenaming(false);
   };
 
-  const saveAge = () => {
-    const parsed = Number.parseInt(ageDraft, 10);
-    // A range wide enough for anyone real and narrow enough to catch a typo.
-    if (!Number.isFinite(parsed) || parsed < 13 || parsed > 120) return;
-    dispatch({ type: 'setPersonAge', personId: person.id, age: parsed });
-    toast.show({ emoji: '\u2728', message: 'Profile updated' });
-    setEditingAge(false);
+  /*
+   * Both fields are optional, so an empty one is an answer: it clears what was
+   * there. A number that could not be an age is not an answer, though — that
+   * is a typo, and saving it would be worse than keeping the form open.
+   */
+  const parsedAge = Number.parseInt(ageDraft, 10);
+  const ageValid = Number.isFinite(parsedAge) && parsedAge >= 13 && parsedAge <= 120;
+  const ageBad = Boolean(ageDraft.trim()) && !ageValid;
+
+  const openDetails = () => {
+    setAgeDraft(person.age ? String(person.age) : '');
+    setJobDraft(person.occupation ?? '');
+    setEditingDetails(true);
   };
 
-  const clearAge = () => {
-    dispatch({ type: 'setPersonAge', personId: person.id, age: undefined });
-    setAgeDraft('');
-    setEditingAge(false);
+  const saveDetails = () => {
+    if (ageBad) return;
+    dispatch({
+      type: 'setPersonDetails',
+      personId: person.id,
+      age: ageValid ? parsedAge : undefined,
+      occupation: jobDraft.trim() || undefined,
+    });
+    toast.show({ emoji: '\u2728', message: 'Profile updated' });
+    setEditingDetails(false);
   };
+
+  /* Age and what you do, on one line, in that order, and only what exists. */
+  const summary =
+    person.age && person.occupation
+      ? `${person.age} \u00B7 ${person.occupation}`
+      : person.age
+        ? `${person.age} years old`
+        : (person.occupation ?? null);
 
   // The sheet stays open so the preview at the top updates under your thumb
   // and you can try a few. Closing on the first tap made it a one-shot guess.
@@ -127,7 +148,7 @@ export function AvatarPicker({
 
   return (
     <Sheet open={open} onClose={onClose} title={`${person.name}'s avatar`}>
-      <div className={s.current}>
+      <div className={[s.current, isMe && editingDetails ? s.currentEditing : ''].filter(Boolean).join(' ')}>
         <Avatar person={person} size={54} />
         <div className={s.currentMain}>
           {renaming ? (
@@ -178,58 +199,69 @@ export function AvatarPicker({
                   </button>
                 ) : null}
               </div>
-              {isMe && editingAge ? (
+              {isMe && editingDetails ? (
                 <form
-                  className={s.ageForm}
+                  className={s.detailsForm}
                   onSubmit={(e) => {
                     e.preventDefault();
-                    saveAge();
+                    saveDetails();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setEditingDetails(false);
                   }}
                 >
-                  <input
-                    className={s.ageInput}
-                    value={ageDraft}
-                    onChange={(e) => setAgeDraft(e.target.value.replace(/[^0-9]/g, ''))}
-                    inputMode="numeric"
-                    maxLength={3}
-                    autoFocus
-                    aria-label="Age"
-                    placeholder="Age"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') setEditingAge(false);
-                    }}
-                  />
-                  <button type="submit" className={s.nameSave} disabled={!ageDraft.trim()}>
-                    Save
-                  </button>
-                  {person.age ? (
-                    <button type="button" className={s.ageRemove} onClick={clearAge}>
-                      Remove
+                  <label className={s.field}>
+                    <span className={s.fieldLabel}>Age</span>
+                    <input
+                      className={s.ageInput}
+                      value={ageDraft}
+                      onChange={(e) => setAgeDraft(e.target.value.replace(/[^0-9]/g, ''))}
+                      inputMode="numeric"
+                      maxLength={3}
+                      autoFocus
+                      aria-label="Age"
+                      placeholder="Age"
+                    />
+                  </label>
+
+                  <label className={s.field}>
+                    <span className={s.fieldLabel}>What do you do?</span>
+                    <input
+                      className={s.jobInput}
+                      value={jobDraft}
+                      onChange={(e) => setJobDraft(e.target.value)}
+                      maxLength={60}
+                      autoComplete="organization-title"
+                      placeholder="Designer, student, doctor…"
+                    />
+                    <span className={s.fieldHelp}>
+                      Optional — helps tailor ideas to your lifestyle.
+                    </span>
+                  </label>
+
+                  <div className={s.detailsActions}>
+                    <button type="submit" className={s.nameSave} disabled={ageBad}>
+                      Save
                     </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    className={s.nameCancel}
-                    onClick={() => setEditingAge(false)}
-                  >
-                    Cancel
-                  </button>
+                    <button
+                      type="button"
+                      className={s.nameCancel}
+                      onClick={() => setEditingDetails(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </form>
               ) : isMe ? (
                 <button
                   type="button"
-                  className={person.age ? s.currentHint : s.addAge}
-                  onClick={() => {
-                    setAgeDraft(person.age ? String(person.age) : '');
-                    setEditingAge(true);
-                  }}
+                  className={summary ? s.currentHint : s.addAge}
+                  onClick={openDetails}
                 >
-                  {person.age ? `${person.age} years old` : 'Add your age'}
+                  {summary ?? 'Add your age'}
                 </button>
               ) : (
-                <p className={s.currentHint}>
-                  {person.age ? `${person.age} years old` : 'No age shared'}
-                </p>
+                <p className={s.currentHint}>{summary ?? 'Nothing shared yet'}</p>
               )}
             </>
           )}
