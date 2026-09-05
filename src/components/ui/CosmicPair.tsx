@@ -433,6 +433,44 @@ export function CosmicGreeter({ tone = 'warm' }: { tone?: 'warm' | 'cool' }) {
   );
 }
 
+/**
+ * One traveller, small, as a brand accent rather than a subject.
+ *
+ * Same component and the same tones as the pair on the welcome screen — a
+ * second, separately drawn alien would read as a different species one
+ * screen later. The wake is off and the sparkles are gone: at this size a
+ * trail is a smudge, and the point is a light touch at the edge of
+ * something else, not a scene of its own.
+ */
+export function CosmicAccent({
+  tone = 'warm',
+  flip = false,
+  className,
+}: {
+  tone?: 'warm' | 'cool';
+  flip?: boolean;
+  className?: string;
+}) {
+  const uid = `ca-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+
+  return (
+    <svg
+      className={[s.accent, className].filter(Boolean).join(' ')}
+      viewBox="0 0 170 150"
+      aria-hidden
+      focusable="false"
+    >
+      <g transform="translate(92 86) rotate(4) scale(0.84)">
+        <g className={s.accentFloat}>
+          <g transform={flip ? 'scale(-1 1)' : undefined}>
+            <Traveller uid={uid} tone={tone} faceFlip={flip} trail={false} />
+          </g>
+        </g>
+      </g>
+    </svg>
+  );
+}
+
 export function CosmicPair() {
   const uid = `cp-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
 

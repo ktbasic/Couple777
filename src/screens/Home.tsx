@@ -87,7 +87,6 @@ export default function HomeScreen() {
 
       {hero ? (
         <section className={s.hero}>
-          <p className={s.sectionKicker}>Up next</p>
           <div className={s.ritual}>
             <CycleCardHero view={hero} />
           </div>

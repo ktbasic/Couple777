@@ -236,6 +236,27 @@
   100% { opacity: 1; transform: none; }
 }
 
+/* The accent is sized entirely by whatever places it. */
+.accent {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Slower and shorter than the greeter's float — at this size a big arc reads
+   as something wandering across the screen rather than drifting in place. */
+.accentFloat {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: accentFloat 9s var(--ease-soft) infinite;
+}
+
+@keyframes accentFloat {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50%      { transform: translate(-2px, -4px) rotate(1.2deg); }
+}
+
 .greeterFloat {
   transform-box: fill-box;
   transform-origin: 50% 50%;

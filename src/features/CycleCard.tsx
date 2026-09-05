@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ButtonLink } from '@/components/ui/Button';
-import { ProgressRing } from '@/components/ui/ProgressRing';
+import { CosmicAccent } from '@/components/ui/CosmicPair';
 import { formatPlanDate, TIER_META } from '@/lib/dates';
-import { CYCLE_NOUN, cycleHeadline, type CycleView } from '@/lib/cycles';
+import { CYCLE_NOUN, type CycleView } from '@/lib/cycles';
 import { useStore } from '@/context/store';
 import s from './CycleCard.module.css';
 
@@ -71,6 +71,31 @@ export function CycleCardCompact({ view }: { view: CycleView }) {
   );
 }
 
+const HEART = (
+  <svg viewBox="0 0 16 16" width="9" height="9" aria-hidden>
+    <path
+      d="M8 13.6C3.7 10.6 1.6 8.4 1.6 5.9 1.6 3.9 3.1 2.4 5 2.4c1.2 0 2.3.6 3 1.6.7-1 1.8-1.6 3-1.6 1.9 0 3.4 1.5 3.4 3.5 0 2.5-2.1 4.7-6.4 7.7Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+/**
+ * The countdown, as an editorial line rather than a sentence.
+ *
+ * A number is the one thing on this screen worth reading from across the
+ * room, so it gets to be a number. The days that have no number — today,
+ * tomorrow, and a cycle that has slipped — say the word instead, at a size
+ * that keeps the block the same shape.
+ */
+function countdown(view: CycleView): { big: string; unit: string | null; sub: string } {
+  const noun = CYCLE_NOUN[view.cycle.tier];
+  if (view.overdue) return { big: 'Now', unit: null, sub: `is a good time for your next ${noun}.` };
+  if (view.daysAway === 0) return { big: 'Today', unit: null, sub: `your ${noun} is here.` };
+  if (view.daysAway === 1) return { big: 'Tomorrow', unit: null, sub: `your ${noun} is almost here.` };
+  return { big: String(view.daysAway), unit: 'days', sub: `to your next ${noun}.` };
+}
+
 /**
  * The hero. Which cycle gets it is decided by attention, not by tier — see
  * `attentionScore` — so a confirmed date steps aside for an unplanned getaway.
@@ -80,17 +105,30 @@ export function CycleCardHero({ view }: { view: CycleView }) {
   const meta = TIER_META[view.cycle.tier];
   const plan = view.plan;
   const isHidden = hidden(view, me.id);
+  const count = countdown(view);
 
   return (
     <div className={`${s.card} ${s.hero}`} data-tier={view.cycle.tier}>
-      <div className={s.heroTop}>
-        <span className={s.heroCadence}>Every {meta.cadence}</span>
-        <ProgressRing progress={view.progress} size={40} stroke={3} className={s.ring}>
-          <span className={s.ringNum}>{view.overdue ? '·' : Math.max(0, view.daysAway)}</span>
-        </ProgressRing>
+      {/* One glow, one orbit, two small travellers. Everything here is behind
+          the type and out of the way of it: the countdown is the subject and
+          this is the room it sits in. */}
+      <div className={s.decor} aria-hidden>
+        <span className={s.aura} />
+        <span className={s.orbit}>
+          <span className={s.orbitNode}>{HEART}</span>
+        </span>
+        <CosmicAccent className={s.moteA} tone="warm" />
+        <CosmicAccent className={s.moteB} tone="cool" flip />
       </div>
 
-      <p className={s.heroHeadline}>{cycleHeadline(view)}</p>
+      <div className={s.heroBody}>
+        <p className={s.heroCadence}>Every {meta.cadence}</p>
+
+        <p className={s.count} data-word={count.unit ? undefined : ''}>
+          {count.big}
+        </p>
+        {count.unit ? <p className={s.unit}>{count.unit}</p> : null}
+        <p className={s.sub}>{count.sub}</p>
 
       {plan ? (
         <>
@@ -123,7 +161,6 @@ export function CycleCardHero({ view }: { view: CycleView }) {
         </>
       ) : (
         <>
-          <p className={s.heroEmpty}>{meta.hint}</p>
           <div className={s.actions}>
             <ButtonLink to={`/explore?cycle=${view.cycle.id}`} variant="accent" size="sm">
               Find an idea
@@ -134,6 +171,7 @@ export function CycleCardHero({ view }: { view: CycleView }) {
           </div>
         </>
       )}
+      </div>
     </div>
   );
 }
