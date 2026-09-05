@@ -177,16 +177,8 @@
   color: var(--c-accent-ink);
 }
 
-.nameForm {
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  width: 100%;
-}
-
 .nameInput {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
   height: 38px;
   padding: 0 var(--s-3);
   border-radius: var(--r-sm);
@@ -260,9 +252,8 @@
   text-align: left;
 }
 
-/* Two optional fields, stacked and labelled, because "What do you do?" needs
-   room for its helper line and a bare input row could not say which box was
-   which. */
+/* One editor for name, age and what you do, stacked and labelled — a row of
+   bare inputs could not say which box was which. */
 .detailsForm {
   display: flex;
   flex-direction: column;
@@ -281,12 +272,6 @@
   font-size: var(--t-small);
   font-weight: 600;
   color: var(--c-ink-2);
-}
-
-.fieldHelp {
-  font-size: var(--t-small);
-  color: var(--c-ink-3);
-  line-height: 1.4;
 }
 
 .detailsActions {

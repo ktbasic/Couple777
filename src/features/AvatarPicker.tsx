@@ -66,9 +66,8 @@ export function AvatarPicker({
   const [tab, setTab] = useState<AvatarGroup>(
     () => AVATARS.find((a) => a.id === person.avatarId)?.group ?? 'People',
   );
-  const [renaming, setRenaming] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(person.name);
-  const [editingDetails, setEditingDetails] = useState(false);
   const [ageDraft, setAgeDraft] = useState(person.age ? String(person.age) : '');
   const [jobDraft, setJobDraft] = useState(person.occupation ?? '');
 
@@ -82,40 +81,44 @@ export function AvatarPicker({
   const isMe = person.id === me.id;
   const editable = isMe || !state.couple.partnerJoined;
 
-  const saveName = () => {
-    const next = draft.trim();
-    if (next && next !== person.name) {
-      dispatch({ type: 'renamePerson', personId: person.id, name: next });
-      toast.show({ emoji: '\u270F\uFE0F', message: 'Name updated' });
-    }
-    setRenaming(false);
-  };
-
   /*
-   * Both fields are optional, so an empty one is an answer: it clears what was
-   * there. A number that could not be an age is not an answer, though — that
-   * is a typo, and saving it would be worse than keeping the form open.
+   * Age and occupation are optional, so an empty one is an answer: it clears
+   * what was there. A number that could not be an age is not an answer,
+   * though — that is a typo, and saving it would be worse than keeping the
+   * form open.
    */
   const parsedAge = Number.parseInt(ageDraft, 10);
   const ageValid = Number.isFinite(parsedAge) && parsedAge >= 13 && parsedAge <= 120;
   const ageBad = Boolean(ageDraft.trim()) && !ageValid;
 
-  const openDetails = () => {
+  /* One editor for the whole of who you are here — the pencil and the line
+     under your name open the same thing, because they were only ever two
+     halves of "edit my profile". */
+  const openEditor = () => {
+    setDraft(person.name);
     setAgeDraft(person.age ? String(person.age) : '');
     setJobDraft(person.occupation ?? '');
-    setEditingDetails(true);
+    setEditing(true);
   };
 
-  const saveDetails = () => {
-    if (ageBad) return;
-    dispatch({
-      type: 'setPersonDetails',
-      personId: person.id,
-      age: ageValid ? parsedAge : undefined,
-      occupation: jobDraft.trim() || undefined,
-    });
+  const saveEditor = () => {
+    const name = draft.trim();
+    if (!name || ageBad) return;
+    if (name !== person.name) {
+      dispatch({ type: 'renamePerson', personId: person.id, name });
+    }
+    // Age and occupation are yours alone — there is no row to put a partner's
+    // on until they have an account of their own.
+    if (isMe) {
+      dispatch({
+        type: 'setPersonDetails',
+        personId: person.id,
+        age: ageValid ? parsedAge : undefined,
+        occupation: jobDraft.trim() || undefined,
+      });
+    }
     toast.show({ emoji: '\u2728', message: 'Profile updated' });
-    setEditingDetails(false);
+    setEditing(false);
   };
 
   /* Age and what you do, on one line, in that order, and only what exists. */
@@ -148,68 +151,34 @@ export function AvatarPicker({
 
   return (
     <Sheet open={open} onClose={onClose} title={`${person.name}'s avatar`}>
-      <div className={[s.current, isMe && editingDetails ? s.currentEditing : ''].filter(Boolean).join(' ')}>
+      <div className={[s.current, editing ? s.currentEditing : ''].filter(Boolean).join(' ')}>
         <Avatar person={person} size={54} />
         <div className={s.currentMain}>
-          {renaming ? (
+          {editing ? (
             <form
-              className={s.nameForm}
+              className={s.detailsForm}
               onSubmit={(e) => {
                 e.preventDefault();
-                saveName();
+                saveEditor();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setEditing(false);
               }}
             >
-              <input
-                className={s.nameInput}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                maxLength={40}
-                autoFocus
-                aria-label="Name"
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape') setRenaming(false);
-                }}
-              />
-              <button type="submit" className={s.nameSave} disabled={!draft.trim()}>
-                Save
-              </button>
-              <button
-                type="button"
-                className={s.nameCancel}
-                onClick={() => setRenaming(false)}
-              >
-                Cancel
-              </button>
-            </form>
-          ) : (
-            <>
-              <div className={s.nameRow}>
-                <p className={s.currentName}>{person.name}</p>
-                {editable ? (
-                  <button
-                    type="button"
-                    className={s.editName}
-                    aria-label={`Change ${isMe ? 'your' : `${person.name}'s`} name`}
-                    onClick={() => {
-                      setDraft(person.name);
-                      setRenaming(true);
-                    }}
-                  >
-                    <PencilIcon />
-                  </button>
-                ) : null}
-              </div>
-              {isMe && editingDetails ? (
-                <form
-                  className={s.detailsForm}
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    saveDetails();
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') setEditingDetails(false);
-                  }}
-                >
+              <label className={s.field}>
+                <span className={s.fieldLabel}>Name</span>
+                <input
+                  className={s.nameInput}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  maxLength={40}
+                  autoFocus
+                  placeholder="Your name"
+                />
+              </label>
+
+              {isMe ? (
+                <>
                   <label className={s.field}>
                     <span className={s.fieldLabel}>Age</span>
                     <input
@@ -218,8 +187,6 @@ export function AvatarPicker({
                       onChange={(e) => setAgeDraft(e.target.value.replace(/[^0-9]/g, ''))}
                       inputMode="numeric"
                       maxLength={3}
-                      autoFocus
-                      aria-label="Age"
                       placeholder="Age"
                     />
                   </label>
@@ -234,29 +201,39 @@ export function AvatarPicker({
                       autoComplete="organization-title"
                       placeholder="Designer, student, doctor…"
                     />
-                    <span className={s.fieldHelp}>
-                      Optional — helps tailor ideas to your lifestyle.
-                    </span>
                   </label>
+                </>
+              ) : null}
 
-                  <div className={s.detailsActions}>
-                    <button type="submit" className={s.nameSave} disabled={ageBad}>
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      className={s.nameCancel}
-                      onClick={() => setEditingDetails(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : isMe ? (
+              <div className={s.detailsActions}>
+                <button type="submit" className={s.nameSave} disabled={!draft.trim() || ageBad}>
+                  Save
+                </button>
+                <button type="button" className={s.nameCancel} onClick={() => setEditing(false)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <div className={s.nameRow}>
+                <p className={s.currentName}>{person.name}</p>
+                {editable ? (
+                  <button
+                    type="button"
+                    className={s.editName}
+                    aria-label={`Edit ${isMe ? 'your' : `${person.name}'s`} profile`}
+                    onClick={openEditor}
+                  >
+                    <PencilIcon />
+                  </button>
+                ) : null}
+              </div>
+              {isMe ? (
                 <button
                   type="button"
                   className={summary ? s.currentHint : s.addAge}
-                  onClick={openDetails}
+                  onClick={openEditor}
                 >
                   {summary ?? 'Add your age'}
                 </button>
