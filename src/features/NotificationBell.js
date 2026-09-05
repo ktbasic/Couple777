@@ -2,7 +2,8 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/context/store';
-import { byPriority, notifications } from '@/lib/selectors';
+import { byPriority, dailyStatus, notifications } from '@/lib/selectors';
+import { today } from '@/lib/dates';
 import s from './NotificationBell.module.css';
 const REMOTE_EMOJI = {
     plan_invite: '💌',
@@ -39,27 +40,43 @@ export function NotificationBell() {
     }));
     const relationship = [...remote, ...derived].sort(byPriority);
     /*
-     * The one item that is about the app rather than about the two of you, so it
-     * waits until nothing about the two of you is waiting. Anything else in the
-     * list outranks it — being asked to finish your profile over the top of your
-     * partner asking you out is how an app makes itself the point.
+     * Nudges are not news. Nothing here is something the other person did, or
+     * something with a date attached — they are the app suggesting, so they wait
+     * until nothing about the two of you is waiting, and then only the most
+     * useful one shows. Being asked to finish your profile over the top of your
+     * partner asking you out is how an app makes itself the point, and offering
+     * three suggestions at once is the same mistake in a smaller way.
      */
-    const nudge = relationship.length === 0 && !me.age
-        ? [
-            {
-                id: 'profile-age',
-                kind: 'profile',
-                emoji: '\u2728',
-                title: 'Help Couple777 get to know you',
-                body: 'Add your age to improve your profile and recommendations.',
-                to: '/us?edit=me',
-                cta: 'Complete profile',
-                at: Date.now(),
-                read: state.readNotificationIds.includes('profile-age'),
-            },
-        ]
-        : [];
-    const items = [...relationship, ...nudge];
+    const date = today();
+    const daily = dailyStatus(state, me.id, partner.id, date);
+    const nudges = [];
+    if (!daily.answeredByMe && !daily.answeredByPartner) {
+        nudges.push({
+            id: `daily-nudge-${date}`,
+            kind: 'daily-nudge',
+            emoji: '\uD83D\uDCAC',
+            title: 'Your daily reflection',
+            body: "Today's question is waiting for you. Write your answer when you're ready.",
+            to: '/talk/daily',
+            cta: 'Write my answer',
+            at: Date.now(),
+            read: state.readNotificationIds.includes(`daily-nudge-${date}`),
+        });
+    }
+    if (!me.age) {
+        nudges.push({
+            id: 'profile-age',
+            kind: 'profile',
+            emoji: '\u2728',
+            title: 'Help Couple777 get to know you',
+            body: 'Add your age to improve your profile and recommendations.',
+            to: '/us?edit=me',
+            cta: 'Complete profile',
+            at: Date.now(),
+            read: state.readNotificationIds.includes('profile-age'),
+        });
+    }
+    const items = relationship.length > 0 ? relationship : nudges.sort(byPriority).slice(0, 1);
     const unread = items.filter((n) => !n.read);
     const openItem = (id, to) => {
         dispatch({ type: 'markNotificationsRead', ids: [id] });

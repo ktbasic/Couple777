@@ -175,6 +175,9 @@ export type NotificationKind =
   | 'capture-memory'
   /* Written by the other person on their own phone, so it cannot be derived. */
   | 'from-partner'
+  /* Today's question, when nobody has answered it yet — a nudge rather than
+     news, so it waits until nothing about the two of you is waiting. */
+  | 'daily-nudge'
   /* Optional housekeeping, and the only kind that is about the app rather
      than about the two of you. */
   | 'profile';
@@ -211,6 +214,7 @@ const PRIORITY: Record<NotificationKind, number> = {
   'date-soon': 2,
   'ritual-due': 2,
   'daily-answer': 3,
+  'daily-nudge': 3,
   'capture-memory': 4,
   profile: 5,
 };
@@ -236,10 +240,12 @@ export function notifications(state: AppState, meId: ID, partnerId: ID, now = to
       kind: 'daily-answer',
       emoji: '💬',
       title: `${partnerName} answered today's question`,
+      /* Once both are in there is nothing to do, so no action is offered. */
       body: status.answeredByMe
         ? 'Both answers are unlocked.'
-        : 'Yours unlocks it for both of you.',
+        : 'Write yours to reveal both answers.',
       to: '/talk/daily',
+      cta: status.answeredByMe ? undefined : 'Write my answer',
       at: Date.now(),
     });
   }

@@ -127,6 +127,7 @@ const PRIORITY = {
     'date-soon': 2,
     'ritual-due': 2,
     'daily-answer': 3,
+    'daily-nudge': 3,
     'capture-memory': 4,
     profile: 5,
 };
@@ -149,10 +150,12 @@ export function notifications(state, meId, partnerId, now = today()) {
             kind: 'daily-answer',
             emoji: '💬',
             title: `${partnerName} answered today's question`,
+            /* Once both are in there is nothing to do, so no action is offered. */
             body: status.answeredByMe
                 ? 'Both answers are unlocked.'
-                : 'Yours unlocks it for both of you.',
+                : 'Write yours to reveal both answers.',
             to: '/talk/daily',
+            cta: status.answeredByMe ? undefined : 'Write my answer',
             at: Date.now(),
         });
     }
