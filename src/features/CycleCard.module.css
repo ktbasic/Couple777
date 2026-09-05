@@ -211,6 +211,77 @@
   color: var(--c-on-accent);
   box-shadow: 0 3px 10px rgba(232, 94, 142, 0.3);
   transform: scaleY(calc(1 / var(--orbit-squash))) rotate(calc(-1 * var(--orbit-tilt)));
+  /* Same 26s and the same linear timing as the two rotations, so the depth
+     stays locked to where the heart actually is. */
+  animation: orbitDepth 26s linear infinite;
+  will-change: opacity, transform;
+}
+
+/*
+ * Depth, without occlusion.
+ *
+ * The ellipse's lower arc is the near side and its upper arc is the far side,
+ * so the heart spends the first half of every revolution in front of the
+ * planet and the second half behind it. It cannot actually go behind — it is
+ * one element painted over the disc — so the far half is dimmed, softened and
+ * shrunk very slightly instead, and the eye reads the rest.
+ *
+ * The front arc is left completely alone; all of the change happens in the
+ * back half and the two crossings, which is what keeps it a depth cue rather
+ * than a blink. A uniform scale commutes with the un-squash beside it, so the
+ * heart stays perfectly round while it shrinks.
+ */
+@keyframes orbitDepth {
+  0%, 100% {
+    /* the near side of the planet, half way through the crossing */
+    opacity: 0.93;
+    filter: blur(0.2px);
+    transform: scaleY(calc(1 / var(--orbit-squash)))
+      rotate(calc(-1 * var(--orbit-tilt)))
+      scale(0.985);
+  }
+
+  6%, 44% {
+    /* the whole front arc, unchanged */
+    opacity: 1;
+    filter: blur(0px);
+    transform: scaleY(calc(1 / var(--orbit-squash)))
+      rotate(calc(-1 * var(--orbit-tilt)))
+      scale(1);
+  }
+
+  50% {
+    opacity: 0.93;
+    filter: blur(0.2px);
+    transform: scaleY(calc(1 / var(--orbit-squash)))
+      rotate(calc(-1 * var(--orbit-tilt)))
+      scale(0.985);
+  }
+
+  56%, 94% {
+    opacity: 0.72;
+    filter: blur(0.7px);
+    transform: scaleY(calc(1 / var(--orbit-squash)))
+      rotate(calc(-1 * var(--orbit-tilt)))
+      scale(0.95);
+  }
+
+  62%, 88% {
+    opacity: 0.62;
+    filter: blur(0.95px);
+    transform: scaleY(calc(1 / var(--orbit-squash)))
+      rotate(calc(-1 * var(--orbit-tilt)))
+      scale(0.93);
+  }
+
+  75% {
+    /* the far side, behind the planet */
+    opacity: 0.55;
+    filter: blur(1.1px);
+    transform: scaleY(calc(1 / var(--orbit-squash)))
+      rotate(calc(-1 * var(--orbit-tilt)))
+      scale(0.915);
+  }
 }
 
 /* Brand accents, deliberately small and low-contrast: they ride the orbit at
