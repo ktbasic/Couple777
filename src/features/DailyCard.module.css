@@ -2,18 +2,47 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--r-lg);
-  border: 1px solid var(--c-hairline-soft);
-  background: var(--c-surface);
+  border: 1px solid var(--c-accent-edge);
+  /* Soft pink rather than white: this is the one card on Home that asks you
+     for something, so it reads as warm paper instead of another panel. */
+  background: linear-gradient(168deg, var(--c-accent-wash) 0%, #fef7f4 100%);
   box-shadow: var(--e-1);
   padding: var(--s-5);
 }
 
+/* Floated rather than pinned to the corner, so only the lines actually beside
+   it are shortened — an absolute one would have held a right margin down the
+   whole question, including the lines with nothing next to them. Low-contrast
+   on purpose: it is scenery, not a control. */
+.bubble {
+  float: right;
+  width: 62px;
+  height: auto;
+  margin: 2px 0 var(--s-2) var(--s-4);
+  opacity: 0.75;
+  pointer-events: none;
+  animation: bubbleFloat 10s var(--ease-soft) infinite;
+}
+
+@keyframes bubbleFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
 .kind {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font-size: var(--t-micro);
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--c-accent-ink);
+}
+
+.kindMark {
+  display: inline-flex;
+  color: var(--c-accent);
 }
 
 .quote {
@@ -50,6 +79,7 @@
 }
 
 .status {
+  clear: right;
   margin-top: var(--s-4);
   display: flex;
   align-items: center;
@@ -76,6 +106,7 @@
 /* ---- Answers ---- */
 
 .answers {
+  clear: right;
   margin-top: var(--s-5);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -84,7 +115,8 @@
 
 .answer {
   border-radius: var(--r-md);
-  background: var(--c-surface-2);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
   padding: var(--s-4);
 }
 
@@ -111,13 +143,14 @@
 /* ---- Locked ---- */
 
 .locked {
+  clear: right;
   margin-top: var(--s-5);
   display: flex;
   align-items: center;
   gap: var(--s-3);
   border-radius: var(--r-md);
-  border: 1px dashed var(--c-hairline);
-  background: var(--c-surface-2);
+  border: 1px dashed var(--c-accent-edge);
+  background: var(--c-surface);
   padding: var(--s-4);
 }
 

@@ -12,6 +12,8 @@ interface Common {
   /** A slow aura under the button. For a screen's one main action only. */
   glow?: boolean;
   icon?: ReactNode;
+  /** An icon after the label — an arrow that belongs to the words, not before them. */
+  trailingIcon?: ReactNode;
   children: ReactNode;
   className?: string;
 }
@@ -28,6 +30,7 @@ export function Button({
   block,
   glow,
   icon,
+  trailingIcon,
   children,
   className,
   ...rest
@@ -40,6 +43,7 @@ export function Button({
     >
       {icon ? <span className={s.icon}>{icon}</span> : null}
       {children}
+      {trailingIcon ? <span className={s.icon}>{trailingIcon}</span> : null}
     </button>
   );
 }
@@ -51,6 +55,7 @@ export function ButtonLink({
   block,
   glow,
   icon,
+  trailingIcon,
   children,
   className,
   state,
@@ -63,6 +68,7 @@ export function ButtonLink({
     >
       {icon ? <span className={s.icon}>{icon}</span> : null}
       {children}
+      {trailingIcon ? <span className={s.icon}>{trailingIcon}</span> : null}
     </Link>
   );
 }
