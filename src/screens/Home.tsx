@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Screen, Section } from '@/components/layout/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AvatarPair } from '@/components/ui/Avatar';
-import { Button, ButtonLink } from '@/components/ui/Button';
+import { ButtonLink } from '@/components/ui/Button';
 import { CycleCardCompact, CycleCardHero } from '@/features/CycleCard';
 import { DailyCard } from '@/features/DailyCard';
 import { MemoryCard } from '@/features/MemoryCard';
@@ -15,6 +16,7 @@ import {
   cycleAwaitingMemory,
   dailyEntry,
   dailyStatus,
+  hasMatches,
   newMatch,
   sortedMemories,
   upNext,
@@ -37,9 +39,13 @@ export default function HomeScreen() {
   // Attention decides the hero, not tier — see `attentionScore`.
   const hero = upNext(state, now);
   const ahead = alsoAhead(state, now);
-  const memories = sortedMemories(state.memories).slice(0, 4);
+  /* Two, not four: this is a glance at the last thing you did together, and
+     the rest are one tap away. */
+  const memories = sortedMemories(state.memories).slice(0, 2);
   const awaiting = cycleAwaitingMemory(state);
   const match = newMatch(state);
+  const matched = hasMatches(state);
+  const [howOpen, setHowOpen] = useState(false);
 
   // Once both have answered, their own words seed the date generator.
   const daily = dailyStatus(state, me.id, partner.id, now);
@@ -114,6 +120,39 @@ export default function HomeScreen() {
         <Section>
           <MatchReveal destination={match} />
         </Section>
+      ) : !matched ? (
+        /*
+         * A line, not a card with a hole in it. There is nothing to celebrate
+         * yet, so this says what would make one happen and gets out of the way.
+         * It is silent once a match exists and has been seen — announcing "no
+         * matches yet" to a couple who have one would simply be wrong.
+         */
+        <Section>
+          <div className={s.matchEmpty}>
+            <p className={s.matchEyebrow}>Our matches</p>
+            <p className={s.matchTitle}>No matches yet 🔖</p>
+            <p className={s.matchBody}>
+              Save things you&rsquo;d love to do. If you both save the same one, we&rsquo;ll
+              reveal it here.
+            </p>
+            <button
+              type="button"
+              className={s.matchHow}
+              aria-expanded={howOpen}
+              onClick={() => setHowOpen((o) => !o)}
+            >
+              How it works
+            </button>
+            {/* Expands in place rather than going somewhere: a "how it works"
+                that navigated away would be a detour out of an empty state. */}
+            <div className={s.matchReveal} data-open={howOpen || undefined}>
+              <p className={s.matchRevealText}>
+                Neither of you can see what the other has saved. Save anything you like from
+                Explore &mdash; the moment you both save the same thing, it turns up here.
+              </p>
+            </div>
+          </div>
+        </Section>
       ) : null}
 
       {cue ? (
@@ -129,24 +168,28 @@ export default function HomeScreen() {
           </div>
         </Section>
       ) : (
+        /* The hero already says "Find an idea", so this is the smaller, lazier
+           version of the same offer: no filters, no browsing, just take one. */
         <Section>
-          <div className={s.inspire}>
-            <span className={s.inspireMark} aria-hidden />
-            <p className={s.inspireText}>
-              Your next date does not need to be extraordinary. It just needs to be intentional.
-            </p>
-            <div className={s.inspireCta}>
-              <ButtonLink to="/explore" variant="secondary" size="sm">
-                Find a date idea
-              </ButtonLink>
+          <div className={s.spark}>
+            <div className={s.sparkMain}>
+              <p className={s.sparkTitle}>Need a little spark? 🪄</p>
+              <p className={s.sparkBody}>Let Couple777 pick something for you.</p>
             </div>
+            <ButtonLink to="/explore?surprise=1" variant="secondary" size="sm">
+              🎲 Get inspirations
+            </ButtonLink>
           </div>
         </Section>
       )}
 
       {memories.length ? (
         <Section>
-          <SectionHeader title="Recently" actionLabel="All memories" actionTo="/memories" />
+          <SectionHeader
+            title="Recently together"
+            actionLabel="See all memories →"
+            actionTo="/memories"
+          />
           <div className={`${s.recent} no-scrollbar`}>
             {memories.map((m) => (
               <div key={m.id} className={s.recentItem}>
@@ -156,11 +199,19 @@ export default function HomeScreen() {
           </div>
         </Section>
       ) : (
+        /* This was a full-width button that did nothing when tapped — an empty
+           state that looked like a control. It is a real invitation now. */
         <Section>
-          <SectionHeader title="Recently" />
-          <Button variant="secondary" block onClick={() => undefined}>
-            Nothing captured yet
-          </Button>
+          <SectionHeader title="Recently together" />
+          <div className={s.storyStart}>
+            <p className={s.storyTitle}>Your story starts here 📍</p>
+            <p className={s.storyBody}>
+              Save a photo, note, or anything you want to remember.
+            </p>
+            <ButtonLink to="/memories/new" variant="accent" size="sm">
+              Capture a moment
+            </ButtonLink>
+          </div>
         </Section>
       )}
     </Screen>

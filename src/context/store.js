@@ -258,7 +258,23 @@ const StoreContext = createContext(null);
 function emptyState(userId) {
     const base = buildSeedState();
     const local = userId ? readLocal(userId) : {};
-    return { ...base, ...local, onboarded: false, cycles: [], plans: [], memories: [] };
+    return {
+        ...base,
+        ...local,
+        onboarded: false,
+        cycles: [],
+        plans: [],
+        memories: [],
+        /*
+         * The sample couple's saved places come with two matches already in them,
+         * under the seed's own person ids. On a real account that showed up on
+         * Home as "You both want to go to Iceland" before either person had saved
+         * anything — a celebration of something that never happened. A couple who
+         * have saved something have it in their own local slice, which still wins.
+         */
+        destinations: local.destinations ??
+            base.destinations.map((d) => ({ ...d, savedBy: [], matchSeen: false })),
+    };
 }
 export function StoreProvider({ children }) {
     const { user, loading: authLoading, configured } = useAuth();

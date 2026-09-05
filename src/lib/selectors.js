@@ -87,6 +87,10 @@ export function matches(state) {
 export function newMatch(state) {
     return state.destinations.find((d) => d.savedBy.length === 2 && !d.matchSeen);
 }
+/** Any match at all, seen or not — "no matches yet" has to be true when said. */
+export function hasMatches(state) {
+    return state.destinations.some((d) => d.savedBy.length === 2);
+}
 /* --------------------------------- Daily --------------------------------- */
 export function dailyEntry(state, date = today()) {
     return state.daily.find((e) => e.date === date);

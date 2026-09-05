@@ -132,6 +132,21 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
     if (hasCue) setFilters(cued);
   }, [cued, hasCue]);
 
+  /*
+   * Home can ask for the surprise directly — "Get inspirations" should land on
+   * an answer, not on a screen with a button that produces one. The param is
+   * dropped straight away so a reload or a back-forward does not re-fire it.
+   */
+  useEffect(() => {
+    if (!params.get('surprise')) return;
+    const next = new URLSearchParams(params);
+    next.delete('surprise');
+    setParams(next, { replace: true });
+    surpriseUs();
+    // surpriseUs is stable for this screen's lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
+
   const ideas = useMemo(
     () => generateDateIdeas(filters, seed, 4, state.couple.profile, feedback, seen),
     [filters, seed, state.couple.profile, feedback, seen],

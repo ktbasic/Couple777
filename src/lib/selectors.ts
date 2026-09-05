@@ -114,6 +114,11 @@ export function newMatch(state: AppState) {
   return state.destinations.find((d) => d.savedBy.length === 2 && !d.matchSeen);
 }
 
+/** Any match at all, seen or not — "no matches yet" has to be true when said. */
+export function hasMatches(state: AppState) {
+  return state.destinations.some((d) => d.savedBy.length === 2);
+}
+
 /* --------------------------------- Daily --------------------------------- */
 
 export function dailyEntry(state: AppState, date = today()) {

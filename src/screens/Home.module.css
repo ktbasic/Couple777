@@ -67,39 +67,133 @@
 
 /* ---------- Inspiration ---------- */
 
-.inspire {
-  position: relative;
-  padding: var(--s-6) var(--s-5);
+/* ---------- Our matches, before there are any ---------- */
+
+.matchEmpty {
+  padding: var(--s-5);
   border-radius: var(--r-lg);
   background: var(--c-surface-2);
   border: 1px solid var(--c-hairline-soft);
-  text-align: center;
 }
 
-/* A short rule reads better than a giant sans quote glyph. */
-.inspireMark {
-  display: block;
-  width: 28px;
-  height: 3px;
-  border-radius: var(--r-full);
-  background: var(--g-accent);
-  margin: 0 auto var(--s-5);
-  font-size: 0;
+.matchEyebrow {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
 }
 
-.inspireText {
+.matchTitle {
+  margin-top: var(--s-3);
   font-family: var(--f-display);
   font-size: var(--t-title);
   font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+
+.matchBody {
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
   line-height: 1.5;
-  color: var(--c-ink-2);
-  max-width: 32ch;
-  margin: 0 auto;
+  color: var(--c-ink-3);
   text-wrap: pretty;
 }
 
-.inspireCta {
-  margin-top: var(--s-5);
+.matchHow {
+  margin-top: var(--s-3);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-accent-ink);
+  cursor: pointer;
+}
+
+/* Opens in place. A row of 0fr → 1fr rather than a height, so the text sets
+   its own size and the transition still has something to animate. */
+.matchReveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--d-base) var(--ease);
+}
+.matchReveal[data-open] {
+  grid-template-rows: 1fr;
+}
+
+.matchRevealText {
+  overflow: hidden;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--c-ink-3);
+  text-wrap: pretty;
+  opacity: 0;
+  transition: opacity var(--d-base) var(--ease);
+}
+.matchReveal[data-open] .matchRevealText {
+  margin-top: var(--s-3);
+  opacity: 1;
+}
+
+/* ---------- A smaller offer than the hero's ---------- */
+
+.spark {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-hairline-soft);
+}
+
+.sparkMain {
+  flex: 1 1 150px;
+  min-width: 0;
+}
+
+.sparkTitle {
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.sparkBody {
+  margin-top: 1px;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  text-wrap: pretty;
+}
+
+/* ---------- Nothing captured yet ---------- */
+
+.storyStart {
+  padding: var(--s-6) var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-accent-wash);
+  border: 1px solid var(--c-accent-edge);
+  text-align: center;
+}
+
+.storyTitle {
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+
+.storyBody {
+  margin: var(--s-2) auto var(--s-5);
+  max-width: 30ch;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--c-ink-3);
+  text-wrap: pretty;
 }
 
 /* ---------- Capture nudge ---------- */
