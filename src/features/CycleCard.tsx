@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { ButtonLink } from '@/components/ui/Button';
 import { CosmicAccent } from '@/components/ui/CosmicPair';
@@ -71,8 +72,15 @@ export function CycleCardCompact({ view }: { view: CycleView }) {
   );
 }
 
+/* The orbit, in the one place both the drawn ellipse and the heart's track
+   read it from. The track is a circle of ORBIT_RX squashed to ORBIT_RY/ORBIT_RX
+   and tilted, so these three numbers decide both. */
+const ORBIT_RX = 168;
+const ORBIT_RY = 63;
+const ORBIT_TILT = -14;
+
 const HEART = (
-  <svg viewBox="0 0 16 16" width="9" height="9" aria-hidden>
+  <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden>
     <path
       d="M8 13.6C3.7 10.6 1.6 8.4 1.6 5.9 1.6 3.9 3.1 2.4 5 2.4c1.2 0 2.3.6 3 1.6.7-1 1.8-1.6 3-1.6 1.9 0 3.4 1.5 3.4 3.5 0 2.5-2.1 4.7-6.4 7.7Z"
       fill="currentColor"
@@ -108,15 +116,53 @@ export function CycleCardHero({ view }: { view: CycleView }) {
   const count = countdown(view);
 
   return (
-    <div className={`${s.card} ${s.hero}`} data-tier={view.cycle.tier}>
-      {/* One glow, one orbit, two small travellers. Everything here is behind
-          the type and out of the way of it: the countdown is the subject and
-          this is the room it sits in. */}
-      <div className={s.decor} aria-hidden>
-        <span className={s.aura} />
-        <span className={s.orbit}>
-          <span className={s.orbitNode}>{HEART}</span>
-        </span>
+    <div
+      className={s.hero}
+      data-tier={view.cycle.tier}
+      style={
+        {
+          '--orbit-rx': `${ORBIT_RX}px`,
+          '--orbit-squash': ORBIT_RY / ORBIT_RX,
+          '--orbit-tilt': `${ORBIT_TILT}deg`,
+        } as CSSProperties
+      }
+    >
+      {/*
+        A planet, one orbit around it, and two travellers — not a card. The
+        countdown is standing in the middle of a small piece of sky, so there
+        is no panel, no border and no shadow behind it: the round shapes carry
+        the composition and the page shows through everywhere else.
+
+        The heart is moved by two nested rotations rather than an `offset-path`
+        so it works the same everywhere: the track is a circle squashed and
+        tilted into the orbit's ellipse, and the heart counter-rotates and
+        counter-squashes by exactly the same amounts, which leaves it upright
+        and perfectly round the whole way round.
+      */}
+      <div className={s.sky} aria-hidden>
+        <span className={s.planet} />
+
+        <svg className={s.orbitArt} viewBox="0 0 360 260" preserveAspectRatio="xMidYMid meet">
+          <ellipse
+            cx="180"
+            cy="130"
+            rx={ORBIT_RX}
+            ry={ORBIT_RY}
+            transform={`rotate(${ORBIT_TILT} 180 130)`}
+            fill="none"
+            stroke="var(--edge)"
+            strokeWidth="1"
+          />
+        </svg>
+
+        <div className={s.track}>
+          <div className={s.spin}>
+            <span className={s.node}>
+              <span className={s.nodeInner}>{HEART}</span>
+            </span>
+          </div>
+        </div>
+
         <CosmicAccent className={s.moteA} tone="warm" />
         <CosmicAccent className={s.moteB} tone="cool" flip />
       </div>

@@ -1,19 +1,22 @@
 /* Tier colour is resolved once, then everything below uses these.
    --tint paints dots, rings and fills; --tint-ink carries the small
    uppercase type, which needs the darker tone to stay readable. */
-.card[data-tier='day'] {
+.card[data-tier='day'],
+.hero[data-tier='day'] {
   --tint: var(--c-day);
   --tint-ink: var(--c-day-ink);
   --wash: var(--c-day-wash);
   --edge: var(--c-day-edge);
 }
-.card[data-tier='week'] {
+.card[data-tier='week'],
+.hero[data-tier='week'] {
   --tint: var(--c-week);
   --tint-ink: var(--c-week-ink);
   --wash: var(--c-week-wash);
   --edge: var(--c-week-edge);
 }
-.card[data-tier='month'] {
+.card[data-tier='month'],
+.hero[data-tier='month'] {
   --tint: var(--c-month);
   --tint-ink: var(--c-month-ink);
   --wash: var(--c-month-wash);
@@ -99,84 +102,119 @@
 
 /* ---------------- Hero ---------------- */
 
+/*
+ * Not a card. A panel with a border and a shadow makes the countdown a widget
+ * on a dashboard; here it stands in a small piece of sky and the page shows
+ * through around it, so the round shapes are the only structure.
+ */
 .hero {
   position: relative;
-  overflow: hidden;
-  border-color: var(--edge);
-  /* A single wash that lifts toward the top, so the countdown sits in light
-     rather than on a flat panel. One gradient does what a pile of decoration
-     was doing before. */
-  background:
-    radial-gradient(120% 78% at 50% 4%, #FFFFFF 0%, rgba(255, 255, 255, 0) 62%),
-    var(--wash);
-  padding: var(--s-8) var(--s-5) var(--s-6);
-  box-shadow: var(--e-2);
+  padding: var(--s-7) var(--s-5) var(--s-6);
+  text-align: center;
 }
 
-/* ---- The room the countdown sits in ---- */
-
-.decor {
+.sky {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-/* One soft disc behind the number. It is the only large shape here. */
-.aura {
+/* Lit from the upper left and fading out at the rim rather than ending on a
+   drawn edge — a hard circle would be another box, just rounder. */
+.planet {
   position: absolute;
   left: 50%;
-  top: 8px;
-  width: 292px;
-  height: 292px;
-  margin-left: -146px;
+  top: -24px;
+  width: 300px;
+  height: 300px;
+  margin-left: -150px;
   border-radius: 50%;
   background: radial-gradient(
-    closest-side,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(255, 255, 255, 0.55) 58%,
+    circle at 36% 26%,
+    #ffffff 0%,
+    #fef5f8 34%,
+    var(--wash) 66%,
+    var(--edge) 90%,
     rgba(255, 255, 255, 0) 100%
   );
-  animation: auraBreathe 11s var(--ease-soft) infinite;
+  animation: planetBreathe 13s var(--ease-soft) infinite;
 }
 
-@keyframes auraBreathe {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50%      { transform: scale(1.035); opacity: 0.9; }
+@keyframes planetBreathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.022); }
 }
 
-/* A single hairline orbit, tilted, with one heart riding it. Not a system of
-   rings — one line is enough to say "cosmic" and quiet enough to ignore. */
-.orbit {
+/* Drawn rather than made from a scaled border: squashing a circular border
+   thins its top and bottom to nothing, and this line is the composition. */
+.orbitArt {
   position: absolute;
   left: 50%;
-  top: 86px;
-  width: 262px;
-  height: 98px;
-  margin-left: -131px;
-  border: 1px solid var(--edge);
-  opacity: 0.85;
-  border-radius: 50%;
-  transform: rotate(-13deg);
+  top: -12px;
+  width: 360px;
+  height: 260px;
+  margin-left: -180px;
+  overflow: visible;
 }
 
-.orbitNode {
+/* The heart's path: a circle of --orbit-rx, squashed and tilted into exactly
+   the ellipse above. Invisible; it only carries the heart. */
+.track {
   position: absolute;
-  top: 2px;
-  right: 14px;
-  width: 21px;
-  height: 21px;
-  border-radius: 50%;
+  left: 50%;
+  top: 118px;
+  width: calc(var(--orbit-rx) * 2);
+  height: calc(var(--orbit-rx) * 2);
+  margin-left: calc(var(--orbit-rx) * -1);
+  margin-top: calc(var(--orbit-rx) * -1);
+  transform: rotate(var(--orbit-tilt)) scaleY(var(--orbit-squash));
+}
+
+.spin {
+  position: absolute;
+  inset: 0;
+  animation: orbit 26s linear infinite;
+  will-change: transform;
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.node {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  /* Exactly undoes the track's rotation, once per revolution. */
+  animation: orbitBack 26s linear infinite;
+  will-change: transform;
+}
+
+@keyframes orbitBack {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+/* And exactly undoes the track's squash and tilt, so the heart stays round
+   and upright wherever it is on the ellipse. */
+.nodeInner {
   display: grid;
   place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
   background: var(--g-accent);
   color: var(--c-on-accent);
-  box-shadow: 0 3px 9px rgba(232, 94, 142, 0.28);
-  /* Undoes the orbit's tilt so the heart stays upright on it. */
-  transform: rotate(13deg);
+  box-shadow: 0 3px 10px rgba(232, 94, 142, 0.3);
+  transform: scaleY(calc(1 / var(--orbit-squash))) rotate(calc(-1 * var(--orbit-tilt)));
 }
 
-/* Brand accents, deliberately small and low-contrast: they sit at the edges
-   of the number, never over it. */
+/* Brand accents, deliberately small and low-contrast: they ride the orbit at
+   the sides of the planet, never over the number. */
 .moteA,
 .moteB {
   position: absolute;
@@ -184,14 +222,14 @@
 }
 
 .moteA {
-  left: 12px;
-  top: 96px;
+  left: 2px;
+  top: 62px;
   width: 76px;
 }
 
 .moteB {
-  right: 10px;
-  top: 128px;
+  right: 2px;
+  top: 158px;
   width: 72px;
 }
 
@@ -199,7 +237,6 @@
 
 .heroBody {
   position: relative;
-  text-align: center;
 }
 
 .heroCadence {
@@ -226,8 +263,8 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* "Today" and "Tomorrow" are words, and a word at 92px is a headline that has
-   lost its nerve. They step down and keep the block the same height. */
+/* "Today" and "Tomorrow" are words, and a word at 100px is a headline that has
+   lost its nerve. They step down and keep the block the same shape. */
 .count[data-word] {
   font-size: 2.75rem;
   letter-spacing: -0.035em;
@@ -262,7 +299,7 @@
 }
 
 .heroPlan {
-  margin-top: var(--s-6);
+  margin-top: var(--s-7);
   text-align: left;
   display: flex;
   align-items: center;
@@ -299,11 +336,17 @@
 }
 
 .actions {
-  margin-top: var(--s-6);
+  margin-top: var(--s-7);
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   gap: var(--s-2);
+}
+
+/* After the plan card the buttons belong to it, so they sit closer. The wide
+   gap above is for the empty state, where they clear the planet. */
+.heroPlan + .actions {
+  margin-top: var(--s-5);
 }
 
 .surprise {
