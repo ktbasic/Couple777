@@ -72,6 +72,36 @@ export function CycleCardCompact({ view }: { view: CycleView }) {
   );
 }
 
+/* The compass is the one the Explore tab already uses — "Find an idea" goes
+   to Explore, so the button and the destination wear the same mark. Both are
+   drawn here at the size the buttons need rather than scaled down from 22px,
+   which would have thinned their strokes. */
+const COMPASS = (
+  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+    <circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" strokeWidth="1.7" />
+    <path
+      d="m15 9-2 4.2-4 1.8 2-4.2z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const PLUS = (
+  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+    <path
+      d="M12 5.2v13.6M5.2 12h13.6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
 /* The orbit, in the one place both the drawn ellipse and the heart's track
    read it from. The track is a circle of ORBIT_RX squashed to ORBIT_RY/ORBIT_RX
    and tilted, so these three numbers decide both. */
@@ -208,10 +238,20 @@ export function CycleCardHero({ view }: { view: CycleView }) {
       ) : (
         <>
           <div className={s.actions}>
-            <ButtonLink to={`/explore?cycle=${view.cycle.id}`} variant="accent" size="sm">
+            <ButtonLink
+              to={`/explore?cycle=${view.cycle.id}`}
+              variant="accent"
+              size="sm"
+              icon={COMPASS}
+            >
               Find an idea
             </ButtonLink>
-            <ButtonLink to={`/plan/new?cycle=${view.cycle.id}`} variant="quiet" size="sm">
+            <ButtonLink
+              to={`/plan/new?cycle=${view.cycle.id}`}
+              variant="quiet"
+              size="sm"
+              icon={PLUS}
+            >
               Create my own
             </ButtonLink>
           </div>
