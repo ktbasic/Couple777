@@ -224,25 +224,20 @@
  * so the heart spends the first half of every revolution in front of the
  * planet and the second half behind it. It cannot actually go behind — it is
  * one element painted over the disc — so the far half is dimmed, softened and
- * shrunk very slightly instead, and the eye reads the rest.
+ * shrunk instead, and the eye reads the rest.
  *
- * The front arc is left completely alone; all of the change happens in the
- * back half and the two crossings, which is what keeps it a depth cue rather
- * than a blink. A uniform scale commutes with the un-squash beside it, so the
- * heart stays perfectly round while it shrinks.
+ * The sides are the two moments it is out in the open: clear of the planet,
+ * and clear of the type. Everywhere else it is crossing something. It passes
+ * under "days" at the bottom of the ellipse and over the kicker at the top,
+ * and a solid pink disc sitting on a word is a smudge on the word — so it
+ * recedes there too, hardest at the top where it is also furthest away.
+ *
+ * A uniform scale commutes with the un-squash beside it, so the heart stays
+ * perfectly round while it shrinks.
  */
 @keyframes orbitDepth {
-  0%, 100% {
-    /* the near side of the planet, half way through the crossing */
-    opacity: 0.93;
-    filter: blur(0.2px);
-    transform: scaleY(calc(1 / var(--orbit-squash)))
-      rotate(calc(-1 * var(--orbit-tilt)))
-      scale(0.985);
-  }
-
-  6%, 44% {
-    /* the whole front arc, unchanged */
+  0%, 50%, 100% {
+    /* out at the sides, clear of the type and clear of the planet */
     opacity: 1;
     filter: blur(0px);
     transform: scaleY(calc(1 / var(--orbit-squash)))
@@ -250,37 +245,54 @@
       scale(1);
   }
 
-  50% {
-    opacity: 0.93;
+  8%, 42% {
+    opacity: 0.92;
     filter: blur(0.2px);
     transform: scaleY(calc(1 / var(--orbit-squash)))
       rotate(calc(-1 * var(--orbit-tilt)))
-      scale(0.985);
+      scale(0.99);
   }
 
-  56%, 94% {
-    opacity: 0.72;
-    filter: blur(0.7px);
+  16%, 34% {
+    opacity: 0.74;
+    filter: blur(0.45px);
     transform: scaleY(calc(1 / var(--orbit-squash)))
       rotate(calc(-1 * var(--orbit-tilt)))
-      scale(0.95);
+      scale(0.975);
   }
 
-  62%, 88% {
+  25% {
+    /* the near arc, sweeping under "days" */
     opacity: 0.62;
-    filter: blur(0.95px);
+    filter: blur(0.6px);
     transform: scaleY(calc(1 / var(--orbit-squash)))
       rotate(calc(-1 * var(--orbit-tilt)))
-      scale(0.93);
+      scale(0.96);
+  }
+
+  58%, 92% {
+    opacity: 0.72;
+    filter: blur(0.9px);
+    transform: scaleY(calc(1 / var(--orbit-squash)))
+      rotate(calc(-1 * var(--orbit-tilt)))
+      scale(0.96);
+  }
+
+  66%, 84% {
+    opacity: 0.45;
+    filter: blur(1.4px);
+    transform: scaleY(calc(1 / var(--orbit-squash)))
+      rotate(calc(-1 * var(--orbit-tilt)))
+      scale(0.925);
   }
 
   75% {
-    /* the far side, behind the planet */
-    opacity: 0.55;
-    filter: blur(1.1px);
+    /* the far arc, behind the planet and across the kicker */
+    opacity: 0.32;
+    filter: blur(1.6px);
     transform: scaleY(calc(1 / var(--orbit-squash)))
       rotate(calc(-1 * var(--orbit-tilt)))
-      scale(0.915);
+      scale(0.9);
   }
 }
 
