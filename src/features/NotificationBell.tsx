@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/context/store';
-import { notifications, type AppNotification } from '@/lib/selectors';
+import { byPriority, notifications, type AppNotification } from '@/lib/selectors';
 import s from './NotificationBell.module.css';
 
 const REMOTE_EMOJI: Record<string, string> = {
@@ -40,7 +40,32 @@ export function NotificationBell() {
     read: Boolean(n.read_at) || state.readNotificationIds.includes(n.id),
   }));
 
-  const items = [...remote, ...derived].sort((a, b) => b.at - a.at);
+  const relationship = [...remote, ...derived].sort(byPriority);
+
+  /*
+   * The one item that is about the app rather than about the two of you, so it
+   * waits until nothing about the two of you is waiting. Anything else in the
+   * list outranks it — being asked to finish your profile over the top of your
+   * partner asking you out is how an app makes itself the point.
+   */
+  const nudge: AppNotification[] =
+    relationship.length === 0 && !me.age
+      ? [
+          {
+            id: 'profile-age',
+            kind: 'profile' as const,
+            emoji: '\u2728',
+            title: 'Help Couple777 get to know you',
+            body: 'Add your age to improve your profile and recommendations.',
+            to: '/us?edit=me',
+            cta: 'Complete profile',
+            at: Date.now(),
+            read: state.readNotificationIds.includes('profile-age'),
+          },
+        ]
+      : [];
+
+  const items = [...relationship, ...nudge];
   const unread = items.filter((n) => !n.read);
 
   const openItem = (id: string, to: string) => {
@@ -104,6 +129,7 @@ export function NotificationBell() {
                   <span className={s.itemMain}>
                     <span className={s.itemTitle}>{n.title}</span>
                     <span className={s.itemBody}>{n.body}</span>
+                    {n.cta ? <span className={s.itemCta}>{n.cta}</span> : null}
                   </span>
                   {!n.read ? <span className={s.dot} aria-hidden /> : null}
                 </button>

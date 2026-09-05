@@ -68,6 +68,8 @@ export function AvatarPicker({
   );
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState(person.name);
+  const [editingAge, setEditingAge] = useState(false);
+  const [ageDraft, setAgeDraft] = useState(person.age ? String(person.age) : '');
 
   /*
    * You can change your own name and face. You can change what your partner
@@ -86,6 +88,21 @@ export function AvatarPicker({
       toast.show({ emoji: '\u270F\uFE0F', message: 'Name updated' });
     }
     setRenaming(false);
+  };
+
+  const saveAge = () => {
+    const parsed = Number.parseInt(ageDraft, 10);
+    // A range wide enough for anyone real and narrow enough to catch a typo.
+    if (!Number.isFinite(parsed) || parsed < 13 || parsed > 120) return;
+    dispatch({ type: 'setPersonAge', personId: person.id, age: parsed });
+    toast.show({ emoji: '\u2728', message: 'Profile updated' });
+    setEditingAge(false);
+  };
+
+  const clearAge = () => {
+    dispatch({ type: 'setPersonAge', personId: person.id, age: undefined });
+    setAgeDraft('');
+    setEditingAge(false);
   };
 
   // The sheet stays open so the preview at the top updates under your thumb
@@ -161,9 +178,59 @@ export function AvatarPicker({
                   </button>
                 ) : null}
               </div>
-              <p className={s.currentHint}>
-                {person.avatarUrl ? 'Using a photo' : 'Using a Couple777 avatar'}
-              </p>
+              {isMe && editingAge ? (
+                <form
+                  className={s.ageForm}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    saveAge();
+                  }}
+                >
+                  <input
+                    className={s.ageInput}
+                    value={ageDraft}
+                    onChange={(e) => setAgeDraft(e.target.value.replace(/[^0-9]/g, ''))}
+                    inputMode="numeric"
+                    maxLength={3}
+                    autoFocus
+                    aria-label="Age"
+                    placeholder="Age"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') setEditingAge(false);
+                    }}
+                  />
+                  <button type="submit" className={s.nameSave} disabled={!ageDraft.trim()}>
+                    Save
+                  </button>
+                  {person.age ? (
+                    <button type="button" className={s.ageRemove} onClick={clearAge}>
+                      Remove
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className={s.nameCancel}
+                    onClick={() => setEditingAge(false)}
+                  >
+                    Cancel
+                  </button>
+                </form>
+              ) : isMe ? (
+                <button
+                  type="button"
+                  className={person.age ? s.currentHint : s.addAge}
+                  onClick={() => {
+                    setAgeDraft(person.age ? String(person.age) : '');
+                    setEditingAge(true);
+                  }}
+                >
+                  {person.age ? `${person.age} years old` : 'Add your age'}
+                </button>
+              ) : (
+                <p className={s.currentHint}>
+                  {person.age ? `${person.age} years old` : 'No age shared'}
+                </p>
+              )}
             </>
           )}
         </div>

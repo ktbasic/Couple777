@@ -149,6 +149,15 @@
   line-height: 1.45;
 }
 
+/* Reads as the action it is, without becoming a button inside a button. */
+.itemCta {
+  display: inline-block;
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-accent-ink);
+}
+
 .dot {
   flex: none;
   width: 7px;

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Screen, Section } from '@/components/layout/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Avatar } from '@/components/ui/Avatar';
@@ -30,6 +30,17 @@ export default function UsScreen() {
   const navigate = useNavigate();
   const toast = useToast();
   const [editingId, setEditingId] = useState<ID | null>(null);
+  const [params, setParams] = useSearchParams();
+
+  /* ?edit=me opens your own profile straight away, so the nudge in the bell
+     lands on the thing it is asking for rather than near it. */
+  useEffect(() => {
+    if (params.get('edit') !== 'me') return;
+    setEditingId(me.id);
+    const next = new URLSearchParams(params);
+    next.delete('edit');
+    setParams(next, { replace: true });
+  }, [params, setParams, me.id]);
   const editing = state.couple.people.find((p) => p.id === editingId) ?? null;
 
   const stats = relationshipStats(state);

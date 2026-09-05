@@ -56,6 +56,8 @@ export interface Person {
   avatarUrl?: string;
   /** A chosen Couple777 avatar, used when there is no photo. */
   avatarId?: string;
+  /** Optional, and never asked for during onboarding. */
+  age?: number;
   initial: string;
 }
 

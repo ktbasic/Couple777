@@ -174,7 +174,10 @@ export type NotificationKind =
   | 'ritual-due'
   | 'capture-memory'
   /* Written by the other person on their own phone, so it cannot be derived. */
-  | 'from-partner';
+  | 'from-partner'
+  /* Optional housekeeping, and the only kind that is about the app rather
+     than about the two of you. */
+  | 'profile';
 
 export interface AppNotification {
   id: ID;
@@ -184,9 +187,36 @@ export interface AppNotification {
   body: string;
   /** Where tapping it takes you. */
   to: string;
-  /** Sort key, newest first. */
+  /** Sort key, newest first, within a priority band. */
   at: number;
   read: boolean;
+  /**
+   * A named action, for the items where the row alone does not say what
+   * tapping it will do. Relationship items never need one — "Marian said yes"
+   * is its own instruction.
+   */
+  cta?: string;
+}
+
+/*
+ * What matters, in order.
+ *
+ * Sorting by time alone let a two-day-old nudge about your own profile sit
+ * above your partner asking you out this evening. Time only decides between
+ * things of the same weight now.
+ */
+const PRIORITY: Record<NotificationKind, number> = {
+  'from-partner': 1,
+  note: 1,
+  'date-soon': 2,
+  'ritual-due': 2,
+  'daily-answer': 3,
+  'capture-memory': 4,
+  profile: 5,
+};
+
+export function byPriority(a: AppNotification, b: AppNotification): number {
+  return PRIORITY[a.kind] - PRIORITY[b.kind] || b.at - a.at;
 }
 
 /**
@@ -270,7 +300,7 @@ export function notifications(state: AppState, meId: ID, partnerId: ID, now = to
 
   return items
     .map((n) => ({ ...n, read: state.readNotificationIds.includes(n.id) }))
-    .sort((a, b) => b.at - a.at);
+    .sort(byPriority);
 }
 
 export function unreadNotificationCount(state: AppState, meId: ID, partnerId: ID): number {

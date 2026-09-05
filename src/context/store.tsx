@@ -86,6 +86,7 @@ type Action =
     }
   | { type: 'setPartnerJoined'; joined: boolean }
   | { type: 'setPersonAvatar'; personId: ID; avatarId?: string; avatarUrl?: string }
+  | { type: 'setPersonAge'; personId: ID; age?: number }
   | { type: 'renamePerson'; personId: ID; name: string }
   | { type: 'markNotificationsRead'; ids: ID[] }
   | { type: 'setNotifications'; enabled: boolean }
@@ -147,6 +148,17 @@ function reducer(state: AppState, action: Action): AppState {
                 // clears the other rather than leaving a stale fallback.
                 { ...p, avatarId: action.avatarId, avatarUrl: action.avatarUrl }
               : p,
+          ) as AppState['couple']['people'],
+        },
+      };
+
+    case 'setPersonAge':
+      return {
+        ...state,
+        couple: {
+          ...state.couple,
+          people: state.couple.people.map((p) =>
+            p.id === action.personId ? { ...p, age: action.age } : p,
           ) as AppState['couple']['people'],
         },
       };
@@ -732,6 +744,21 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
         avatar_type: action.avatarUrl ? 'photo' : 'avatar',
         avatar_value: action.avatarUrl ?? action.avatarId ?? null,
       });
+      return true;
+    }
+
+    case 'setPersonAge': {
+      if (action.personId !== userId) return false;
+      /*
+       * Read, merge, write. The preferences document also holds the identity
+       * answer from onboarding, and upsert replaces a jsonb column whole — so
+       * writing { age } on its own would quietly take the rest with it.
+       */
+      const profile = await repo.getProfile(userId);
+      const prefs = { ...((profile?.relationship_preferences as Record<string, unknown>) ?? {}) };
+      if (action.age == null) delete prefs.age;
+      else prefs.age = action.age;
+      await repo.upsertProfile(userId, { relationship_preferences: prefs as never });
       return true;
     }
 

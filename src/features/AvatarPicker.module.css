@@ -237,3 +237,71 @@
   line-height: 1.5;
   color: var(--c-ink-2);
 }
+
+/* Optional, so it is offered rather than demanded: a quiet prompt where the
+   age would be, in the same place the age will sit once it is given. */
+.addAge {
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-accent-ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.ageForm {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.ageInput {
+  width: 84px;
+  height: 38px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--c-accent-edge);
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.ageInput:focus {
+  outline: none;
+  border-color: var(--c-accent);
+}
+
+.ageRemove {
+  height: 38px;
+  padding: 0 var(--s-3);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-3);
+  cursor: pointer;
+}
+
+/* The age line is a button when it is yours to change, so it needs the
+   element's own chrome stripped back to the text. */
+button.currentHint {
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+  text-align: left;
+  cursor: pointer;
+}
