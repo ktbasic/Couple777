@@ -222,6 +222,7 @@
 /* And exactly undoes the track's squash and tilt, so the heart stays round
    and upright wherever it is on the ellipse. */
 .nodeInner {
+  position: relative;
   display: grid;
   place-items: center;
   width: 100%;
@@ -231,10 +232,56 @@
   color: var(--c-on-accent);
   box-shadow: 0 3px 10px rgba(232, 94, 142, 0.3);
   transform: scaleY(calc(1 / var(--orbit-squash))) rotate(calc(-1 * var(--orbit-tilt)));
-  /* Same 26s and the same linear timing as the two rotations, so the depth
-     stays locked to where the heart actually is. */
-  animation: orbitDepth 26s linear infinite;
+  /*
+   * Two clocks on the same 26s, both locked to where the heart actually is.
+   * The depth is linear because it is describing distance, which changes
+   * smoothly. The swap is stepped because it is describing whether the heart
+   * is over a word, which is not a matter of degree: it holds one look until
+   * the boundary and then changes on the frame.
+   */
+  animation:
+    orbitDepth 26s linear infinite,
+    heartSwap 26s steps(1, end) infinite;
   will-change: opacity, transform;
+}
+
+/*
+ * Over the type, the heart turns into a white token with a pink mark on it.
+ *
+ * The words are painted on top of it either way, but a saturated pink disc
+ * under dark type is still a smudge to read through; white is not. The
+ * boundaries below are the phases where the heart's box actually meets the
+ * ink of the kicker, the number, the unit or the sub-line, worked out from
+ * the orbit's own geometry and padded a little so a longer number or the
+ * "Tomorrow" wording cannot creep outside them.
+ */
+@keyframes heartSwap {
+  0%, 40%, 84% {
+    background: var(--g-accent);
+    color: var(--c-on-accent);
+    box-shadow: 0 3px 10px rgba(232, 94, 142, 0.3);
+  }
+  22%, 70% {
+    background: #ffffff;
+    color: var(--c-accent);
+    box-shadow: 0 2px 9px rgba(168, 92, 118, 0.22);
+  }
+}
+
+/* A single sparkle, on only while the token is white. */
+.nodeSpark {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: inline-flex;
+  color: var(--c-gold);
+  opacity: 0;
+  animation: sparkSwap 26s steps(1, end) infinite;
+}
+
+@keyframes sparkSwap {
+  0%, 40%, 84% { opacity: 0; }
+  22%, 70%     { opacity: 1; }
 }
 
 /*
@@ -310,14 +357,16 @@
  */
 @keyframes driftA {
   0%, 100% { transform: translate(0, 0); }
-  30%      { transform: translate(-2.5px, -5px); }
-  62%      { transform: translate(2px, -2px); }
+  26%      { transform: translate(-3px, -9px); }
+  52%      { transform: translate(2px, -3px); }
+  76%      { transform: translate(3px, -8px); }
 }
 
 @keyframes driftB {
   0%, 100% { transform: translate(0, 0); }
-  34%      { transform: translate(3px, -4px); }
-  70%      { transform: translate(-2px, -6.5px); }
+  30%      { transform: translate(4px, -7px); }
+  58%      { transform: translate(-2px, -2px); }
+  78%      { transform: translate(-3px, -10px); }
 }
 
 /* ---- The countdown ---- */

@@ -112,9 +112,9 @@ const PLUS = (
  * kicker and the sub-line; steepening it swings those points out to roughly
  * ±115px, where there is nothing to collide with.
  */
-const ORBIT_RX = 176;
-const ORBIT_RY = 56;
-const ORBIT_TILT = -22;
+const ORBIT_RX = 186;
+const ORBIT_RY = 76;
+const ORBIT_TILT = -20;
 
 /* The ellipse's own major-axis ends, where the near half meets the far half —
    the silhouette of the ring, and so where the two arcs are cut. */
@@ -129,6 +129,16 @@ const ARC = `A ${ORBIT_RX} ${ORBIT_RY} ${ORBIT_TILT} 0 1`;
 /** Sweeping clockwise from the right-hand end goes down: the near half. */
 const ORBIT_FRONT = `M ${A} ${ARC} ${B}`;
 const ORBIT_BACK = `M ${B} ${ARC} ${A}`;
+
+/* Shown only while the heart is crossing type, where it turns white. */
+const SPARK_DOT = (
+  <svg viewBox="0 0 16 16" width="9" height="9" aria-hidden>
+    <path
+      d="M8 0.8c.9 5.2 1.5 5.9 6.4 6.4v.2c-4.9.5-5.5 1.2-6.4 6.4h-.2C6.9 8.6 6.3 7.9 1.4 7.4v-.2C6.3 6.7 6.9 6 7.8.8Z"
+      fill="currentColor"
+    />
+  </svg>
+);
 
 const HEART = (
   <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden>
@@ -210,7 +220,10 @@ export function CycleCardHero({ view }: { view: CycleView }) {
         <div className={s.track}>
           <div className={s.spin}>
             <span className={s.node}>
-              <span className={s.nodeInner}>{HEART}</span>
+              <span className={s.nodeInner}>
+                {HEART}
+                <span className={s.nodeSpark}>{SPARK_DOT}</span>
+              </span>
             </span>
           </div>
         </div>
