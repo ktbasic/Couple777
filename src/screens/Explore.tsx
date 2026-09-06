@@ -336,7 +336,7 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
             like one — two buttons of equal weight is a question, and this
             screen is meant to answer questions rather than ask another. */}
         <div className={s.genActions}>
-          <Button variant="accent" size="lg" block glow onClick={generate}>
+          <Button variant="accent" size="lg" block onClick={generate}>
             {generated ? (
               <>
                 Refresh ideas <RefreshMark />
@@ -347,7 +347,6 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
           </Button>
           <button type="button" className={s.diceCta} onClick={surpriseUs}>
             <span className={s.diceLabel}>🎲 Surprise us</span>
-            <span className={s.diceHint}>Random pick</span>
           </button>
         </div>
       </div>

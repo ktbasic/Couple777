@@ -370,14 +370,11 @@
  * still obviously tappable, obviously not the point.
  */
 .diceCta {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
+  display: block;
   width: 100%;
   /* Shorter than the button above it as well as quieter: a taller secondary
      reads as the more important one however plain it looks. */
-  padding: 6px var(--s-2) 8px;
+  padding: 10px var(--s-2);
   background: none;
   border: 0;
   cursor: pointer;
@@ -395,11 +392,6 @@
   font-size: var(--t-small);
   font-weight: 600;
   color: var(--c-ink-2);
-}
-
-.diceHint {
-  font-size: var(--t-micro);
-  color: var(--c-ink-4);
 }
 
 .genActions {
