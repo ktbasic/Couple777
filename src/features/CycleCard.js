@@ -67,22 +67,22 @@ const ORBIT_BACK = `M ${B} ${ARC} ${A}`;
 const SPARK_DOT = (_jsx("svg", { viewBox: "0 0 16 16", width: "9", height: "9", "aria-hidden": true, children: _jsx("path", { d: "M8 0.8c.9 5.2 1.5 5.9 6.4 6.4v.2c-4.9.5-5.5 1.2-6.4 6.4h-.2C6.9 8.6 6.3 7.9 1.4 7.4v-.2C6.3 6.7 6.9 6 7.8.8Z", fill: "currentColor" }) }));
 const HEART = (_jsx("svg", { viewBox: "0 0 16 16", width: "11", height: "11", "aria-hidden": true, children: _jsx("path", { d: "M8 13.6C3.7 10.6 1.6 8.4 1.6 5.9 1.6 3.9 3.1 2.4 5 2.4c1.2 0 2.3.6 3 1.6.7-1 1.8-1.6 3-1.6 1.9 0 3.4 1.5 3.4 3.5 0 2.5-2.1 4.7-6.4 7.7Z", fill: "currentColor" }) }));
 /**
- * The countdown, as an editorial line rather than a sentence.
+ * The countdown, as two words rather than a sentence.
  *
  * A number is the one thing on this screen worth reading from across the
- * room, so it gets to be a number. The days that have no number — today,
- * tomorrow, and a cycle that has slipped — say the word instead, at a size
- * that keeps the block the same shape.
+ * room, so it gets to be a number and "days left" gets to be the whole
+ * caption. The days that have no number — today, tomorrow, and a cycle that
+ * has slipped — say the word on its own, at a size that keeps the block the
+ * same shape. The cadence above already says what is being counted to.
  */
 function countdown(view) {
-    const noun = CYCLE_NOUN[view.cycle.tier];
     if (view.overdue)
-        return { big: 'Now', unit: null, sub: `is a good time for your next ${noun}.` };
+        return { big: 'Now', unit: null };
     if (view.daysAway === 0)
-        return { big: 'Today', unit: null, sub: `your ${noun} is here.` };
+        return { big: 'Today', unit: null };
     if (view.daysAway === 1)
-        return { big: 'Tomorrow', unit: null, sub: `your ${noun} is almost here.` };
-    return { big: String(view.daysAway), unit: 'days', sub: `to your next ${noun}.` };
+        return { big: 'Tomorrow', unit: null };
+    return { big: String(view.daysAway), unit: 'days left' };
 }
 /**
  * The hero. Which cycle gets it is decided by attention, not by tier — see
@@ -98,6 +98,6 @@ export function CycleCardHero({ view }) {
             '--orbit-rx': `${ORBIT_RX}px`,
             '--orbit-squash': ORBIT_RY / ORBIT_RX,
             '--orbit-tilt': `${ORBIT_TILT}deg`,
-        }, children: [_jsxs("div", { className: s.sky, "aria-hidden": true, children: [_jsx("svg", { className: s.orbitBack, viewBox: "0 0 360 260", preserveAspectRatio: "xMidYMid meet", children: _jsx("path", { d: ORBIT_BACK, fill: "none", stroke: "var(--edge)", strokeWidth: "1" }) }), _jsx("span", { className: s.planet }), _jsx("svg", { className: s.orbitFront, viewBox: "0 0 360 260", preserveAspectRatio: "xMidYMid meet", children: _jsx("path", { d: ORBIT_FRONT, fill: "none", stroke: "var(--edge)", strokeWidth: "1.1" }) }), _jsx("div", { className: s.track, children: _jsx("div", { className: s.spin, children: _jsx("span", { className: s.node, children: _jsxs("span", { className: s.nodeInner, children: [HEART, _jsx("span", { className: s.nodeSpark, children: SPARK_DOT })] }) }) }) }), _jsx(CosmicAccent, { className: s.moteA, tone: "warm" }), _jsx(CosmicAccent, { className: s.moteB, tone: "cool", flip: true, delay: "-3.4s" })] }), _jsxs("div", { className: s.heroBody, children: [_jsxs("p", { className: s.heroCadence, children: ["Every ", meta.cadence] }), _jsx("p", { className: s.count, "data-word": count.unit ? undefined : '', children: count.big }), count.unit ? _jsx("p", { className: s.unit, children: count.unit }) : null, _jsx("p", { className: s.sub, children: count.sub }), plan ? (_jsxs(_Fragment, { children: [_jsxs(Link, { to: `/plan/${plan.id}`, className: s.heroPlan, children: [_jsx("span", { className: s.heroEmoji, "aria-hidden": true, children: isHidden ? '🎁' : plan.emoji }), _jsxs("div", { className: s.heroPlanMain, children: [_jsx("p", { className: s.heroPlanTitle, children: isHidden ? 'A surprise, from them' : plan.title }), _jsxs("p", { className: s.heroPlanMeta, children: [formatPlanDate(plan.date), plan.time ? ` · ${plan.time}` : '', !isHidden && plan.place ? ` · ${plan.place}` : ''] })] })] }), _jsxs("div", { className: s.actions, children: [_jsx(StatusChip, { view: view }), view.status === 'planned' && !isHidden ? (_jsxs(ButtonLink, { to: `/plan/${plan.id}?ask=1`, variant: "accent", size: "sm", children: ["Ask ", partner.name, " \uD83D\uDC8C"] })) : (_jsx(ButtonLink, { to: `/plan/${plan.id}`, variant: "secondary", size: "sm", children: "See plan" }))] })] })) : (_jsx(_Fragment, { children: _jsxs("div", { className: s.actions, children: [_jsx(ButtonLink, { to: `/explore?cycle=${view.cycle.id}`, variant: "accent", size: "sm", icon: COMPASS, children: "Find an idea" }), _jsx(ButtonLink, { to: `/plan/new?cycle=${view.cycle.id}`, variant: "quiet", size: "sm", icon: PLUS, children: "Create my own" })] }) }))] })] }));
+        }, children: [_jsxs("div", { className: s.sky, "aria-hidden": true, children: [_jsx("svg", { className: s.orbitBack, viewBox: "0 0 360 260", preserveAspectRatio: "xMidYMid meet", children: _jsx("path", { d: ORBIT_BACK, fill: "none", stroke: "var(--edge)", strokeWidth: "1" }) }), _jsx("span", { className: s.planet }), _jsx("svg", { className: s.orbitFront, viewBox: "0 0 360 260", preserveAspectRatio: "xMidYMid meet", children: _jsx("path", { d: ORBIT_FRONT, fill: "none", stroke: "var(--edge)", strokeWidth: "1.1" }) }), _jsx("div", { className: s.track, children: _jsx("div", { className: s.spin, children: _jsx("span", { className: s.node, children: _jsxs("span", { className: s.nodeInner, children: [HEART, _jsx("span", { className: s.nodeSpark, children: SPARK_DOT })] }) }) }) }), _jsx(CosmicAccent, { className: s.moteA, tone: "warm" }), _jsx(CosmicAccent, { className: s.moteB, tone: "cool", flip: true, delay: "-3.4s" })] }), _jsxs("div", { className: s.heroBody, children: [_jsxs("p", { className: s.heroCadence, children: ["Every ", meta.cadence] }), _jsx("p", { className: s.count, "data-word": count.unit ? undefined : '', children: count.big }), count.unit ? _jsx("p", { className: s.unit, children: count.unit }) : null, plan ? (_jsxs(_Fragment, { children: [_jsxs(Link, { to: `/plan/${plan.id}`, className: s.heroPlan, children: [_jsx("span", { className: s.heroEmoji, "aria-hidden": true, children: isHidden ? '🎁' : plan.emoji }), _jsxs("div", { className: s.heroPlanMain, children: [_jsx("p", { className: s.heroPlanTitle, children: isHidden ? 'A surprise, from them' : plan.title }), _jsxs("p", { className: s.heroPlanMeta, children: [formatPlanDate(plan.date), plan.time ? ` · ${plan.time}` : '', !isHidden && plan.place ? ` · ${plan.place}` : ''] })] })] }), _jsxs("div", { className: s.actions, children: [_jsx(StatusChip, { view: view }), view.status === 'planned' && !isHidden ? (_jsxs(ButtonLink, { to: `/plan/${plan.id}?ask=1`, variant: "accent", size: "sm", children: ["Ask ", partner.name, " \uD83D\uDC8C"] })) : (_jsx(ButtonLink, { to: `/plan/${plan.id}`, variant: "secondary", size: "sm", children: "See plan" }))] })] })) : (_jsx(_Fragment, { children: _jsxs("div", { className: s.actions, children: [_jsx(ButtonLink, { to: `/explore?cycle=${view.cycle.id}`, variant: "accent", size: "sm", icon: COMPASS, children: "Find an idea" }), _jsx(ButtonLink, { to: `/plan/new?cycle=${view.cycle.id}`, variant: "quiet", size: "sm", icon: PLUS, children: "Create my own" })] }) }))] })] }));
 }
 export { CYCLE_NOUN };

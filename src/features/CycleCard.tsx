@@ -150,19 +150,19 @@ const HEART = (
 );
 
 /**
- * The countdown, as an editorial line rather than a sentence.
+ * The countdown, as two words rather than a sentence.
  *
  * A number is the one thing on this screen worth reading from across the
- * room, so it gets to be a number. The days that have no number — today,
- * tomorrow, and a cycle that has slipped — say the word instead, at a size
- * that keeps the block the same shape.
+ * room, so it gets to be a number and "days left" gets to be the whole
+ * caption. The days that have no number — today, tomorrow, and a cycle that
+ * has slipped — say the word on its own, at a size that keeps the block the
+ * same shape. The cadence above already says what is being counted to.
  */
-function countdown(view: CycleView): { big: string; unit: string | null; sub: string } {
-  const noun = CYCLE_NOUN[view.cycle.tier];
-  if (view.overdue) return { big: 'Now', unit: null, sub: `is a good time for your next ${noun}.` };
-  if (view.daysAway === 0) return { big: 'Today', unit: null, sub: `your ${noun} is here.` };
-  if (view.daysAway === 1) return { big: 'Tomorrow', unit: null, sub: `your ${noun} is almost here.` };
-  return { big: String(view.daysAway), unit: 'days', sub: `to your next ${noun}.` };
+function countdown(view: CycleView): { big: string; unit: string | null } {
+  if (view.overdue) return { big: 'Now', unit: null };
+  if (view.daysAway === 0) return { big: 'Today', unit: null };
+  if (view.daysAway === 1) return { big: 'Tomorrow', unit: null };
+  return { big: String(view.daysAway), unit: 'days left' };
 }
 
 /**
@@ -241,7 +241,6 @@ export function CycleCardHero({ view }: { view: CycleView }) {
           {count.big}
         </p>
         {count.unit ? <p className={s.unit}>{count.unit}</p> : null}
-        <p className={s.sub}>{count.sub}</p>
 
       {plan ? (
         <>
