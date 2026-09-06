@@ -117,8 +117,7 @@ export default function AccountScreen() {
     <Screen className={s.screen}>
       <div className={s.top}>
         <SaveUniverse />
-        {/* The sparkle is part of the last word, not a line of its own. */}
-        <h1 className={s.title}>Your 777 universe starts here&nbsp;✨</h1>
+        <h1 className={s.title}>Your 777 journey starts here</h1>
         <p className={s.body}>
           Save your memories, plans, and shared space so they’re always here when you come back.
         </p>
@@ -139,31 +138,12 @@ export default function AccountScreen() {
             Continue with Google
           </Button>
 
-          {/*
-            Apple sign-in needs a paid Apple Developer account, a Services ID
-            and a signing key before it can work — none of which can be set up
-            from here. The button stays visible and honest rather than
-            pretending: see docs/SUPABASE_SETUP.md.
-          */}
-          <Button
-            variant="secondary"
-            size="lg"
-            block
-            disabled={busy}
-            onClick={() => void run(() => signInWithProvider('apple', next))}
-          >
-            <span className={s.mark} aria-hidden>
-              
-            </span>
-            Continue with Apple
-          </Button>
-
           <Button variant="accent" size="lg" block onClick={() => setMode('email-up')}>
             Continue with email
           </Button>
 
           <button type="button" className={s.link} onClick={() => setMode('email-in')}>
-            Already have an account? Sign in
+            Already have an account? Log in
           </button>
         </div>
       ) : (
@@ -213,7 +193,7 @@ export default function AccountScreen() {
             className={s.link}
             onClick={() => setMode(mode === 'email-up' ? 'email-in' : 'email-up')}
           >
-            {mode === 'email-up' ? 'Already have an account? Sign in' : 'Create an account instead'}
+            {mode === 'email-up' ? 'Already have an account? Log in' : 'Create an account instead'}
           </button>
           <button type="button" className={s.link} onClick={() => setMode('choose')}>
             Back

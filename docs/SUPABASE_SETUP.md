@@ -132,21 +132,17 @@ and save.
 If you skip this, "Continue with Google" will say the method is not switched
 on. Email sign-up works regardless.
 
-## 7. Apple sign-in — what is still needed
+## 7. Apple sign-in — not offered
 
-The button is built and wired. It cannot be finished from code alone, because
-Apple requires things only an account holder can do:
+The sign-in screen offers Google and email. There is no Apple button, because
+Sign in with Apple cannot be finished from code alone: it needs an Apple
+Developer Program membership ($99/year, no free path on the web), a Services
+ID configured with your Supabase callback URL, and a .p8 key — all things only
+an account holder can do.
 
-1. **An Apple Developer Program membership** — $99/year. There is no free path
-   for Sign in with Apple on the web.
-2. **A Services ID** in the Apple Developer portal, configured for "Sign in
-   with Apple", with your Supabase callback URL as the return URL.
-3. **A key** (.p8 file) downloaded from Apple, plus your Team ID and the Key
-   ID.
-4. Those pasted into Supabase → Authentication → Providers → Apple.
-
-Until then the button is honest: tapping it says the method is not switched
-on, rather than pretending to sign you in.
+The client still knows the provider (`signInWithProvider('apple')`), so if you
+ever complete those steps in Supabase → Authentication → Providers → Apple,
+the button is one line to put back.
 
 ## 8. Realtime (optional)
 

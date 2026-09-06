@@ -23,8 +23,11 @@
 
 .leaving {
   /* Lifts and fades while the app fades up underneath, so the two moves
-     overlap into one instead of cutting. */
+     overlap into one instead of cutting. On its way out it stops taking
+     taps — it is fixed and full-screen, so a transparent frame would still
+     swallow the first thing anyone touched. */
   animation: splashOut 460ms var(--ease) forwards;
+  pointer-events: none;
 }
 
 @keyframes glowIn {

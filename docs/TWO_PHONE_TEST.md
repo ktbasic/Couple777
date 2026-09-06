@@ -70,9 +70,9 @@ browser tab.
 
 ## What will not work yet, and why
 
-- **Continue with Apple** — needs a paid Apple Developer membership and a key
-  only you can generate. See `docs/SUPABASE_SETUP.md` §7. It says so rather
-  than pretending.
+- **Sign in with Apple** — not offered. It needs a paid Apple Developer
+  membership and a key only you can generate, so the screen does not show a
+  button it cannot honour. See `docs/SUPABASE_SETUP.md` §7.
 - **Continue with Google** — works once you have done §6 of that file.
 - **Push notifications** — deliberately not built. The bell inside the app is
   the notification centre for now.
