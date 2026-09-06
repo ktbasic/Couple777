@@ -52,6 +52,7 @@ export function TabBar() {
           <Icon active={active} />
         </span>
         <span className={s.label}>{label}</span>
+        {active ? <span className={s.activeDot} aria-hidden /> : null}
         {dot ? <span className={s.dot} aria-label="Something is waiting" /> : null}
       </NavLink>
     );
@@ -61,23 +62,29 @@ export function TabBar() {
 
   return (
     <nav className={s.bar} aria-label="Main">
-      <div className={s.side}>{LEFT.map((t) => tab(t))}</div>
+      <div className={s.pill}>
+        {LEFT.map((t) => tab(t))}
 
-      <div className={s.centre}>
-        <NavLink
-          to="/"
-          className={[s.home, home ? s.homeOn : ''].filter(Boolean).join(' ')}
-          aria-current={home ? 'page' : undefined}
-          aria-label="Home"
-        >
-          <IconHomeSolid />
-        </NavLink>
-        <span className={[s.homeLabel, home ? s.homeLabelOn : ''].filter(Boolean).join(' ')}>
-          Home
-        </span>
+        <div className={s.centre}>
+          <span className={[s.homeLabel, home ? s.homeLabelOn : ''].filter(Boolean).join(' ')}>
+            Home
+          </span>
+          {home ? <span className={s.activeDot} aria-hidden /> : null}
+        </div>
+
+        {RIGHT.map((t) => tab(t, t.to === '/us' && usDot))}
       </div>
 
-      <div className={s.side}>{RIGHT.map((t) => tab(t, t.to === '/us' && usDot))}</div>
+      {/* Outside the pill: the pill is masked to cut the notch, and a mask
+          takes its descendants with it. */}
+      <NavLink
+        to="/"
+        className={[s.home, home ? s.homeOn : ''].filter(Boolean).join(' ')}
+        aria-current={home ? 'page' : undefined}
+        aria-label="Home"
+      >
+        <IconHomeSolid />
+      </NavLink>
     </nav>
   );
 }

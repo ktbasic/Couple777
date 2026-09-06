@@ -114,7 +114,11 @@
 
   /* ---- Layout ---- */
   --app-max: 480px;
-  --tabbar-h: 62px;
+  /* The bar is a floating pill now, so this is the pill plus the air under
+     it — everything that measures the bar (toasts, the floating action, the
+     scroll padding) still gets one number. */
+  --tabbar-h: 80px;
+  --tabbar-pill-h: 64px;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
 }

@@ -1,43 +1,91 @@
 /*
- * The bar is three columns, not five: two tabs, the raised Home, two tabs.
- * Home breaks out of the top edge, so the bar itself keeps `overflow: visible`
- * and the button carries its own ring of page colour to sit in.
+ * A floating pill rather than a full-width bar.
+ *
+ * The bar itself is only a frame: it holds the safe area and a soft fade so
+ * scrolling content does not run into the pill, and everything visible is the
+ * pill and the button sitting in the notch cut out of it.
  */
 .bar {
   flex: none;
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: stretch;
   height: calc(var(--tabbar-h) + var(--safe-b));
-  padding-bottom: var(--safe-b);
-  background: color-mix(in srgb, var(--c-page) 88%, transparent);
-  backdrop-filter: saturate(180%) blur(16px);
-  border-top: 1px solid var(--c-hairline-soft);
+  padding: 0 var(--s-5) calc(var(--safe-b) + var(--s-4));
   z-index: 40;
 }
 
-.side {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+/* The page, fading up behind the pill. Without it, content scrolls right up
+   to the pill's edge and the gap around it stops reading as air. */
+.bar::before {
+  content: '';
+  position: absolute;
+  inset: -18px 0 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 252, 252, 0) 0%,
+    var(--c-page) 34%,
+    var(--c-page) 100%
+  );
+  pointer-events: none;
 }
 
+.pill {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 74px 1fr 1fr;
+  align-items: center;
+  border-radius: var(--r-full);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
+  /* Two shadows: a wide diffuse one for the float and a tight one just under
+     the edge, so it lifts off the page rather than smudging into it. */
+  box-shadow:
+    0 12px 28px rgba(168, 92, 118, 0.15),
+    0 2px 6px rgba(168, 92, 118, 0.07);
+  /*
+   * The notch is masked out of the pill rather than faked with a ring of page
+   * colour: the page and the pill are both near-white here, so a ring would
+   * have been invisible. A real cut-out reads whatever is behind it.
+   */
+  --notch: 33px;
+  -webkit-mask-image: radial-gradient(
+    circle var(--notch) at 50% 0,
+    transparent 0 var(--notch),
+    #000 calc(var(--notch) + 0.5px)
+  );
+  mask-image: radial-gradient(
+    circle var(--notch) at 50% 0,
+    transparent 0 var(--notch),
+    #000 calc(var(--notch) + 0.5px)
+  );
+}
+
+/* ---------- The four flat tabs ---------- */
+
+/* Full height, so the active dot can be positioned against the pill rather
+   than against the two lines of content — a long label like "Community" is
+   taller than a short one, and the dot was landing in the middle of it. */
 .tab {
+  position: relative;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
+  padding-bottom: 9px;
   color: var(--c-ink-4);
   transition: color var(--d-fast) var(--ease);
-  position: relative;
 }
 
 .tab:hover {
   color: var(--c-ink-3);
 }
 
-.on {
+/* Two classes, to outrank the hover rule above: with a plain `.on` the tab you
+   are standing on turns grey under the cursor. */
+.tab.on,
+.tab.on:hover {
   color: var(--c-accent-ink);
 }
 
@@ -53,60 +101,40 @@
   letter-spacing: 0.01em;
 }
 
+/* The active mark. Under the label, small enough to be a full stop. */
+.activeDot {
+  position: absolute;
+  bottom: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c-accent);
+}
+
+/* Different thing, different place: this one says something is waiting for
+   you in there, so it rides the icon rather than the label. */
 .dot {
   position: absolute;
-  top: 8px;
+  top: 12px;
   left: 50%;
-  margin-left: 7px;
+  margin-left: 9px;
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--c-accent);
-  box-shadow: 0 0 0 2px var(--c-page);
+  box-shadow: 0 0 0 2px var(--c-surface);
 }
 
-/* ---------- The raised centre ---------- */
+/* ---------- The centre ---------- */
 
 .centre {
   position: relative;
-  width: 84px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 7px;
-}
-
-.home {
-  position: absolute;
-  top: -24px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--g-accent);
-  color: var(--c-on-accent);
-  /* The ring is page-coloured rather than transparent: the button overlaps the
-     bar's top border, and without it the border cuts straight across. */
-  box-shadow:
-    0 0 0 6px var(--c-page),
-    var(--e-accent);
-  transition:
-    transform var(--d-fast) var(--ease),
-    box-shadow var(--d-base) var(--ease);
-}
-
-.home:active {
-  transform: scale(0.94);
-}
-
-/* A wider, softer glow when you are on it — the same aura the primary CTA
-   uses, at rest rather than breathing. */
-.homeOn {
-  box-shadow:
-    0 0 0 6px var(--c-page),
-    0 8px 22px rgba(232, 94, 142, 0.42);
+  padding-bottom: 18px;
 }
 
 .homeLabel {
@@ -119,4 +147,39 @@
 
 .homeLabelOn {
   color: var(--c-accent-ink);
+}
+
+/*
+ * Outside the pill in the DOM, because a mask applies to an element and
+ * everything inside it — the button would have been cut out along with the
+ * notch it sits in.
+ */
+.home {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  margin-left: -25px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--g-accent);
+  color: var(--c-on-accent);
+  box-shadow:
+    0 8px 18px rgba(232, 94, 142, 0.34),
+    0 2px 5px rgba(232, 94, 142, 0.2);
+  transition:
+    transform var(--d-fast) var(--ease),
+    box-shadow var(--d-base) var(--ease);
+}
+
+.home:active {
+  transform: scale(0.93);
+}
+
+.homeOn {
+  box-shadow:
+    0 10px 24px rgba(232, 94, 142, 0.44),
+    0 2px 6px rgba(232, 94, 142, 0.24);
 }
