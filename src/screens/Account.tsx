@@ -118,10 +118,8 @@ export default function AccountScreen() {
       <div className={s.top}>
         <SaveUniverse />
         <h1 className={s.title}>Your 777 journey starts here</h1>
-        {/* "quality time" is one idea, so it is never split across the two
-            lines — the break belongs at the comma. */}
         <p className={s.body}>
-          Small rituals, more quality&nbsp;time, a stronger connection.
+          Little rituals, lasting connections: making time for what matters.
         </p>
       </div>
 
