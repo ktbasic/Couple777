@@ -49,6 +49,17 @@ tone('difficult', 'He rolled his eyes at me in front of his friends.');
 tone('difficult', 'He never asks how my day was.');
 tone('difficult', 'I am so tired of being the one who plans everything.');
 
+console.log('\nA sad word anywhere means the sparkle is off');
+// The one that must never happen: a note that says "sad" met with "that
+// sounds like a lovely little moment". Positive requires nothing hard at all.
+tone('difficult', 'I feel sad today.');
+tone('difficult', 'I am sad.');
+tone('difficult', 'Had a really nice day with him but I still feel sad about my mum.');
+tone('mixed', 'It was a beautiful wedding and I felt sad the whole way home.');
+tone('mixed', 'We had a lovely dinner and I told him I have been feeling sad.');
+tone('mixed', 'He made me laugh even though I am sad.');
+tone('mixed', 'Sad day but he was sweet about it.');
+
 console.log('\nBoth at once');
 tone('mixed', 'We argued but we sorted it out and ended up laughing.');
 tone('mixed', 'Hard week, but he made me tea without being asked.');
@@ -61,6 +72,21 @@ console.log('\nWords that mean something else');
 // "Cold" is weather, "fine" is not a feeling, and a film is not a fight.
 tone('positive', 'We walked home and talked until it got cold.');
 tone('neutral', 'Watched a film about a boxer. Bed early.');
+
+console.log('\nNo tone but positive gets the sparkle');
+// Every opening except the positive one is safe on a hard note; this checks
+// the one that is not can only be reached with nothing hard in the note.
+for (const note of [
+  'I feel sad today.',
+  'It was a beautiful wedding and I felt sad the whole way home.',
+  'We drifted apart for a while but had a lovely day.',
+  'He forgot again. I just went to bed.',
+]) {
+  const got = readTone(note);
+  const ok = got !== 'positive';
+  if (!ok) failures++;
+  console.log(`  ${ok ? 'ok  ' : 'FAIL'} not positive (${got}) — ${note}`);
+}
 
 console.log('\nAnd what the tone then decides');
 const cases: [string, 'private' | 'shared', boolean][] = [

@@ -126,8 +126,17 @@ export type Tone = 'positive' | 'neutral' | 'mixed' | 'difficult';
 
 type Cue = [RegExp, number];
 
+/**
+ * What someone says about their own state, which is not the same kind of
+ * evidence as a word that happens to appear. "It was a beautiful wedding and I
+ * felt sad the whole way home" is a note about being sad at a wedding.
+ */
+const SELF_STATED =
+  /\b(i|we)('m| am| was| feel| felt| have been| had been| keep|'ve been)?\s*(feeling |felt |been )?\b(sad|hurt|angry|upset|lonely|alone|tired|exhausted|anxious|low|down|awful|numb|empty|invisible|unheard|unwanted|unloved)\b/;
+
 /** Things that are hard however they are phrased. */
 const HARD_CUES: Cue[] = [
+  [SELF_STATED, 4],
   [/\bargu\w*|\bfought\b|\bfight\b|\bfighting\b|\bbickering\b/, 3],
   [/\bsame (fight|argument|conversation|thing)\b/, 3],
   [/\b(shouted|yelled|snapped|slammed|stormed)\b/, 3],
@@ -200,11 +209,15 @@ export function readTone(text: string): Tone {
   const hard = score(withoutNegated, HARD_CUES) + negations.length * 3;
   const soft = score(withoutNegated, SOFT_CUES);
 
-  // Both, and both meant: an evening that held two things.
-  if (hard >= 2 && soft >= 2) return 'mixed';
-  if (hard > soft) return 'difficult';
-  if (soft > hard && soft >= 2) return 'positive';
-  return 'neutral';
+  /*
+   * Read in this order deliberately. "Positive" is only reachable with nothing
+   * hard in the note at all — not "more good than bad", *none* — because the
+   * cost of the two mistakes is not the same. Calling a good evening mixed is
+   * a flat note; calling a sad one lovely is the app not listening.
+   */
+  if (hard === 0) return soft >= 2 ? 'positive' : 'neutral';
+  if (soft >= 2) return 'mixed';
+  return 'difficult';
 }
 
 /* ------------------------------- The feeling ------------------------------ */
