@@ -142,27 +142,30 @@
 
 /* ---- Locked ---- */
 
+/* Stacked rather than a row: the burst sits over the line it belongs to,
+   which is also what stops it competing with the question above. */
 .locked {
   clear: right;
   margin-top: var(--s-5);
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
   border-radius: var(--r-md);
   border: 1px dashed var(--c-accent-edge);
   background: var(--c-surface);
-  padding: var(--s-4);
+  padding: var(--s-5) var(--s-4);
+  text-align: center;
 }
 
-.lockedIcon {
-  font-size: 17px;
-  flex: none;
+.lockedArt {
+  width: 92px;
+  margin-bottom: var(--s-2);
 }
 
 .lockedText {
+  margin-inline: auto;
+  max-width: 30ch;
   font-size: var(--t-small);
   color: var(--c-ink-3);
   line-height: 1.45;
+  text-wrap: pretty;
 }
 
 .streak {

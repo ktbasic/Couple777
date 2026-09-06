@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BackBar, Screen } from '@/components/layout/Screen';
 import { Button, ButtonLink } from '@/components/ui/Button';
+import { Confetti } from '@/components/ui/Confetti';
 import { Avatar } from '@/components/ui/Avatar';
 import { useToast } from '@/components/ui/Toast';
 import { useStore } from '@/context/store';
@@ -31,7 +32,7 @@ export default function DailyQuestionScreen() {
     dispatch({ type: 'answerDaily', date, promptId: prompt.id, personId: me.id, text });
     setDraft('');
     toast.show({
-      emoji: status.answeredByPartner ? '🔓' : '🔒',
+      emoji: status.answeredByPartner ? '🎉' : '✨',
       message: status.answeredByPartner
         ? 'Both in. Answers unlocked.'
         : `Saved. It unlocks when ${partner.name} answers.`,
@@ -48,7 +49,7 @@ export default function DailyQuestionScreen() {
           personId: partner.id,
           text: partnerReplyFor(prompt.id),
         });
-        toast.show({ emoji: '🔓', message: `${partner.name} answered. Both unlocked.` });
+        toast.show({ emoji: '🎉', message: `${partner.name} answered. Both unlocked.` });
       }, 3600);
     }
   };
@@ -100,9 +101,7 @@ export default function DailyQuestionScreen() {
         ) : status.answeredByMe ? (
           <>
             <div className={s.waiting}>
-              <span className={s.waitingEmoji} aria-hidden>
-                🔒
-              </span>
+              <Confetti className={s.waitingArt} />
               <p className={s.waitingTitle}>Your answer is sealed.</p>
               <p className={s.waitingBody}>
                 It opens the moment {partner.name} writes theirs — neither of you gets to read
@@ -121,7 +120,7 @@ export default function DailyQuestionScreen() {
               onChange={(e) => setDraft(e.target.value)}
             />
             <p className={s.privacy}>
-              <span aria-hidden>🔒</span>
+              <span aria-hidden>✨</span>
               <span>
                 {status.answeredByPartner
                   ? `${partner.name} has already answered. Writing yours opens both.`

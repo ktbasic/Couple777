@@ -1,0 +1,68 @@
+.svg {
+  display: block;
+  width: 120px;
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+/*
+ * The burst happens once. Each piece starts collapsed at the middle of the
+ * drawing and travels to where it was drawn, so the layout is the finished
+ * state and the animation is the arrival — nothing here depends on a
+ * randomiser or leaves the piece somewhere the design did not put it.
+ */
+.piece,
+.curl {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: throw 900ms cubic-bezier(0.22, 1.1, 0.36, 1) both;
+}
+
+@keyframes throw {
+  0% {
+    opacity: 0;
+    transform: translate(var(--fx, 0), var(--fy, 0)) scale(0.4) rotate(var(--fr, 0deg));
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.curl {
+  animation-delay: 60ms;
+  --fx: 0px;
+  --fy: 10px;
+  --fr: -30deg;
+}
+
+.p1 { animation-delay: 0ms;   --fx: 16px;  --fy: 26px;  --fr: -50deg; }
+.p2 { animation-delay: 90ms;  --fx: -20px; --fy: -8px;  --fr: 60deg; }
+.p3 { animation-delay: 140ms; --fx: 24px;  --fy: -4px; }
+.p4 { animation-delay: 60ms;  --fx: -12px; --fy: 22px; }
+.p5 { animation-delay: 180ms; --fx: 6px;   --fy: 28px; }
+.p6 { animation-delay: 220ms; --fx: -24px; --fy: -12px; }
+
+/*
+ * The sparkles are the only thing that keeps moving, and they are deliberately
+ * slow: this sits under a line telling you to wait, so it should settle rather
+ * than carry on celebrating.
+ */
+.spark {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation:
+    throw 900ms cubic-bezier(0.22, 1.1, 0.36, 1) both,
+    twinkle 4.6s var(--ease-soft) infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.86); }
+}
+
+.s1 { animation-delay: 120ms, 900ms;  --fx: -18px; --fy: 16px; --fr: -40deg; }
+.s2 { animation-delay: 200ms, 2300ms; --fx: 22px;  --fy: 12px; --fr: 40deg; }
+.s3 { animation-delay: 260ms, 1600ms; --fx: -6px;  --fy: -10px; }
+.s4 { animation-delay: 320ms, 3100ms; --fx: 10px;  --fy: -12px; }

@@ -128,10 +128,9 @@
   background: var(--c-surface-2);
 }
 
-.waitingEmoji {
-  font-size: 26px;
-  display: block;
-  margin-bottom: var(--s-3);
+.waitingArt {
+  width: 128px;
+  margin-bottom: var(--s-4);
 }
 
 .waitingTitle {

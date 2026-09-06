@@ -1,5 +1,6 @@
 import { ButtonLink } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
+import { Confetti } from '@/components/ui/Confetti';
 import { DAILY_LABEL, promptForDate } from '@/data/prompts';
 import { useStore } from '@/context/store';
 import { dailyEntry, dailyStatus } from '@/lib/selectors';
@@ -106,9 +107,7 @@ export function DailyCard({ compact }: { compact?: boolean }) {
         </div>
       ) : status.answeredByMe ? (
         <div className={s.locked}>
-          <span className={s.lockedIcon} aria-hidden>
-            🔒
-          </span>
+          <Confetti className={s.lockedArt} />
           <p className={s.lockedText}>
             Your answer is saved. It unlocks the moment {partner.name} writes theirs.
           </p>
