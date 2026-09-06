@@ -28,43 +28,32 @@
   pointer-events: none;
 }
 
+/*
+ * The pill is a drawn shape, not a box: a rounded rectangle cannot have a
+ * notch eased into its top edge. The tabs sit in a grid on top of it.
+ */
 .pill {
   position: relative;
   height: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr 74px 1fr 1fr;
+  grid-template-columns: 1fr 1fr 78px 1fr 1fr;
   align-items: center;
-  border-radius: var(--r-full);
-  background: var(--c-surface);
-  border: 1px solid var(--c-hairline-soft);
-  /* Two shadows: a wide diffuse one for the float and a tight one just under
-     the edge, so it lifts off the page rather than smudging into it. */
-  box-shadow:
-    0 12px 28px rgba(168, 92, 118, 0.15),
-    0 2px 6px rgba(168, 92, 118, 0.07);
-  /*
-   * The notch is masked out of the pill rather than faked with a ring of page
-   * colour: the page and the pill are both near-white here, so a ring would
-   * have been invisible. A real cut-out reads whatever is behind it.
-   */
-  --notch: 33px;
-  -webkit-mask-image: radial-gradient(
-    circle var(--notch) at 50% 0,
-    transparent 0 var(--notch),
-    #000 calc(var(--notch) + 0.5px)
-  );
-  mask-image: radial-gradient(
-    circle var(--notch) at 50% 0,
-    transparent 0 var(--notch),
-    #000 calc(var(--notch) + 0.5px)
-  );
+}
+
+/* Two shadows on the alpha of the path itself — a wide diffuse one for the
+   float and a tight one under the edge — so the shadow follows the notch
+   instead of squaring it off, which a box-shadow would. */
+.plate {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter:
+    drop-shadow(0 12px 22px rgba(168, 92, 118, 0.16))
+    drop-shadow(0 2px 4px rgba(168, 92, 118, 0.09));
 }
 
 /* ---------- The four flat tabs ---------- */
 
-/* Full height, so the active dot can be positioned against the pill rather
-   than against the two lines of content — a long label like "Community" is
-   taller than a short one, and the dot was landing in the middle of it. */
 .tab {
   position: relative;
   height: 100%;
@@ -73,7 +62,6 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  padding-bottom: 9px;
   color: var(--c-ink-4);
   transition: color var(--d-fast) var(--ease);
 }
@@ -101,16 +89,6 @@
   letter-spacing: 0.01em;
 }
 
-/* The active mark. Under the label, small enough to be a full stop. */
-.activeDot {
-  position: absolute;
-  bottom: 9px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--c-accent);
-}
-
 /* Different thing, different place: this one says something is waiting for
    you in there, so it rides the icon rather than the label. */
 .dot {
@@ -134,7 +112,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 18px;
+  /* Lines "Home" up with the other four labels, which are centred in a column
+     that also carries an icon. */
+  padding-bottom: 15px;
 }
 
 .homeLabel {
@@ -156,7 +136,7 @@
  */
 .home {
   position: absolute;
-  top: -25px;
+  top: -31px;
   left: 50%;
   margin-left: -25px;
   width: 50px;
