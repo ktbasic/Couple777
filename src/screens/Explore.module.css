@@ -296,34 +296,38 @@
     radial-gradient(40% 30% at 8% 84%, rgba(195, 176, 232, 0.34) 0%, rgba(195, 176, 232, 0) 72%);
 }
 
-.pickRow {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s-3);
+/* Says the rows are optional before anyone starts tapping them, which is
+   quicker than four rows each having to say it. */
+.genHint {
+  margin-bottom: var(--s-3);
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
 }
 
+/* The label sits above its chips rather than beside them. A 52px gutter was
+   pushing five options onto two lines and making four short questions look
+   like a form; the full width fits most rows on one line. */
 .pickRow + .pickRow {
   margin-top: var(--s-3);
 }
 
 .pickLabel {
-  flex: none;
-  width: 52px;
-  padding-top: 8px;
-  font-size: var(--t-small);
-  font-weight: 600;
-  color: var(--c-ink-3);
+  display: block;
+  margin-bottom: 5px;
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
 }
 
 /* Chips size to their words and wrap when they run out of room. Equal thirds
    looked tidy until "Afternoon" came out as "Aft…", and scrolling hid whole
    options off the right-hand edge — a filter you cannot see is not a filter. */
 .pickChips {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
 }
 
 /* Equal widths across the row, so four options read as one control rather
@@ -331,7 +335,7 @@
 .pick {
   flex: none;
   height: 32px;
-  padding: 0 var(--s-3);
+  padding: 0 11px;
   border-radius: var(--r-full);
   border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.72);
@@ -358,6 +362,52 @@
   border-color: transparent;
   color: var(--c-on-accent);
   box-shadow: 0 4px 12px rgba(232, 94, 142, 0.26);
+}
+
+/* The mark on the main button once there are results. Nudged to the text's
+   optical centre — a circle sits high next to lowercase letters. */
+.refreshMark {
+  display: inline-block;
+  vertical-align: -3px;
+  margin-left: 2px;
+}
+
+/*
+ * The quiet half of the pair. A button-shaped thing next to the main one reads
+ * as a second choice of equal weight, so this is text on the card instead:
+ * still obviously tappable, obviously not the point.
+ */
+.diceCta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 100%;
+  /* Shorter than the button above it as well as quieter: a taller secondary
+     reads as the more important one however plain it looks. */
+  padding: 6px var(--s-2) 8px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  border-radius: var(--r-md);
+  transition: background-color var(--d-fast) var(--ease);
+}
+.diceCta:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+.diceCta:active {
+  transform: scale(0.99);
+}
+
+.diceLabel {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+}
+
+.diceHint {
+  font-size: var(--t-micro);
+  color: var(--c-ink-4);
 }
 
 .genActions {

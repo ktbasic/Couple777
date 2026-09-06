@@ -27,7 +27,6 @@ import type {
   AdventureMood,
   Daypart,
   Distance,
-  Energy,
 
   IdeaFilters,
   Setting,
@@ -104,35 +103,68 @@ export default function ExploreScreen() {
 /* ------------------------------ 7 days ---------------------------------- */
 
 /*
- * The four questions worth asking, in the order someone actually thinks them:
- * when, where, how much. Everything else the generator knows how to guess.
+ * Four questions, in the order someone actually thinks them: when, where, how
+ * much, what kind of evening. None of them is required — a row left alone is
+ * not an unanswered question, it is "no preference", which is the most common
+ * honest answer and the fastest one to give.
+ *
+ * Energy is not here. It asked people to rate their own capacity before they
+ * had been shown anything, and the generator reads it out of the vibe well
+ * enough — a cosy night in is not a high-energy one.
  */
 const WHEN: { label: string; value: Daypart }[] = [
   { label: 'Morning', value: 'morning' },
   { label: 'Afternoon', value: 'afternoon' },
   { label: 'Evening', value: 'evening' },
   { label: 'Night', value: 'late' },
+  { label: 'Whole day', value: 'wholeday' },
 ];
 
-const WHERE: { label: string; value: Setting }[] = [
+/* "Either" is a real answer rather than a third place: picking it clears the
+   row, which is what no preference means to the generator. */
+const WHERE: { label: string; value: Setting | null }[] = [
   { label: 'Indoor', value: 'home' },
   { label: 'Outdoor', value: 'out' },
+  { label: 'Either', value: null },
 ];
 
-/* Shorter than the generator's own labels: in a row of four these have to fit
-   without being cut in half, and "Low energy" beside "Low" budget was saying
-   the word twice anyway. */
-const EFFORT: { label: string; value: Energy }[] = [
-  { label: 'Easy', value: 'low' },
-  { label: 'Some', value: 'medium' },
-  { label: 'Plenty', value: 'high' },
-];
-
+/* Budgets are a ceiling for two people, so the labels say what someone would
+   actually say out loud. The top one is not a floor of 80 — it means "we are
+   not counting tonight", so nothing is priced out. */
 const SPEND: { label: string; value: number }[] = [
-  { label: 'Low', value: 30 },
-  { label: 'Medium', value: 60 },
-  { label: 'Special', value: 150 },
+  { label: 'Free', value: 0 },
+  { label: 'Under €30', value: 30 },
+  { label: '€30–80', value: 80 },
+  { label: '€80+', value: 999 },
 ];
+
+/** The four moods people name. Mapped onto the axis the ideas are tagged on. */
+const VIBES: { label: string; value: Vibe }[] = [
+  { label: 'Cozy', value: 'relaxing' },
+  { label: 'Romantic', value: 'romantic' },
+  { label: 'Playful', value: 'fun' },
+  { label: 'Adventurous', value: 'adventurous' },
+];
+
+/**
+ * A circling arrow: the one shape that reads as "again" without a word next to
+ * it. Drawn rather than an emoji so it inherits the button's colour and sits
+ * on the text baseline instead of hanging below it.
+ */
+function RefreshMark() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden className={s.refreshMark}>
+      <path
+        d="M20 12a8 8 0 1 1-2.34-5.66"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+      />
+      <path d="M20 3.5V9h-5.5" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function DateIdeasTab({ cycleId }: { cycleId?: string }) {
   const { state, me, partner } = useStore();
@@ -155,10 +187,23 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
   const [filters, setFilters] = useState<IdeaFilters>(cued);
   const [seed, setSeed] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [surprised, setSurprised] = useState(false);
+  /*
+   * Whether anything has been asked for yet. It decides both what the main
+   * button says and whether there are cards under it — arriving from Talk
+   * counts as having asked, because those filters came from somewhere.
+   */
+  const [generated, setGenerated] = useState(hasCue);
+  /*
+   * "Either" and "not answered" are the same value to the generator and two
+   * different things to a person. This remembers that the row was answered, so
+   * an untouched screen does not open with a chip already lit.
+   */
+  const [settingAnswered, setSettingAnswered] = useState(Boolean(cued.setting));
 
   useEffect(() => {
-    if (hasCue) setFilters(cued);
+    if (!hasCue) return;
+    setFilters(cued);
+    setGenerated(true);
   }, [cued, hasCue]);
 
   /*
@@ -200,7 +245,7 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
   /** The signature action: think for a beat, then bring you to the answer. */
   const surpriseUs = () => {
     setLoading(true);
-    setSurprised(true);
+    setGenerated(true);
     window.setTimeout(() => {
       setSeed((n) => n + 7);
       setLoading(false);
@@ -212,7 +257,7 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
   };
 
   const generate = () => {
-    setSurprised(false);
+    setGenerated(true);
     setSeed((n) => n + 1);
     window.setTimeout(
       () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
@@ -222,24 +267,28 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
 
   const row = (
     label: string,
-    options: { label: string; value: string | number }[],
-    current: string | number | null,
+    options: { label: string; value: string | number | null }[],
+    /** undefined means the row has not been answered at all. */
+    current: string | number | null | undefined,
     onPick: (v: never) => void,
   ) => (
     <div className={s.pickRow}>
       <span className={s.pickLabel}>{label}</span>
       <div className={s.pickChips}>
-        {options.map((o) => (
-          <button
-            key={o.label}
-            type="button"
-            className={[s.pick, current === o.value ? s.pickOn : ''].filter(Boolean).join(' ')}
-            aria-pressed={current === o.value}
-            onClick={() => onPick(o.value as never)}
-          >
-            {o.label}
-          </button>
-        ))}
+        {options.map((o) => {
+          const on = current !== undefined && current === o.value;
+          return (
+            <button
+              key={o.label}
+              type="button"
+              className={[s.pick, on ? s.pickOn : ''].filter(Boolean).join(' ')}
+              aria-pressed={on}
+              onClick={() => onPick(o.value as never)}
+            >
+              {o.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -267,18 +316,41 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
           Nothing here is required, which is why none of it is a field. */}
       <div className={s.gen}>
         <span className={s.genSky} aria-hidden />
-        {row('Time', WHEN, filters.daypart, (v) => set('daypart', v))}
-        {row('Setting', WHERE, filters.setting, (v) => set('setting', v))}
-        {row('Budget', SPEND, filters.budget, (v) => set('budget', v))}
-        {row('Energy', EFFORT, filters.energy, (v) => set('energy', v))}
+        <p className={s.genHint}>Pick whatever matters tonight. Skip the rest.</p>
 
+        {row('Time', WHEN, filters.daypart, (v) => set('daypart', v))}
+        {row(
+          'Setting',
+          WHERE,
+          settingAnswered ? filters.setting : undefined,
+          (v) => {
+            // Tapping the answer you already gave takes it back, on this row
+            // as on every other — and "Either" taken back is no answer at all.
+            const same = settingAnswered && (filters.setting ?? null) === (v ?? null);
+            setSettingAnswered(!same);
+            set('setting', v);
+          },
+        )}
+        {row('Budget for two', SPEND, filters.budget, (v) => set('budget', v))}
+        {row('Vibe', VIBES, filters.vibe, (v) => set('vibe', v))}
+
+        {/* One button carries the screen. The other is a shrug, and looks
+            like one — two buttons of equal weight is a question, and this
+            screen is meant to answer questions rather than ask another. */}
         <div className={s.genActions}>
-          <Button variant="accent" block onClick={generate}>
-            Find ideas
+          <Button variant="accent" size="lg" block glow onClick={generate}>
+            {generated ? (
+              <>
+                Refresh ideas <RefreshMark />
+              </>
+            ) : (
+              'Find ideas for us ✨'
+            )}
           </Button>
-          <Button variant="quiet" block onClick={surpriseUs}>
-            Surprise us 🎲
-          </Button>
+          <button type="button" className={s.diceCta} onClick={surpriseUs}>
+            <span className={s.diceLabel}>🎲 Surprise us</span>
+            <span className={s.diceHint}>Random pick</span>
+          </button>
         </div>
       </div>
 
@@ -292,22 +364,13 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
             </span>
             <p className={s.loadingText}>Finding something for you two…</p>
           </div>
-        ) : (
-          <>
-            <div className={s.resultHead}>
-              <p className={s.count}>{surprised ? 'Our pick for you' : 'For you two'}</p>
-              <button type="button" className={s.regen} onClick={() => setSeed((n) => n + 1)}>
-                Show me others
-              </button>
-            </div>
-
-            <div className={s.results}>
-              {ideas.map((idea, i) => (
-                <IdeaCard key={`${seed}-${idea.id}`} idea={idea} index={i} cycleId={cycleId} />
-              ))}
-            </div>
-          </>
-        )}
+        ) : generated ? (
+          <div className={s.results}>
+            {ideas.map((idea, i) => (
+              <IdeaCard key={`${seed}-${idea.id}`} idea={idea} index={i} cycleId={cycleId} />
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {/* Matches only exist here, and only once one has happened. */}
