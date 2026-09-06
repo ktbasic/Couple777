@@ -296,14 +296,6 @@
     radial-gradient(40% 30% at 8% 84%, rgba(195, 176, 232, 0.34) 0%, rgba(195, 176, 232, 0) 72%);
 }
 
-/* Says the rows are optional before anyone starts tapping them, which is
-   quicker than four rows each having to say it. */
-.genHint {
-  margin-bottom: var(--s-3);
-  font-size: var(--t-small);
-  color: var(--c-ink-3);
-}
-
 /* The label sits above its chips rather than beside them. A 52px gutter was
    pushing five options onto two lines and making four short questions look
    like a form; the full width fits most rows on one line. */

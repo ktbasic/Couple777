@@ -63,7 +63,7 @@ export default function ExploreScreen() {
         title={
           cycle
             ? `Ideas for your ${TIER_META[cycle.tier].cadence} moment`
-            : 'Find your next little moment'
+            : 'Explore your next date ideas'
         }
         sub={
           cycle
@@ -316,8 +316,6 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
           Nothing here is required, which is why none of it is a field. */}
       <div className={s.gen}>
         <span className={s.genSky} aria-hidden />
-        <p className={s.genHint}>Pick whatever matters tonight. Skip the rest.</p>
-
         {row('Time', WHEN, filters.daypart, (v) => set('daypart', v))}
         {row(
           'Setting',
