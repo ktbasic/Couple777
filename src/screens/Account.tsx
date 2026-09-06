@@ -119,7 +119,8 @@ export default function AccountScreen() {
         <SaveUniverse />
         <h1 className={s.title}>Your 777 journey starts here</h1>
         <p className={s.body}>
-          Save your memories, plans, and shared space so they’re always here when you come back.
+          Make time for each other, again and again — with little rituals that keep you close,
+          connected, and in love.
         </p>
       </div>
 
