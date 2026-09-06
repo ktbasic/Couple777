@@ -48,8 +48,9 @@ export default function OnboardingScreen() {
   const back = () => setStep((n) => Math.max(0, n - 1));
 
   /*
-   * The answers so far belong to a person who does not have an account yet, so
-   * they wait in this browser and move to the profile the moment one exists.
+   * The answers wait in this browser and move to the profile when the couple
+   * is made, a few screens further on — there is nowhere to put them before
+   * that, since a profile row is not a couple.
    */
   const finish = () => {
     savePendingOnboarding({
@@ -61,7 +62,7 @@ export default function OnboardingScreen() {
         vibes,
       },
     });
-    navigate('/account');
+    navigate('/me/name');
   };
 
   const canContinue = true;

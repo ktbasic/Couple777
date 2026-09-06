@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Field';
 import { AppIcon } from '@/components/ui/Logo777';
 import { readableAuthError, useAuth } from '@/context/auth';
+import * as repo from '@/lib/db/repo';
 import s from './Account.module.css';
 /** Where to come back to after an OAuth round trip. */
 function useNext() {
@@ -26,13 +27,47 @@ export default function AccountScreen() {
      * Signing in is not the end of the journey, and this screen has no way of
      * knowing whether a project requires email confirmation — so it waits for a
      * real session rather than guessing, and moves on the moment one appears.
-     * Everyone lands on the name step: it is the one thing every account needs
-     * and the one thing sign-up no longer asks for.
+     *
+     * display_name is the same signal NameSetup uses, and it is the only one
+     * that survives an OAuth round trip: it is set once, on the name step, and
+     * never unset. An account that has one has been through setup.
      */
     useEffect(() => {
         if (!user)
             return;
-        navigate(`/me/name?next=${encodeURIComponent(next)}`, { replace: true });
+        let alive = true;
+        const setup = () => navigate(`/me/name?next=${encodeURIComponent(next)}`, { replace: true });
+        void (async () => {
+            try {
+                const profile = await repo.getProfile(user.id);
+                if (!alive)
+                    return;
+                if (profile?.display_name?.trim()) {
+                    // Coming back. Straight where they were headed, which is Home
+                    // unless a link sent them somewhere specific.
+                    navigate(next, { replace: true });
+                    return;
+                }
+            }
+            catch {
+                /* If we cannot tell, treat it as setup: asking a returning user one
+                   question they can answer in a tap beats dropping a new one into a
+                   home screen with nothing in it. NameSetup checks again anyway. */
+                if (alive)
+                    setup();
+                return;
+            }
+            if (!alive)
+                return;
+            // Brand new, and nothing more urgent to do first: the intro.
+            if (next === '/')
+                navigate('/onboarding', { replace: true });
+            else
+                setup();
+        })();
+        return () => {
+            alive = false;
+        };
     }, [user, next, navigate]);
     const run = async (fn) => {
         setBusy(true);
@@ -47,6 +82,10 @@ export default function AccountScreen() {
             setBusy(false);
         }
     };
+    /* A session exists, so this screen is on its way out — showing the sign-in
+       buttons again for a frame would read as the sign-in having failed. */
+    if (user)
+        return null;
     if (sentConfirmation) {
         return (_jsx(Screen, { className: s.screen, children: _jsxs("div", { className: s.center, children: [_jsx("span", { className: s.bigEmoji, "aria-hidden": true, children: "\uD83D\uDC8C" }), _jsx("h1", { className: s.title, children: "Check your email" }), _jsxs("p", { className: s.body, children: ["We sent a confirmation link to ", _jsx("strong", { children: email }), ". Open it and you are in."] }), _jsx("button", { type: "button", className: s.link, onClick: () => setSentConfirmation(false), children: "Use a different email" })] }) }));
     }

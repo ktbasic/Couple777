@@ -5,13 +5,18 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Field';
 import { AppIcon } from '@/components/ui/Logo777';
 import { readableAuthError, useAuth } from '@/context/auth';
+import * as repo from '@/lib/db/repo';
 import s from './Account.module.css';
 
 /**
- * Where the onboarding answers stop being a browser tab's private business and
- * become an account. Sign-up comes *after* the emotional intro on purpose: by
- * this point the person has decided they want the thing, so the account is a
- * way of keeping it rather than a toll gate in front of it.
+ * The first screen after the splash, every time.
+ *
+ * It is also the fork in the road: a new account has the whole intro ahead of
+ * it — "In a huge universe…" through to "How your space works" — while someone
+ * coming back has already answered all of that and wants their home screen.
+ * Which of the two this is cannot be read off the button they pressed (a
+ * returning user can perfectly well tap "Continue with Google"), so it is
+ * decided by whether the account has a name on it.
  */
 
 type Mode = 'choose' | 'email-up' | 'email-in';
@@ -37,12 +42,40 @@ export default function AccountScreen() {
    * Signing in is not the end of the journey, and this screen has no way of
    * knowing whether a project requires email confirmation — so it waits for a
    * real session rather than guessing, and moves on the moment one appears.
-   * Everyone lands on the name step: it is the one thing every account needs
-   * and the one thing sign-up no longer asks for.
+   *
+   * display_name is the same signal NameSetup uses, and it is the only one
+   * that survives an OAuth round trip: it is set once, on the name step, and
+   * never unset. An account that has one has been through setup.
    */
   useEffect(() => {
     if (!user) return;
-    navigate(`/me/name?next=${encodeURIComponent(next)}`, { replace: true });
+    let alive = true;
+    const setup = () => navigate(`/me/name?next=${encodeURIComponent(next)}`, { replace: true });
+    void (async () => {
+      try {
+        const profile = await repo.getProfile(user.id);
+        if (!alive) return;
+        if (profile?.display_name?.trim()) {
+          // Coming back. Straight where they were headed, which is Home
+          // unless a link sent them somewhere specific.
+          navigate(next, { replace: true });
+          return;
+        }
+      } catch {
+        /* If we cannot tell, treat it as setup: asking a returning user one
+           question they can answer in a tap beats dropping a new one into a
+           home screen with nothing in it. NameSetup checks again anyway. */
+        if (alive) setup();
+        return;
+      }
+      if (!alive) return;
+      // Brand new, and nothing more urgent to do first: the intro.
+      if (next === '/') navigate('/onboarding', { replace: true });
+      else setup();
+    })();
+    return () => {
+      alive = false;
+    };
   }, [user, next, navigate]);
 
   const run = async (fn: () => Promise<void>) => {
@@ -56,6 +89,10 @@ export default function AccountScreen() {
       setBusy(false);
     }
   };
+
+  /* A session exists, so this screen is on its way out — showing the sign-in
+     buttons again for a frame would read as the sign-in having failed. */
+  if (user) return null;
 
   if (sentConfirmation) {
     return (

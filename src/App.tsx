@@ -44,6 +44,11 @@ function TalkRedirect() {
  * Each redirect below is a different missing thing, and sending someone to the
  * wrong one is how people get stuck in a loop: signed in but spaceless lands
  * on couple setup, not back on sign-up.
+ *
+ * Signed-out lands on the account screen rather than the intro. Someone
+ * returning is not a new user, and the four questions of onboarding are for
+ * people who do not have answers yet — /account decides which of the two this
+ * is, once it knows who they are.
  */
 function RequireCouple({ children }: { children: React.ReactNode }) {
   const { status } = useStore();
@@ -52,7 +57,7 @@ function RequireCouple({ children }: { children: React.ReactNode }) {
   if (status === 'unconfigured') return <NeedsSetupScreen />;
   if (status === 'loading') return null;
   if (status === 'signed-out') {
-    return <Navigate to="/onboarding" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/account" replace state={{ from: location.pathname }} />;
   }
   if (status === 'no-couple') return <Navigate to="/couple" replace />;
   return <>{children}</>;
