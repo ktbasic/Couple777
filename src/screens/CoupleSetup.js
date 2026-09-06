@@ -183,7 +183,10 @@ export default function CoupleSetupScreen() {
         }
     };
     if (step === 'invite') {
-        return _jsx(InviteShare, { partnerName: partnerName, onDone: () => navigate('/', { replace: true }) });
+        /* The creator's last step. The partner who arrives by link finishes on
+           /me/setup instead, and that one ends here too — so both of you see the
+           explainer once, as part of setting up, and never again. */
+        return (_jsx(InviteShare, { partnerName: partnerName, onDone: () => navigate('/privacy', { replace: true }) }));
     }
     if (step === 'choose') {
         return (_jsxs(Screen, { className: s.screen, children: [_jsxs("div", { className: s.top, children: [_jsx("h1", { className: s.title, children: "How do you want to start?" }), _jsx("p", { className: s.body, children: "Couple777 is built for two. One of you starts the space, the other joins with a code." })] }), _jsxs("div", { className: s.actions, children: [_jsx(Button, { variant: "accent", size: "lg", block: true, onClick: () => setStep('create'), children: "Create our space" }), _jsx(Button, { variant: "secondary", size: "lg", block: true, onClick: () => setStep('join'), children: "I have an invite" })] })] }));

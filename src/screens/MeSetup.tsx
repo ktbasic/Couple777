@@ -50,7 +50,10 @@ export default function MeSetupScreen() {
       });
       clearPendingOnboarding();
       await refresh();
-      navigate('/', { replace: true });
+      /* The last step of setting up, for whichever of you is doing it: both
+         the person who created the space and the one who arrived by link come
+         through here. Signing in later goes straight home. */
+      navigate('/privacy', { replace: true });
     } finally {
       setBusy(false);
     }

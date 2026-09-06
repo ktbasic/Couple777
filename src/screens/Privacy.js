@@ -1,7 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '@/context/store';
 import { Button } from '@/components/ui/Button';
 import { IconPrivate, IconReveal, IconShared, IconSurprise, } from '@/components/ui/PrivacyIcons';
 import s from './Onboarding.module.css';
@@ -39,26 +38,8 @@ const PRIVACY_CARDS = [
         body: 'Daily answers stay hidden until both of you respond.',
     },
 ];
-const SEEN_KEY = 'couple777:privacy-seen';
-export function markPrivacySeen(userId) {
-    try {
-        window.localStorage.setItem(`${SEEN_KEY}:${userId}`, '1');
-    }
-    catch {
-        /* ignore */
-    }
-}
-export function hasSeenPrivacy(userId) {
-    try {
-        return window.localStorage.getItem(`${SEEN_KEY}:${userId}`) === '1';
-    }
-    catch {
-        return true;
-    }
-}
 export default function PrivacyScreen() {
     const navigate = useNavigate();
-    const { state } = useStore();
     /* Each card keeps its own state. Closing one because another was opened
        takes the choice away from the person reading: four short explanations
        are worth comparing side by side, and a card that shuts itself while you
@@ -74,8 +55,5 @@ export default function PrivacyScreen() {
                                         animationDelay: `${i * 90}ms`,
                                         // Staggered so the four never catch the light together.
                                         ['--sheen-delay']: `${i * 800}ms`,
-                                    }, children: _jsxs("span", { className: s.privacyInner, children: [_jsxs("span", { className: [s.privacyFace, s.privacyFront].join(' '), children: [_jsx(card.Icon, { size: 34 }), _jsx("span", { className: s.privacyTitle, children: card.title })] }), _jsx("span", { className: [s.privacyFace, s.privacyBack].join(' '), children: _jsx("span", { className: s.privacyBody, children: card.body }) })] }) }, card.tone))) })] }) }), _jsx("div", { className: s.foot, children: _jsx(Button, { variant: "accent", size: "lg", block: true, onClick: () => {
-                            markPrivacySeen(state.couple.currentPersonId);
-                            navigate('/', { replace: true });
-                        }, children: "Open our space" }) })] }) }));
+                                    }, children: _jsxs("span", { className: s.privacyInner, children: [_jsxs("span", { className: [s.privacyFace, s.privacyFront].join(' '), children: [_jsx(card.Icon, { size: 34 }), _jsx("span", { className: s.privacyTitle, children: card.title })] }), _jsx("span", { className: [s.privacyFace, s.privacyBack].join(' '), children: _jsx("span", { className: s.privacyBody, children: card.body }) })] }) }, card.tone))) })] }) }), _jsx("div", { className: s.foot, children: _jsx(Button, { variant: "accent", size: "lg", block: true, onClick: () => navigate('/', { replace: true }), children: "Open our space" }) })] }) }));
 }

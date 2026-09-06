@@ -196,7 +196,15 @@ export default function CoupleSetupScreen() {
   };
 
   if (step === 'invite') {
-    return <InviteShare partnerName={partnerName} onDone={() => navigate('/', { replace: true })} />;
+    /* The creator's last step. The partner who arrives by link finishes on
+       /me/setup instead, and that one ends here too — so both of you see the
+       explainer once, as part of setting up, and never again. */
+    return (
+      <InviteShare
+        partnerName={partnerName}
+        onDone={() => navigate('/privacy', { replace: true })}
+      />
+    );
   }
 
   if (step === 'choose') {

@@ -70,12 +70,45 @@ export default function NameSetupScreen() {
   const [selfDescribed, setSelfDescribed] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Nothing is drawn until we know whether this person has a name already —
+     otherwise someone signing in on a new phone sees "What should we call
+     you?" flash up before being sent on, which is a strange thing to be asked
+     by an app you have used for weeks. */
+  const [checking, setChecking] = useState(true);
 
   // The session can land a moment after the screen does.
   useEffect(() => {
     if (!user) return;
     setName((current) => current || suggestedName(user.user_metadata));
   }, [user]);
+
+  /*
+   * Every sign-in comes through here, because sign-up no longer asks for a
+   * name and this is where it gets asked. Someone who already has one is not
+   * signing up — they are coming back, on a new phone or in a new browser —
+   * so this steps out of their way.
+   */
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    void (async () => {
+      try {
+        const profile = await repo.getProfile(user.id);
+        if (!alive) return;
+        if (profile?.display_name?.trim()) {
+          navigate(next, { replace: true });
+          return;
+        }
+      } catch {
+        /* If we cannot tell, ask: a duplicate question is better than a
+           person with no name on their own space. */
+      }
+      if (alive) setChecking(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [user, next, navigate]);
 
   const save = async () => {
     if (!user) return;
@@ -103,6 +136,8 @@ export default function NameSetupScreen() {
       setBusy(false);
     }
   };
+
+  if (checking) return null;
 
   return (
     <Screen className={s.screen}>

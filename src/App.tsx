@@ -10,7 +10,7 @@ import AccountScreen from './screens/Account';
 import CoupleSetupScreen from './screens/CoupleSetup';
 import JoinInviteScreen from './screens/JoinInvite';
 import NeedsSetupScreen from './screens/NeedsSetup';
-import PrivacyScreen, { hasSeenPrivacy } from './screens/Privacy';
+import PrivacyScreen from './screens/Privacy';
 import MeSetupScreen from './screens/MeSetup';
 import NameSetupScreen from './screens/NameSetup';
 import HomeScreen from './screens/Home';
@@ -46,7 +46,7 @@ function TalkRedirect() {
  * on couple setup, not back on sign-up.
  */
 function RequireCouple({ children }: { children: React.ReactNode }) {
-  const { status, state } = useStore();
+  const { status } = useStore();
   const location = useLocation();
 
   if (status === 'unconfigured') return <NeedsSetupScreen />;
@@ -55,11 +55,6 @@ function RequireCouple({ children }: { children: React.ReactNode }) {
     return <Navigate to="/onboarding" replace state={{ from: location.pathname }} />;
   }
   if (status === 'no-couple') return <Navigate to="/couple" replace />;
-  // Shown once per person, after there is a second person for the promises to
-  // be about. Both partners see it, including the one who arrived by link.
-  if (!hasSeenPrivacy(state.couple.currentPersonId)) {
-    return <Navigate to="/privacy" replace />;
-  }
   return <>{children}</>;
 }
 

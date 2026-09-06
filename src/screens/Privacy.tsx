@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '@/context/store';
 import { Button } from '@/components/ui/Button';
 import {
   IconPrivate,
@@ -45,27 +44,8 @@ const PRIVACY_CARDS = [
   },
 ];
 
-const SEEN_KEY = 'couple777:privacy-seen';
-
-export function markPrivacySeen(userId: string) {
-  try {
-    window.localStorage.setItem(`${SEEN_KEY}:${userId}`, '1');
-  } catch {
-    /* ignore */
-  }
-}
-
-export function hasSeenPrivacy(userId: string): boolean {
-  try {
-    return window.localStorage.getItem(`${SEEN_KEY}:${userId}`) === '1';
-  } catch {
-    return true;
-  }
-}
-
 export default function PrivacyScreen() {
   const navigate = useNavigate();
-  const { state } = useStore();
   /* Each card keeps its own state. Closing one because another was opened
      takes the choice away from the person reading: four short explanations
      are worth comparing side by side, and a card that shuts itself while you
@@ -129,10 +109,7 @@ export default function PrivacyScreen() {
             variant="accent"
             size="lg"
             block
-            onClick={() => {
-              markPrivacySeen(state.couple.currentPersonId);
-              navigate('/', { replace: true });
-            }}
+            onClick={() => navigate('/', { replace: true })}
           >
             Open our space
           </Button>

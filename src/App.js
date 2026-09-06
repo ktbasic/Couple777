@@ -10,7 +10,7 @@ import AccountScreen from './screens/Account';
 import CoupleSetupScreen from './screens/CoupleSetup';
 import JoinInviteScreen from './screens/JoinInvite';
 import NeedsSetupScreen from './screens/NeedsSetup';
-import PrivacyScreen, { hasSeenPrivacy } from './screens/Privacy';
+import PrivacyScreen from './screens/Privacy';
 import MeSetupScreen from './screens/MeSetup';
 import NameSetupScreen from './screens/NameSetup';
 import HomeScreen from './screens/Home';
@@ -44,7 +44,7 @@ function TalkRedirect() {
  * on couple setup, not back on sign-up.
  */
 function RequireCouple({ children }) {
-    const { status, state } = useStore();
+    const { status } = useStore();
     const location = useLocation();
     if (status === 'unconfigured')
         return _jsx(NeedsSetupScreen, {});
@@ -55,11 +55,6 @@ function RequireCouple({ children }) {
     }
     if (status === 'no-couple')
         return _jsx(Navigate, { to: "/couple", replace: true });
-    // Shown once per person, after there is a second person for the promises to
-    // be about. Both partners see it, including the one who arrived by link.
-    if (!hasSeenPrivacy(state.couple.currentPersonId)) {
-        return _jsx(Navigate, { to: "/privacy", replace: true });
-    }
     return _jsx(_Fragment, { children: children });
 }
 export function App() {

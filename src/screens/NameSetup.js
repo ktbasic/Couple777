@@ -64,12 +64,48 @@ export default function NameSetupScreen() {
     const [selfDescribed, setSelfDescribed] = useState('');
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState(null);
+    /* Nothing is drawn until we know whether this person has a name already —
+       otherwise someone signing in on a new phone sees "What should we call
+       you?" flash up before being sent on, which is a strange thing to be asked
+       by an app you have used for weeks. */
+    const [checking, setChecking] = useState(true);
     // The session can land a moment after the screen does.
     useEffect(() => {
         if (!user)
             return;
         setName((current) => current || suggestedName(user.user_metadata));
     }, [user]);
+    /*
+     * Every sign-in comes through here, because sign-up no longer asks for a
+     * name and this is where it gets asked. Someone who already has one is not
+     * signing up — they are coming back, on a new phone or in a new browser —
+     * so this steps out of their way.
+     */
+    useEffect(() => {
+        if (!user)
+            return;
+        let alive = true;
+        void (async () => {
+            try {
+                const profile = await repo.getProfile(user.id);
+                if (!alive)
+                    return;
+                if (profile?.display_name?.trim()) {
+                    navigate(next, { replace: true });
+                    return;
+                }
+            }
+            catch {
+                /* If we cannot tell, ask: a duplicate question is better than a
+                   person with no name on their own space. */
+            }
+            if (alive)
+                setChecking(false);
+        })();
+        return () => {
+            alive = false;
+        };
+    }, [user, next, navigate]);
     const save = async () => {
         if (!user)
             return;
@@ -99,6 +135,8 @@ export default function NameSetupScreen() {
             setBusy(false);
         }
     };
+    if (checking)
+        return null;
     return (_jsxs(Screen, { className: s.screen, children: [_jsx("div", { className: s.progress, "aria-hidden": true, children: Array.from({ length: ONBOARDING_STEPS }).map((_, i) => (_jsx("span", { className: [s.tick, i === 0 ? s.tickOn : ''].filter(Boolean).join(' ') }, i))) }), _jsx("div", { className: s.gapTop }), _jsxs("div", { className: s.head, children: [_jsx("h1", { className: s.title, children: "What should we call you?" }), _jsx("p", { className: s.body, children: "This is the name your partner sees on everything you share together." })] }), _jsxs("div", { className: s.hero, children: [_jsx("span", { className: s.bubble, children: greetingFor(name) }), _jsx(CosmicGreeter, {})] }), _jsxs("div", { className: s.fields, children: [_jsx(Input, { label: "Your name", value: name, onChange: (e) => setName(e.target.value), placeholder: "Type your name", autoComplete: "given-name", maxLength: 40, required: true }), _jsxs("fieldset", { className: s.identity, children: [_jsxs("legend", { className: s.legend, children: ["How do you identify?", _jsx("span", { className: s.optional, children: "(optional)" })] }), _jsx("div", { className: s.chips, children: IDENTITIES.map((o) => (_jsx("button", { type: "button", className: s.chip, "aria-pressed": identity === o.value, onClick: () => setIdentity(identity === o.value ? '' : o.value), children: o.label }, o.value))) }), identity === 'self-describe' ? (_jsx("div", { className: s.selfDescribe, children: _jsx(Input, { label: "In your words", value: selfDescribed, onChange: (e) => setSelfDescribed(e.target.value), placeholder: "However you describe yourself", maxLength: 40, autoFocus: true }) })) : null] }), _jsxs("p", { className: s.privacy, children: [_jsx(LockIcon, {}), "Your personal information stays private."] }), error ? _jsx("p", { className: s.error, children: error }) : null] }), _jsx("div", { className: s.gapBottom }), _jsx("div", { className: s.foot, children: _jsx(Button, { type: "button", variant: "accent", size: "lg", block: true, disabled: busy || !name.trim(), onClick: () => void save(), children: busy ? 'One moment…' : 'Continue' }) })] }));
 }
 /** Drawn rather than an emoji, so it takes the ink colour and never colours itself. */
