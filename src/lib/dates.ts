@@ -65,6 +65,12 @@ export function formatShort(iso: ISODate): string {
   return `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
 }
 
+/** "SEP 3, 2024" — a memory's date, spelled out. */
+export function formatStamp(iso: ISODate): string {
+  const d = fromISODate(iso);
+  return `${MONTHS_SHORT[d.getMonth()].toUpperCase()} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
 /** "SEP 05" — timeline gutter. */
 export function formatGutter(iso: ISODate): { month: string; day: string } {
   const d = fromISODate(iso);

@@ -1,0 +1,147 @@
+/*
+ * Full-bleed: it cancels the screen's side padding and puts it back inside,
+ * so the sky reaches both edges while the content keeps its measure.
+ */
+.wrap {
+  position: relative;
+  isolation: isolate;
+  margin: var(--s-7) calc(-1 * var(--s-5)) 0;
+  padding: var(--s-8) var(--s-5) var(--s-9);
+  overflow: hidden;
+}
+
+/* The colour, under the drawn sky: pink into peach into lavender, each one
+   fading out on its own so there is no seam where they meet. */
+.wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    /* Painted over the top and bottom edges so the sky arrives and leaves
+       rather than starting on a straight line across the page. */
+    linear-gradient(
+      180deg,
+      var(--c-page) 0%,
+      rgba(255, 252, 252, 0) 17%,
+      rgba(255, 252, 252, 0) 83%,
+      var(--c-page) 100%
+    ),
+    radial-gradient(118% 92% at 32% 18%, rgba(250, 214, 228, 0.9) 0%, rgba(250, 214, 228, 0) 62%),
+    radial-gradient(104% 86% at 80% 74%, rgba(224, 211, 243, 0.72) 0%, rgba(224, 211, 243, 0) 64%),
+    radial-gradient(120% 96% at 56% 48%, rgba(253, 226, 212, 0.62) 0%, rgba(253, 226, 212, 0) 70%);
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  /* The same arrival and departure as the colour under it, so an orbit does
+     not get cut off mid-line at the section's edge. */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 17%, #000 83%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 17%, #000 83%, transparent 100%);
+}
+
+/* ---------- Nothing saved yet ---------- */
+
+.empty {
+  text-align: center;
+}
+
+.emptyTitle {
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
+}
+
+.emptyBody {
+  margin: var(--s-3) auto var(--s-6);
+  max-width: 28ch;
+  font-size: var(--t-body);
+  line-height: 1.55;
+  color: var(--c-ink-3);
+  text-wrap: balance;
+}
+
+/* ---------- The most recent memory ---------- */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+
+.shot {
+  flex: none;
+  width: 92px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  /* A white edge, so a dark photo still reads as an object in the sky rather
+     than a hole cut in it. */
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.9),
+    0 10px 22px rgba(168, 92, 118, 0.18);
+}
+
+.photo {
+  display: block;
+  width: 100%;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+
+.stamp {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--c-accent-ink);
+}
+
+.title {
+  margin-top: var(--s-2);
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--c-ink);
+  text-wrap: balance;
+}
+
+.note {
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--c-ink-3);
+  /* Two lines, then stop: this is a glimpse, and the memory itself is one tap
+     away. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.open {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--c-accent-ink);
+  box-shadow: 0 4px 12px rgba(168, 92, 118, 0.14);
+  transition: transform var(--d-fast) var(--ease);
+}
+
+.open:active {
+  transform: scale(0.92);
+}

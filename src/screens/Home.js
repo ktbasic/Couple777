@@ -7,7 +7,7 @@ import { AvatarPair } from '@/components/ui/Avatar';
 import { ButtonLink } from '@/components/ui/Button';
 import { CycleCardCompact, CycleCardHero } from '@/features/CycleCard';
 import { DailyCard } from '@/features/DailyCard';
-import { MemoryCard } from '@/features/MemoryCard';
+import { MemoryCosmos } from '@/features/MemoryCosmos';
 import { MatchReveal } from '@/features/DestinationCard';
 import { NotificationBell } from '@/features/NotificationBell';
 import { LittleQuest } from '@/features/LittleQuest';
@@ -34,9 +34,9 @@ export default function HomeScreen() {
     // Attention decides the hero, not tier — see `attentionScore`.
     const hero = upNext(state, now);
     const ahead = alsoAhead(state, now);
-    /* Two, not four: this is a glance at the last thing you did together, and
-       the rest are one tap away. */
-    const memories = sortedMemories(state.memories).slice(0, 2);
+    /* One: the section below shows the last thing you did together, and the
+       rest are one tap away. */
+    const latest = sortedMemories(state.memories)[0];
     const awaiting = cycleAwaitingMemory(state);
     const match = newMatch(state);
     const matched = hasMatches(state);
@@ -64,8 +64,5 @@ export default function HomeScreen() {
             /* Three, swipeable — not a feed. Home's job is to say the community is
                alive and hand you a door into it, not to become a second reader,
                and one card looked like the only thing anyone had said. */
-            _jsxs(Section, { children: [_jsx(SectionHeader, { title: "From the community", actionLabel: "See all \u2192", actionTo: "/community" }), _jsx("div", { className: `${s.threads} no-scrollbar`, children: highlights.map((post) => (_jsxs(Link, { to: `/community/${post.id}`, className: s.thread, children: [_jsxs("p", { className: s.highlightMeta, children: [TOPIC_EMOJI[post.topic], " ", post.author, " \u00B7 ", post.replies.length, ' ', post.replies.length === 1 ? 'reply' : 'replies'] }), _jsx("p", { className: s.highlightBody, children: post.body.length > 150 ? `${post.body.slice(0, 150).trimEnd()}…` : post.body })] }, post.id))) })] })) : null, memories.length ? (_jsxs(Section, { children: [_jsx(SectionHeader, { title: "Recently together", actionLabel: "See all memories \u2192", actionTo: "/memories" }), _jsx("div", { className: `${s.recent} no-scrollbar`, children: memories.map((m) => (_jsx("div", { className: s.recentItem, children: _jsx(MemoryCard, { memory: m }) }, m.id))) })] })) : (
-            /* This was a full-width button that did nothing when tapped — an empty
-               state that looked like a control. It is a real invitation now. */
-            _jsxs(Section, { children: [_jsx(SectionHeader, { title: "Recently together" }), _jsxs("div", { className: s.storyStart, children: [_jsx("p", { className: s.storyTitle, children: "Your story starts here \uD83D\uDCCD" }), _jsx("p", { className: s.storyBody, children: "Save a photo, note, or anything you want to remember." }), _jsx(ButtonLink, { to: "/memories/new", variant: "accent", size: "sm", children: "Capture a moment" })] })] }))] }));
+            _jsxs(Section, { children: [_jsx(SectionHeader, { title: "From the community", actionLabel: "See all \u2192", actionTo: "/community" }), _jsx("div", { className: `${s.threads} no-scrollbar`, children: highlights.map((post) => (_jsxs(Link, { to: `/community/${post.id}`, className: s.thread, children: [_jsxs("p", { className: s.highlightMeta, children: [TOPIC_EMOJI[post.topic], " ", post.author, " \u00B7 ", post.replies.length, ' ', post.replies.length === 1 ? 'reply' : 'replies'] }), _jsx("p", { className: s.highlightBody, children: post.body.length > 150 ? `${post.body.slice(0, 150).trimEnd()}…` : post.body })] }, post.id))) })] })) : null, _jsx(MemoryCosmos, { memory: latest })] }));
 }

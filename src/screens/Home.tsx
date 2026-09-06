@@ -6,7 +6,7 @@ import { AvatarPair } from '@/components/ui/Avatar';
 import { ButtonLink } from '@/components/ui/Button';
 import { CycleCardCompact, CycleCardHero } from '@/features/CycleCard';
 import { DailyCard } from '@/features/DailyCard';
-import { MemoryCard } from '@/features/MemoryCard';
+import { MemoryCosmos } from '@/features/MemoryCosmos';
 import { MatchReveal } from '@/features/DestinationCard';
 import { NotificationBell } from '@/features/NotificationBell';
 import { LittleQuest } from '@/features/LittleQuest';
@@ -41,9 +41,9 @@ export default function HomeScreen() {
   // Attention decides the hero, not tier — see `attentionScore`.
   const hero = upNext(state, now);
   const ahead = alsoAhead(state, now);
-  /* Two, not four: this is a glance at the last thing you did together, and
-     the rest are one tap away. */
-  const memories = sortedMemories(state.memories).slice(0, 2);
+  /* One: the section below shows the last thing you did together, and the
+     rest are one tap away. */
+  const latest = sortedMemories(state.memories)[0];
   const awaiting = cycleAwaitingMemory(state);
   const match = newMatch(state);
   const matched = hasMatches(state);
@@ -206,37 +206,8 @@ export default function HomeScreen() {
         </Section>
       ) : null}
 
-      {memories.length ? (
-        <Section>
-          <SectionHeader
-            title="Recently together"
-            actionLabel="See all memories →"
-            actionTo="/memories"
-          />
-          <div className={`${s.recent} no-scrollbar`}>
-            {memories.map((m) => (
-              <div key={m.id} className={s.recentItem}>
-                <MemoryCard memory={m} />
-              </div>
-            ))}
-          </div>
-        </Section>
-      ) : (
-        /* This was a full-width button that did nothing when tapped — an empty
-           state that looked like a control. It is a real invitation now. */
-        <Section>
-          <SectionHeader title="Recently together" />
-          <div className={s.storyStart}>
-            <p className={s.storyTitle}>Your story starts here 📍</p>
-            <p className={s.storyBody}>
-              Save a photo, note, or anything you want to remember.
-            </p>
-            <ButtonLink to="/memories/new" variant="accent" size="sm">
-              Capture a moment
-            </ButtonLink>
-          </div>
-        </Section>
-      )}
+      {/* No heading and no card: the page turns into sky and ends. */}
+      <MemoryCosmos memory={latest} />
     </Screen>
   );
 }

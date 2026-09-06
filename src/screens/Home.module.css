@@ -189,33 +189,6 @@
   text-wrap: pretty;
 }
 
-/* ---------- Nothing captured yet ---------- */
-
-.storyStart {
-  padding: var(--s-6) var(--s-5);
-  border-radius: var(--r-lg);
-  background: var(--c-accent-wash);
-  border: 1px solid var(--c-accent-edge);
-  text-align: center;
-}
-
-.storyTitle {
-  font-family: var(--f-display);
-  font-size: var(--t-title);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--c-ink);
-}
-
-.storyBody {
-  margin: var(--s-2) auto var(--s-5);
-  max-width: 30ch;
-  font-size: var(--t-small);
-  line-height: 1.5;
-  color: var(--c-ink-3);
-  text-wrap: pretty;
-}
-
 /* ---------- Capture nudge ---------- */
 
 .nudge {
@@ -251,25 +224,6 @@
   color: var(--c-ink-3);
   margin-top: 1px;
   text-wrap: pretty;
-}
-
-/* ---------- Recently ---------- */
-
-.recent {
-  min-width: 0;
-  display: flex;
-  gap: var(--s-3);
-  overflow-x: auto;
-  padding: 2px var(--s-5) var(--s-2);
-  margin: 0 calc(-1 * var(--s-5));
-  scroll-snap-type: x mandatory;
-}
-
-.recentItem {
-  flex: none;
-  width: 74%;
-  max-width: 268px;
-  scroll-snap-align: start;
 }
 
 /* ---------- Notes waiting ---------- */
