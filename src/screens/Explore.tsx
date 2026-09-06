@@ -68,7 +68,7 @@ export default function ExploreScreen() {
         sub={
           cycle
             ? TIER_META[cycle.tier].hint
-            : 'A few details, and Couple777 will suggest something that fits tonight.'
+            : 'A few taps, and we’ll do the rest.'
         }
       />
 
@@ -117,7 +117,6 @@ const WHEN: { label: string; value: Daypart }[] = [
   { label: 'Afternoon', value: 'afternoon' },
   { label: 'Evening', value: 'evening' },
   { label: 'Night', value: 'late' },
-  { label: 'Whole day', value: 'wholeday' },
 ];
 
 /* "Either" is a real answer rather than a third place: picking it clears the

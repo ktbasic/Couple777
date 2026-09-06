@@ -278,7 +278,9 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: var(--s-5);
+  /* Tighter than a normal card on purpose: every 4px here is 4px of chip, and
+     a row that fits on one line is worth more than the margin it cost. */
+  padding: var(--s-4);
   border-radius: var(--r-lg);
   background: linear-gradient(162deg, var(--c-accent-wash) 0%, #fdf3ef 62%, #f7f0fb 100%);
   border: 1px solid var(--c-accent-edge);
@@ -300,12 +302,12 @@
    pushing five options onto two lines and making four short questions look
    like a form; the full width fits most rows on one line. */
 .pickRow + .pickRow {
-  margin-top: var(--s-3);
+  margin-top: 10px;
 }
 
 .pickLabel {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   font-size: var(--t-micro);
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -327,7 +329,7 @@
 .pick {
   flex: none;
   height: 32px;
-  padding: 0 11px;
+  padding: 0 10px;
   border-radius: var(--r-full);
   border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.72);
@@ -374,7 +376,7 @@
   width: 100%;
   /* Shorter than the button above it as well as quieter: a taller secondary
      reads as the more important one however plain it looks. */
-  padding: 10px var(--s-2);
+  padding: 9px var(--s-2);
   background: none;
   border: 0;
   cursor: pointer;
@@ -395,9 +397,12 @@
 }
 
 .genActions {
-  margin-top: var(--s-5);
+  /* Enough to separate the buttons from the chips, no more: on a short phone
+     these last pixels are what keeps the dice clear of the floating home
+     button rather than tucked behind it. */
+  margin-top: var(--s-4);
   display: grid;
-  gap: var(--s-2);
+  gap: 4px;
 }
 
 /* ---------- Saved and matched ---------- */
