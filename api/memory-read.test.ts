@@ -90,10 +90,27 @@ delete process.env.ANTHROPIC_API_KEY;
 {
   const { res, out } = spy();
   await handler({ method: 'GET' }, res);
-  check('anything but POST is refused', out.code === 405);
+  check(
+    'a GET says it is off, without spending a call',
+    out.code === 200 && (out.body as { configured: boolean }).configured === false,
+    JSON.stringify(out.body),
+  );
+}
+{
+  const { res, out } = spy();
+  await handler({ method: 'PUT', body: {} }, res);
+  check('anything else is refused', out.code === 405);
 }
 
 process.env.MEMORY_AI_API_KEY = 'sk-ant-deliberately-invalid';
+{
+  const { res, out } = spy();
+  await handler({ method: 'GET' }, res);
+  check(
+    'and with a key, that it is on',
+    out.code === 200 && (out.body as { configured: boolean }).configured === true,
+  );
+}
 {
   const { res, out } = spy();
   await handler({ method: 'POST', body: { note: '   ' } }, res);

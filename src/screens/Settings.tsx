@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BackBar, Screen, ScreenHeader } from '@/components/layout/Screen';
 import { Input } from '@/components/ui/Field';
@@ -6,6 +6,7 @@ import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
 import { useStore } from '@/context/store';
 import { useAuth } from '@/context/auth';
+import { readerStatus, type ReadingSource } from '@/lib/memoryAi';
 import s from './Settings.module.css';
 
 export default function SettingsScreen() {
@@ -13,6 +14,17 @@ export default function SettingsScreen() {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const [confirmReset, setConfirmReset] = useState(false);
+  const [reader, setReader] = useState<ReadingSource | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void readerStatus().then((r) => alive && setReader(r));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const readerName = reader === 'model' ? 'Couple777 reads it' : 'Read on this phone';
 
   return (
     <>
@@ -75,7 +87,7 @@ export default function SettingsScreen() {
           <div className={s.privacy}>
             {[
               { icon: '👥', strong: 'Shared', body: 'Plans, trips, memories, and finished conversations.' },
-              { icon: '🔒', strong: 'Yours only', body: 'Private notes and private lines on a memory.' },
+              { icon: '🔒', strong: 'Yours only', body: 'Private memories, private notes, and private lines.' },
               { icon: '🤫', strong: 'Hidden', body: 'Surprise plans, and wishlist saves until they match.' },
               { icon: '⏳', strong: 'Sealed', body: 'Daily and Room answers, until you have both written one.' },
             ].map((r) => (
@@ -88,6 +100,28 @@ export default function SettingsScreen() {
                 </span>
               </p>
             ))}
+          </div>
+        </section>
+
+        {/*
+          Where a memory is read, in plain words. Without a key the app falls
+          back to reading notes on the phone, which is quieter and coarser —
+          and if nobody says so, the only symptom is that a hard evening gets
+          the same warm answer as a good one, with no way to tell why.
+        */}
+        <section className={s.group}>
+          <p className={s.groupLabel}>Reading your memories</p>
+          <div className={s.rows}>
+            <div className={s.row}>
+              <div className={s.rowMain}>
+                <span className={s.rowLabel}>{readerName}</span>
+                <span className={s.rowValue}>
+                  {reader === 'device'
+                    ? 'Nothing you write is sent anywhere. It is read on this phone, which is quicker but blunter.'
+                    : 'Your note is read by Couple777 so the questions fit what you wrote.'}
+                </span>
+              </div>
+            </div>
           </div>
         </section>
 

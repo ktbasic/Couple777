@@ -36,6 +36,19 @@ export async function readMemory(note, answers = [], now = today()) {
     }
     return { reading: localReading(note, answers, now), source: 'device' };
 }
+/**
+ * Which reader is live. Asked once and remembered, because the answer is a
+ * deployment setting rather than something that changes while someone is
+ * looking at a screen.
+ */
+let readerPromise = null;
+export function readerStatus() {
+    readerPromise ??= fetch(ENDPOINT, { method: 'GET' })
+        .then((r) => (r.ok ? r.json() : { configured: false }))
+        .then((body) => (body.configured ? 'model' : 'device'))
+        .catch(() => 'device');
+    return readerPromise;
+}
 /* ----------------------------- The device read ---------------------------- */
 const QUESTION = {
     date: {
@@ -67,7 +80,7 @@ export function localReading(note, answers = [], now = today()) {
     const hard = read.tone === 'difficult';
     const voice = hard ? 'hard' : 'soft';
     const answeredFields = new Set(answers.map((a) => a.field));
-    const queue = asksFor(read, {
+    const wanted = asksFor(read, {
         date: Boolean(read.date),
         place: Boolean(read.place),
     })
@@ -76,7 +89,18 @@ export function localReading(note, answers = [], now = today()) {
         .filter((field) => !(hard && field === 'place'))
         /* The on-device reader names them in its own vocabulary; the endpoint's
            names are the ones the screens speak. */
-        .map((field) => field === 'more' ? 'context' : field === 'feeling' ? 'feelings' : field)
+        .map((field) => (field === 'more' ? 'context' : field === 'feeling' ? 'feelings' : field));
+    /*
+     * Order matters more than which questions get asked. After a good evening,
+     * "was this today?" is a pleasant little thing to answer first. After a bad
+     * one it is paperwork — so a hard note is asked what it wants to keep, then
+     * how it felt, and only then, if there is room, when it was.
+     */
+    const order = hard
+        ? ['context', 'feelings', 'date', 'place']
+        : ['date', 'place', 'feelings', 'context'];
+    const queue = order
+        .filter((field) => wanted.includes(field) || (hard && field === 'context'))
         .filter((field) => !answeredFields.has(field));
     const next = answers.length >= 3 ? undefined : queue[0];
     return settle({

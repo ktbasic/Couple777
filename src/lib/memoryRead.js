@@ -52,23 +52,78 @@ function readPlace(text) {
         return proper[1];
     return undefined;
 }
-const HARD_WORDS = /\b(argu\w*|fight|fought|shout|shouted|yelled|angry|anger|upset|hurt|hurts|cried|crying|tears|lonely|alone|ignored|dismissed|not listening|wasn.t listening|didn.t listen|resent|distant|cold|exhausted|drained|anxious|scared|afraid|worried|sad|awful|terrible|hate|misunderstood|unheard|apart|shut down|walked out|silent treatment)\b/;
-const SOFT_WORDS = /\b(laugh\w*|danc\w*|smil\w*|happy|joy|lovely|beautiful|grateful|thankful|love|loved|warm|proud|glad|fun|sweet|calm|peaceful|close|closer)\b/;
+/** Things that are hard however they are phrased. */
+const HARD_CUES = [
+    [/\bargu\w*|\bfought\b|\bfight\b|\bfighting\b|\bbickering\b/, 3],
+    [/\bsame (fight|argument|conversation|thing)\b/, 3],
+    [/\b(shouted|yelled|snapped|slammed|stormed)\b/, 3],
+    [/\b(cried|crying|in tears|welled up)\b/, 3],
+    [/\b(ignored|dismissed|unheard|belittled|talked over)\b/, 3],
+    [/\bwhy (do |did )?(i|we) (even )?bother\b/, 3],
+    [/\bthe only one (who |that )?(trying|tries|cares|caring|does)/, 3],
+    [/\broll(ed|s|ing)? (his|her|their) eyes\b/, 3],
+    [/\b(silent treatment|walked out|shut down|stopped speaking)\b/, 3],
+    [/\b(hurt|hurts|hurting|stung|sting)\b/, 2],
+    [/\b(resent\w*|bitter|contempt)\b/, 3],
+    [/\b(tense|awkward|frosty|distant with|cold with)\b/, 2],
+    [/\b(lonely|alone in this|on my own in)\b/, 2],
+    [/\b(angry|anger|furious|annoyed|frustrated|irritated)\b/, 2],
+    [/\b(sad|miserable|low|down about|heavy)\b/, 2],
+    [/\b(upset|shaken|rattled)\b/, 2],
+    [/\b(exhausted|drained|worn out|running on empty)\b/, 2],
+    [/\b(anxious|worried|scared|afraid|on edge|dreading)\b/, 2],
+    [/\b(disappointed|let down|forgot again|forgets)\b/, 2],
+    [/\b(hard|difficult|rough|bad) (day|week|night|evening|month|time)\b/, 2],
+    [/\b(struggling|not okay|not ok|not myself)\b/, 2],
+    [/\b(awful|terrible|horrible|hate)\b/, 2],
+    [/\b(misunderstood|apart|drifting)\b/, 1],
+    [/\b(tired of|sick of|fed up)\b/, 3],
+];
+/** Things that are good however they are phrased. */
+const SOFT_CUES = [
+    [/\b(laugh\w*|giggl\w*|danc\w*|smil\w*)\b/, 3],
+    [/\b(so |really )?(proud|grateful|thankful)\b/, 3],
+    [/\bthank (god|goodness|heavens)\b/, 3],
+    [/\bwithout (me |being |even )?(asking|asked|a word)\b/, 3],
+    [/\b(surprised me|brought me|made me (tea|coffee|breakfast|dinner))\b/, 3],
+    [/\b(kissed|hugged|held me|held my hand|cuddl\w*|snuggl\w*)\b/, 3],
+    [/\b(anniversary|\d+ years (today|together)|years today)\b/, 3],
+    [/\b(lovely|beautiful|wonderful|perfect|magic|magical|best (day|night|evening))\b/, 3],
+    [/\b(love|loved|adore|in love)\b/, 2],
+    [/\b(happy|joy|joyful|delighted|glad)\b/, 2],
+    [/\b(cosy|cozy|warm|sweet|tender|gentle)\b/, 2],
+    [/\b(fun|silly|played|sang|singing)\b/, 2],
+    [/\b(calm|peaceful|easy|restful|quiet together)\b/, 2],
+    [/\b(closer|connected|understood|on the same page)\b/, 2],
+    [/\b(talked|listened|spoke|chatted)\b/, 1],
+    [/\b(sat|walked|together|side by side|curled up)\b/, 1],
+    [/\b(nice|good|great|kind)\b/, 1],
+];
 /**
- * Which way the note leans, on the words alone. Only ever a fallback for the
- * model's own read — but a fallback that gets this wrong is worse than none,
- * because it decides whether someone's worst evening is met with a sparkle.
- * So it errs toward difficult: any hard word present is enough.
+ * "Wasn't listening", "barely spoke", "never asks" — hard, and the verb inside
+ * them must not also be counted as warmth. The verbs are the ones people use
+ * for the things they miss.
  */
+const NEGATED = /\b(did ?n.?t|does ?n.?t|was ?n.?t|were ?n.?t|is ?n.?t|are ?n.?t|has ?n.?t|have ?n.?t|would ?n.?t|could ?n.?t|ca ?n.?t|wo ?n.?t|never|barely|hardly|no longer|stopped)\s+(\w+\s+){0,2}(listen\w*|hear\w*|talk\w*|speak\w*|spoke|say|said|ask\w*|notice\w*|care\w*|help\w*|try\w*|tried|look\w*|touch\w*|call\w*|answer\w*|bother\w*)\b/g;
+function score(text, cues) {
+    return cues.reduce((total, [re, weight]) => (re.test(text) ? total + weight : total), 0);
+}
 export function readTone(text) {
-    const t = text.toLowerCase();
-    const hard = HARD_WORDS.test(t);
-    const soft = SOFT_WORDS.test(t);
-    if (hard && soft)
+    // Curly apostrophes are what phones type, and every contraction above uses
+    // a straight one.
+    const t = text.toLowerCase().replace(/[’‘`]/g, "'");
+    const negations = [...t.matchAll(NEGATED)];
+    // The absence of listening is a strong signal, and whatever verb it took
+    // with it is no longer evidence of warmth.
+    const withoutNegated = t.replace(NEGATED, ' ');
+    const hard = score(withoutNegated, HARD_CUES) + negations.length * 3;
+    const soft = score(withoutNegated, SOFT_CUES);
+    // Both, and both meant: an evening that held two things.
+    if (hard >= 2 && soft >= 2)
         return 'mixed';
-    if (hard)
+    if (hard > soft)
         return 'difficult';
-    if (soft)
+    if (soft > hard && soft >= 2)
         return 'positive';
     return 'neutral';
 }

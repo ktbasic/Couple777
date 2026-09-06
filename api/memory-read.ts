@@ -248,12 +248,21 @@ interface Res {
 }
 
 export default async function handler(req: Req, res: Res) {
+  const key = process.env.MEMORY_AI_API_KEY || process.env.ANTHROPIC_API_KEY;
+
+  /* A GET says only whether this is switched on — no key, no model call, and
+     nothing to leak. The app asks so it can tell someone which reader is
+     doing the reading. */
+  if (req.method === 'GET') {
+    res.status(200).json({ configured: Boolean(key) });
+    return;
+  }
+
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'method_not_allowed' });
     return;
   }
 
-  const key = process.env.MEMORY_AI_API_KEY || process.env.ANTHROPIC_API_KEY;
   if (!key) {
     /* Not an error the person should ever see: the app reads its own notes on
        the device when this happens, and the flow carries on. */

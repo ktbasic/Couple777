@@ -11,3 +11,7 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# The compiled shadow of a test — the .ts is the file, and the test runner
+# bundles it itself.
+src/**/*.test.js

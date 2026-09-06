@@ -96,6 +96,21 @@ export async function readMemory(
   return { reading: localReading(note, answers, now), source: 'device' };
 }
 
+/**
+ * Which reader is live. Asked once and remembered, because the answer is a
+ * deployment setting rather than something that changes while someone is
+ * looking at a screen.
+ */
+let readerPromise: Promise<ReadingSource> | null = null;
+
+export function readerStatus(): Promise<ReadingSource> {
+  readerPromise ??= fetch(ENDPOINT, { method: 'GET' })
+    .then((r) => (r.ok ? (r.json() as Promise<{ configured?: boolean }>) : { configured: false }))
+    .then((body) => (body.configured ? 'model' : 'device'))
+    .catch(() => 'device' as const);
+  return readerPromise;
+}
+
 /* ----------------------------- The device read ---------------------------- */
 
 const QUESTION: Record<string, Record<'soft' | 'hard', string>> = {
@@ -117,6 +132,8 @@ const QUESTION: Record<string, Record<'soft' | 'hard', string>> = {
   },
 };
 
+type Field = 'date' | 'place' | 'feelings' | 'context';
+
 const DATE_REPLIES = ['Yes, today', 'Choose another date', 'Doesn’t matter'];
 const PLACE_REPLIES = ['At home', 'Add a place', 'Skip'];
 
@@ -135,7 +152,7 @@ export function localReading(
   const voice = hard ? 'hard' : 'soft';
 
   const answeredFields = new Set(answers.map((a) => a.field));
-  const queue: ('date' | 'place' | 'feelings' | 'context')[] = asksFor(read, {
+  const wanted: Field[] = asksFor(read, {
     date: Boolean(read.date),
     place: Boolean(read.place),
   })
@@ -144,9 +161,19 @@ export function localReading(
     .filter((field) => !(hard && field === 'place'))
     /* The on-device reader names them in its own vocabulary; the endpoint's
        names are the ones the screens speak. */
-    .map((field) =>
-      field === 'more' ? 'context' : field === 'feeling' ? 'feelings' : field,
-    )
+    .map((field) => (field === 'more' ? 'context' : field === 'feeling' ? 'feelings' : field));
+
+  /*
+   * Order matters more than which questions get asked. After a good evening,
+   * "was this today?" is a pleasant little thing to answer first. After a bad
+   * one it is paperwork — so a hard note is asked what it wants to keep, then
+   * how it felt, and only then, if there is room, when it was.
+   */
+  const order: Field[] = hard
+    ? ['context', 'feelings', 'date', 'place']
+    : ['date', 'place', 'feelings', 'context'];
+  const queue = order
+    .filter((field) => wanted.includes(field) || (hard && field === 'context'))
     .filter((field) => !answeredFields.has(field));
 
   const next = answers.length >= 3 ? undefined : queue[0];
