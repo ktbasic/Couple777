@@ -14,7 +14,7 @@
  * endpoint that runs process.exit() when someone opens it, and a build error
  * if its imports do not suit the function builder.
  */
-import handler, { settle, type Reading } from '../api/memory-read.ts';
+import handler, { parseJson, settle, type Reading } from '../api/memory-read.ts';
 
 let failures = 0;
 const check = (what: string, ok: boolean, detail = '') => {
@@ -91,6 +91,35 @@ check(
   'while one the model marked private stays private',
   settle({ ...happy, defaultVisibility: 'private' }).defaultVisibility === 'private',
 );
+
+console.log('\nReading JSON back out of whatever it arrived wrapped in');
+// The path taken when a model will not do structured output and is asked for
+// JSON in words instead: it may fence it, or say something first.
+const wrapped = [
+  '{"tone":"difficult"}',
+  '```json\n{"tone":"difficult"}\n```',
+  '```\n{"tone":"difficult"}\n```',
+  'Here you go:\n{"tone":"difficult"}\nHope that helps.',
+];
+for (const raw of wrapped) {
+  let ok = false;
+  try {
+    ok = (parseJson(raw, 'test') as { tone?: string }).tone === 'difficult';
+  } catch {
+    ok = false;
+  }
+  if (!ok) failures++;
+  console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${JSON.stringify(raw).slice(0, 52)}`);
+}
+{
+  let threw = false;
+  try {
+    parseJson('I would rather not.', 'test');
+  } catch {
+    threw = true;
+  }
+  check('and prose with no JSON in it is an error, not a crash later', threw);
+}
 
 console.log('\nThe route itself');
 /** The two fields the handler actually reads, shaped as the real thing. */

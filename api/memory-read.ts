@@ -244,23 +244,96 @@ function userMessage(ask: Ask): string {
   ].join('\n');
 }
 
-async function read(ask: Ask, apiKey: string): Promise<Reading> {
-  const client = new Anthropic({ apiKey });
-  const response = await client.messages.create({
-    model: process.env.MEMORY_AI_MODEL || 'claude-opus-5',
-    max_tokens: 2000,
-    system: SYSTEM,
-    messages: [{ role: 'user', content: userMessage(ask) }],
-    // A short, well-specified read: low effort keeps the person waiting for
-    // one question rather than for a considered essay about their evening.
-    output_config: { effort: 'low', format: { type: 'json_schema', schema: SCHEMA } },
-  });
+const MODEL = process.env.MEMORY_AI_MODEL || 'claude-opus-5';
 
-  const text = response.content
+/**
+ * The request is generous with tokens on purpose. Thinking is on by default on
+ * this model and it spends from the same budget, so a tight max_tokens can end
+ * the turn before any text is written — which arrives as a perfectly successful
+ * response containing nothing to parse.
+ */
+const MAX_TOKENS = 4000;
+
+/** The text blocks, joined. Thinking blocks are not text and are skipped. */
+function textOf(response: Anthropic.Message): string {
+  return response.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')
     .map((b) => b.text)
-    .join('');
-  return JSON.parse(text) as Reading;
+    .join('')
+    .trim();
+}
+
+/**
+ * Structured output is a request, not a guarantee: a model, a plan or an API
+ * version that will not take `output_config.format` fails the whole call with a
+ * 400, and there is no reason for that to take the feature down when the same
+ * model will happily return the same JSON if asked in words. So it is tried,
+ * and a rejection of *the request shape* falls back to asking plainly — once.
+ */
+async function ask_model(client: Anthropic, ask: Ask, structured: boolean) {
+  return client.messages.create({
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
+    system: structured
+      ? SYSTEM
+      : `${SYSTEM}\n\nReply with one JSON object and nothing else — no prose, no code fence. It must have exactly these keys: ${SCHEMA.required.join(', ')}.`,
+    messages: [{ role: 'user', content: userMessage(ask) }],
+    // Low effort keeps the person waiting for one question rather than for a
+    // considered essay about their evening.
+    ...(structured
+      ? { output_config: { effort: 'low' as const, format: { type: 'json_schema' as const, schema: SCHEMA } } }
+      : { output_config: { effort: 'low' as const } }),
+  });
+}
+
+/** A 400 about the shape of the request, rather than about its content. */
+function rejectedTheShape(e: unknown): boolean {
+  if (!(e instanceof Anthropic.APIError) || e.status !== 400) return false;
+  return /output_config|output_format|format|schema|structured/i.test(e.message);
+}
+
+/** Whatever the model wrapped its JSON in, if it wrapped it in anything. */
+export function parseJson(text: string, how: string): Reading {
+  const body = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  const start = body.indexOf('{');
+  const end = body.lastIndexOf('}');
+  if (start === -1 || end <= start) {
+    throw new Error(`${how}: the model returned no JSON object (${body.length} chars)`);
+  }
+  return JSON.parse(body.slice(start, end + 1)) as Reading;
+}
+
+async function read(ask: Ask, apiKey: string): Promise<Reading> {
+  const client = new Anthropic({
+    apiKey,
+    // Comfortably inside the function's own ceiling, so a slow call comes back
+    // as an error we can report rather than as the platform killing us.
+    timeout: 40_000,
+    maxRetries: 1,
+  });
+
+  let response: Anthropic.Message;
+  let how = 'structured output';
+  try {
+    response = await ask_model(client, ask, true);
+  } catch (e) {
+    if (!rejectedTheShape(e)) throw e;
+    console.warn(
+      `[memory-read] ${MODEL} refused output_config.format (${String((e as Error).message)}). Asking in words instead.`,
+    );
+    how = 'plain JSON';
+    response = await ask_model(client, ask, false);
+  }
+
+  const text = textOf(response);
+  if (!text) {
+    // A successful response with nothing in it. Almost always the budget going
+    // entirely on thinking, and it says so rather than failing as a parse error.
+    throw new Error(
+      `${how}: empty response (stop_reason=${response.stop_reason}, output_tokens=${response.usage?.output_tokens})`,
+    );
+  }
+  return parseJson(text, how);
 }
 
 /* -------------------------------- Guarding -------------------------------- */
@@ -307,6 +380,14 @@ export function settle(reading: Reading): Reading {
 /* -------------------------------- The route ------------------------------- */
 
 /**
+ * A model call is slower than a default function ceiling allows for, and being
+ * killed by the platform mid-call looks identical to the model failing. The
+ * SDK's own timeout above is set below this so the error is ours to report.
+ */
+export const config = { maxDuration: 60 };
+
+
+/**
  * A default-exported (req, res) handler in api/ is what Vercel builds into a
  * serverless function. Typed with the platform's own types rather than
  * hand-rolled ones, so there is no question about the shape it expects.
@@ -324,6 +405,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
     if (!key) {
       res.status(200).json({ configured: false, working: false });
+      return;
+    }
+    /*
+     * ?probe=1 goes further and actually calls the model, twice: once plainly
+     * and once asking for structured output. Listing models proves the key is
+     * real, which is not the same as proving a Messages call will work — a key
+     * with no credit, or a model the workspace cannot reach, passes the first
+     * and fails the second. This says which, in one request, for a handful of
+     * tokens. Not run on the ordinary check because it costs money.
+     */
+    if (req.query?.probe) {
+      res.status(200).json(await probe(key));
       return;
     }
     try {
@@ -379,8 +472,81 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     res.status(200).json(settle(await read(ask, key)));
   } catch (e) {
-    const status = e instanceof Anthropic.APIError ? e.status ?? 502 : 502;
-    console.error('memory-read failed', e);
-    res.status(status === 429 ? 429 : 502).json({ error: 'ai_unavailable' });
+    const upstream = describe(e);
+    /* One line, greppable, with the model on it — this is what to look for in
+       the function's log when the badge says the reading fell back. */
+    console.error(`[memory-read] FAILED model=${MODEL} ${upstream.status ?? '-'} ${upstream.type ?? ''} ${upstream.message}`);
+    res.status(upstream.status === 429 ? 429 : 502).json({ error: 'ai_unavailable', upstream });
   }
+}
+
+/**
+ * The three things that have to be true, checked one at a time: the key is
+ * real, the model will answer this workspace, and it will answer in the shape
+ * this endpoint asks for. Each reports its own outcome, so a failure names
+ * itself instead of arriving as "the model call failed".
+ */
+async function probe(key: string) {
+  const client = new Anthropic({ apiKey: key, maxRetries: 0, timeout: 30_000 });
+  const out: Record<string, unknown> = { model: MODEL, node: process.version };
+
+  try {
+    await client.models.list({ limit: 1 });
+    out.key = { ok: true };
+  } catch (e) {
+    return { ...out, key: { ok: false, ...describe(e) } };
+  }
+
+  const tiny = { max_tokens: 16, messages: [{ role: 'user' as const, content: 'Reply with the word ok.' }] };
+
+  try {
+    const r = await client.messages.create({ model: MODEL, ...tiny });
+    out.messages = { ok: true, stop_reason: r.stop_reason, text: textOf(r).slice(0, 40) };
+  } catch (e) {
+    return { ...out, messages: { ok: false, ...describe(e) } };
+  }
+
+  try {
+    const r = await client.messages.create({
+      model: MODEL,
+      ...tiny,
+      output_config: {
+        effort: 'low',
+        format: {
+          type: 'json_schema',
+          schema: { type: 'object', additionalProperties: false, required: ['ok'], properties: { ok: { type: 'boolean' } } },
+        },
+      },
+    });
+    out.structuredOutput = { ok: true, text: textOf(r).slice(0, 40) };
+  } catch (e) {
+    // Not fatal: the endpoint falls back to asking for JSON in words.
+    out.structuredOutput = { ok: false, ...describe(e) };
+  }
+
+  return out;
+}
+
+/**
+ * What went wrong, in a form that is safe to hand back to the browser.
+ *
+ * The whole point is that the reason reaches whoever is looking at the screen:
+ * "the model call failed" is not something anyone can act on, while "400 —
+ * your credit balance is too low" is a thing to go and fix. The API's own
+ * message is quoted, trimmed, and swept for anything key-shaped, which should
+ * never be in there but costs nothing to be sure of.
+ */
+function describe(e: unknown): { status?: number; type?: string; message: string } {
+  const scrub = (s: string) => s.replace(/sk-ant-[A-Za-z0-9_-]+/g, 'sk-ant-***').slice(0, 300);
+
+  if (e instanceof Anthropic.APIError) {
+    const body = e.error as { error?: { type?: string; message?: string } } | undefined;
+    return {
+      status: e.status,
+      type: body?.error?.type ?? e.name,
+      message: scrub(body?.error?.message ?? e.message),
+    };
+  }
+  if (e instanceof Error) return { type: e.name, message: scrub(e.message) };
+  return { message: scrub(String(e)) };
 }

@@ -112,8 +112,18 @@ export async function readMemory(
       // Trust it, but not with the two rules that matter.
       return { reading: settle(reading), source: 'model' };
     }
-    const body = (await response.json().catch(() => ({}))) as { error?: string };
-    lastFallbackReason = `${response.status} ${body.error ?? response.statusText}`;
+    const body = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      upstream?: { status?: number; type?: string; message?: string };
+    };
+    const up = body.upstream;
+    lastFallbackReason = [
+      `${response.status} ${body.error ?? response.statusText}`,
+      up && `— ${up.status ?? ''} ${up.type ?? ''}`.trim(),
+      up?.message && `: ${up.message}`,
+    ]
+      .filter(Boolean)
+      .join(' ');
   } catch (e) {
     /* No endpoint, no key, no network, or it took too long. The flow does not
        stop for any of those — but it says which, because "the app felt wrong"
