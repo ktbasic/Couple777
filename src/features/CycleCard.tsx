@@ -102,12 +102,33 @@ const PLUS = (
   </svg>
 );
 
-/* The orbit, in the one place both the drawn ellipse and the heart's track
-   read it from. The track is a circle of ORBIT_RX squashed to ORBIT_RY/ORBIT_RX
-   and tilted, so these three numbers decide both. */
-const ORBIT_RX = 168;
-const ORBIT_RY = 63;
-const ORBIT_TILT = -14;
+/*
+ * The orbit, in the one place the drawn ellipse and the heart's track both
+ * read it from. The track is a circle of ORBIT_RX squashed to
+ * ORBIT_RY/ORBIT_RX and tilted, so these three numbers decide both.
+ *
+ * The tilt is what keeps the heart off the type. A shallow ellipse puts its
+ * highest and lowest points near the middle of the card, straight through the
+ * kicker and the sub-line; steepening it swings those points out to roughly
+ * ±115px, where there is nothing to collide with.
+ */
+const ORBIT_RX = 176;
+const ORBIT_RY = 56;
+const ORBIT_TILT = -22;
+
+/* The ellipse's own major-axis ends, where the near half meets the far half —
+   the silhouette of the ring, and so where the two arcs are cut. */
+const T = (ORBIT_TILT * Math.PI) / 180;
+const END_X = ORBIT_RX * Math.cos(T);
+const END_Y = ORBIT_RX * Math.sin(T);
+const ORBIT_CX = 180;
+const ORBIT_CY = 130;
+const A = `${(ORBIT_CX + END_X).toFixed(1)} ${(ORBIT_CY + END_Y).toFixed(1)}`;
+const B = `${(ORBIT_CX - END_X).toFixed(1)} ${(ORBIT_CY - END_Y).toFixed(1)}`;
+const ARC = `A ${ORBIT_RX} ${ORBIT_RY} ${ORBIT_TILT} 0 1`;
+/** Sweeping clockwise from the right-hand end goes down: the near half. */
+const ORBIT_FRONT = `M ${A} ${ARC} ${B}`;
+const ORBIT_BACK = `M ${B} ${ARC} ${A}`;
 
 const HEART = (
   <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden>
@@ -170,19 +191,20 @@ export function CycleCardHero({ view }: { view: CycleView }) {
         and perfectly round the whole way round.
       */}
       <div className={s.sky} aria-hidden>
+        {/* The far half of the ring is drawn under the planet, so the planet
+            actually covers it — and covers it softly, because the planet's
+            own edge fades out rather than ending on a line. That is the whole
+            difference between a ring around a sphere and an ellipse sitting
+            on top of one. It is dimmed as well, for the stretch either side
+            of the planet where there is nothing to hide behind. */}
+        <svg className={s.orbitBack} viewBox="0 0 360 260" preserveAspectRatio="xMidYMid meet">
+          <path d={ORBIT_BACK} fill="none" stroke="var(--edge)" strokeWidth="1" />
+        </svg>
+
         <span className={s.planet} />
 
-        <svg className={s.orbitArt} viewBox="0 0 360 260" preserveAspectRatio="xMidYMid meet">
-          <ellipse
-            cx="180"
-            cy="130"
-            rx={ORBIT_RX}
-            ry={ORBIT_RY}
-            transform={`rotate(${ORBIT_TILT} 180 130)`}
-            fill="none"
-            stroke="var(--edge)"
-            strokeWidth="1"
-          />
+        <svg className={s.orbitFront} viewBox="0 0 360 260" preserveAspectRatio="xMidYMid meet">
+          <path d={ORBIT_FRONT} fill="none" stroke="var(--edge)" strokeWidth="1.1" />
         </svg>
 
         <div className={s.track}>
@@ -193,8 +215,10 @@ export function CycleCardHero({ view }: { view: CycleView }) {
           </div>
         </div>
 
+        {/* Different periods and a head start on one of them, so the two of
+            them never breathe on the same beat. */}
         <CosmicAccent className={s.moteA} tone="warm" />
-        <CosmicAccent className={s.moteB} tone="cool" flip />
+        <CosmicAccent className={s.moteB} tone="cool" flip delay="-3.4s" />
       </div>
 
       <div className={s.heroBody}>

@@ -446,10 +446,14 @@ export function CosmicAccent({
   tone = 'warm',
   flip = false,
   className,
+  delay,
 }: {
   tone?: 'warm' | 'cool';
   flip?: boolean;
   className?: string;
+  /** A negative delay starts the idle float part-way in, so two of these
+      placed together are never on the same beat. */
+  delay?: string;
 }) {
   const uid = `ca-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
@@ -461,7 +465,7 @@ export function CosmicAccent({
       focusable="false"
     >
       <g transform="translate(92 86) rotate(4) scale(0.84)">
-        <g className={s.accentFloat}>
+        <g className={s.accentFloat} style={delay ? { animationDelay: delay } : undefined}>
           <g transform={flip ? 'scale(-1 1)' : undefined}>
             <Traveller uid={uid} tone={tone} faceFlip={flip} trail={false} />
           </g>

@@ -165,9 +165,9 @@ export function CosmicGreeter({ tone = 'warm' }) {
  * trail is a smudge, and the point is a light touch at the edge of
  * something else, not a scene of its own.
  */
-export function CosmicAccent({ tone = 'warm', flip = false, className, }) {
+export function CosmicAccent({ tone = 'warm', flip = false, className, delay, }) {
     const uid = `ca-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
-    return (_jsx("svg", { className: [s.accent, className].filter(Boolean).join(' '), viewBox: "0 0 170 150", "aria-hidden": true, focusable: "false", children: _jsx("g", { transform: "translate(92 86) rotate(4) scale(0.84)", children: _jsx("g", { className: s.accentFloat, children: _jsx("g", { transform: flip ? 'scale(-1 1)' : undefined, children: _jsx(Traveller, { uid: uid, tone: tone, faceFlip: flip, trail: false }) }) }) }) }));
+    return (_jsx("svg", { className: [s.accent, className].filter(Boolean).join(' '), viewBox: "0 0 170 150", "aria-hidden": true, focusable: "false", children: _jsx("g", { transform: "translate(92 86) rotate(4) scale(0.84)", children: _jsx("g", { className: s.accentFloat, style: delay ? { animationDelay: delay } : undefined, children: _jsx("g", { transform: flip ? 'scale(-1 1)' : undefined, children: _jsx(Traveller, { uid: uid, tone: tone, faceFlip: flip, trail: false }) }) }) }) }));
 }
 export function CosmicPair() {
     const uid = `cp-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;

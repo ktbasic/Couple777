@@ -37,12 +37,32 @@ export function CycleCardCompact({ view }) {
    which would have thinned their strokes. */
 const COMPASS = (_jsxs("svg", { viewBox: "0 0 24 24", width: "17", height: "17", "aria-hidden": true, children: [_jsx("circle", { cx: "12", cy: "12", r: "8.2", fill: "none", stroke: "currentColor", strokeWidth: "1.7" }), _jsx("path", { d: "m15 9-2 4.2-4 1.8 2-4.2z", fill: "none", stroke: "currentColor", strokeWidth: "1.7", strokeLinecap: "round", strokeLinejoin: "round" })] }));
 const PLUS = (_jsx("svg", { viewBox: "0 0 24 24", width: "17", height: "17", "aria-hidden": true, children: _jsx("path", { d: "M12 5.2v13.6M5.2 12h13.6", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round" }) }));
-/* The orbit, in the one place both the drawn ellipse and the heart's track
-   read it from. The track is a circle of ORBIT_RX squashed to ORBIT_RY/ORBIT_RX
-   and tilted, so these three numbers decide both. */
-const ORBIT_RX = 168;
-const ORBIT_RY = 63;
-const ORBIT_TILT = -14;
+/*
+ * The orbit, in the one place the drawn ellipse and the heart's track both
+ * read it from. The track is a circle of ORBIT_RX squashed to
+ * ORBIT_RY/ORBIT_RX and tilted, so these three numbers decide both.
+ *
+ * The tilt is what keeps the heart off the type. A shallow ellipse puts its
+ * highest and lowest points near the middle of the card, straight through the
+ * kicker and the sub-line; steepening it swings those points out to roughly
+ * ±115px, where there is nothing to collide with.
+ */
+const ORBIT_RX = 176;
+const ORBIT_RY = 56;
+const ORBIT_TILT = -22;
+/* The ellipse's own major-axis ends, where the near half meets the far half —
+   the silhouette of the ring, and so where the two arcs are cut. */
+const T = (ORBIT_TILT * Math.PI) / 180;
+const END_X = ORBIT_RX * Math.cos(T);
+const END_Y = ORBIT_RX * Math.sin(T);
+const ORBIT_CX = 180;
+const ORBIT_CY = 130;
+const A = `${(ORBIT_CX + END_X).toFixed(1)} ${(ORBIT_CY + END_Y).toFixed(1)}`;
+const B = `${(ORBIT_CX - END_X).toFixed(1)} ${(ORBIT_CY - END_Y).toFixed(1)}`;
+const ARC = `A ${ORBIT_RX} ${ORBIT_RY} ${ORBIT_TILT} 0 1`;
+/** Sweeping clockwise from the right-hand end goes down: the near half. */
+const ORBIT_FRONT = `M ${A} ${ARC} ${B}`;
+const ORBIT_BACK = `M ${B} ${ARC} ${A}`;
 const HEART = (_jsx("svg", { viewBox: "0 0 16 16", width: "11", height: "11", "aria-hidden": true, children: _jsx("path", { d: "M8 13.6C3.7 10.6 1.6 8.4 1.6 5.9 1.6 3.9 3.1 2.4 5 2.4c1.2 0 2.3.6 3 1.6.7-1 1.8-1.6 3-1.6 1.9 0 3.4 1.5 3.4 3.5 0 2.5-2.1 4.7-6.4 7.7Z", fill: "currentColor" }) }));
 /**
  * The countdown, as an editorial line rather than a sentence.
@@ -76,6 +96,6 @@ export function CycleCardHero({ view }) {
             '--orbit-rx': `${ORBIT_RX}px`,
             '--orbit-squash': ORBIT_RY / ORBIT_RX,
             '--orbit-tilt': `${ORBIT_TILT}deg`,
-        }, children: [_jsxs("div", { className: s.sky, "aria-hidden": true, children: [_jsx("span", { className: s.planet }), _jsx("svg", { className: s.orbitArt, viewBox: "0 0 360 260", preserveAspectRatio: "xMidYMid meet", children: _jsx("ellipse", { cx: "180", cy: "130", rx: ORBIT_RX, ry: ORBIT_RY, transform: `rotate(${ORBIT_TILT} 180 130)`, fill: "none", stroke: "var(--edge)", strokeWidth: "1" }) }), _jsx("div", { className: s.track, children: _jsx("div", { className: s.spin, children: _jsx("span", { className: s.node, children: _jsx("span", { className: s.nodeInner, children: HEART }) }) }) }), _jsx(CosmicAccent, { className: s.moteA, tone: "warm" }), _jsx(CosmicAccent, { className: s.moteB, tone: "cool", flip: true })] }), _jsxs("div", { className: s.heroBody, children: [_jsxs("p", { className: s.heroCadence, children: ["Every ", meta.cadence] }), _jsx("p", { className: s.count, "data-word": count.unit ? undefined : '', children: count.big }), count.unit ? _jsx("p", { className: s.unit, children: count.unit }) : null, _jsx("p", { className: s.sub, children: count.sub }), plan ? (_jsxs(_Fragment, { children: [_jsxs(Link, { to: `/plan/${plan.id}`, className: s.heroPlan, children: [_jsx("span", { className: s.heroEmoji, "aria-hidden": true, children: isHidden ? '🎁' : plan.emoji }), _jsxs("div", { className: s.heroPlanMain, children: [_jsx("p", { className: s.heroPlanTitle, children: isHidden ? 'A surprise, from them' : plan.title }), _jsxs("p", { className: s.heroPlanMeta, children: [formatPlanDate(plan.date), plan.time ? ` · ${plan.time}` : '', !isHidden && plan.place ? ` · ${plan.place}` : ''] })] })] }), _jsxs("div", { className: s.actions, children: [_jsx(StatusChip, { view: view }), view.status === 'planned' && !isHidden ? (_jsxs(ButtonLink, { to: `/plan/${plan.id}?ask=1`, variant: "accent", size: "sm", children: ["Ask ", partner.name, " \uD83D\uDC8C"] })) : (_jsx(ButtonLink, { to: `/plan/${plan.id}`, variant: "secondary", size: "sm", children: "See plan" }))] })] })) : (_jsx(_Fragment, { children: _jsxs("div", { className: s.actions, children: [_jsx(ButtonLink, { to: `/explore?cycle=${view.cycle.id}`, variant: "accent", size: "sm", icon: COMPASS, children: "Find an idea" }), _jsx(ButtonLink, { to: `/plan/new?cycle=${view.cycle.id}`, variant: "quiet", size: "sm", icon: PLUS, children: "Create my own" })] }) }))] })] }));
+        }, children: [_jsxs("div", { className: s.sky, "aria-hidden": true, children: [_jsx("svg", { className: s.orbitBack, viewBox: "0 0 360 260", preserveAspectRatio: "xMidYMid meet", children: _jsx("path", { d: ORBIT_BACK, fill: "none", stroke: "var(--edge)", strokeWidth: "1" }) }), _jsx("span", { className: s.planet }), _jsx("svg", { className: s.orbitFront, viewBox: "0 0 360 260", preserveAspectRatio: "xMidYMid meet", children: _jsx("path", { d: ORBIT_FRONT, fill: "none", stroke: "var(--edge)", strokeWidth: "1.1" }) }), _jsx("div", { className: s.track, children: _jsx("div", { className: s.spin, children: _jsx("span", { className: s.node, children: _jsx("span", { className: s.nodeInner, children: HEART }) }) }) }), _jsx(CosmicAccent, { className: s.moteA, tone: "warm" }), _jsx(CosmicAccent, { className: s.moteB, tone: "cool", flip: true, delay: "-3.4s" })] }), _jsxs("div", { className: s.heroBody, children: [_jsxs("p", { className: s.heroCadence, children: ["Every ", meta.cadence] }), _jsx("p", { className: s.count, "data-word": count.unit ? undefined : '', children: count.big }), count.unit ? _jsx("p", { className: s.unit, children: count.unit }) : null, _jsx("p", { className: s.sub, children: count.sub }), plan ? (_jsxs(_Fragment, { children: [_jsxs(Link, { to: `/plan/${plan.id}`, className: s.heroPlan, children: [_jsx("span", { className: s.heroEmoji, "aria-hidden": true, children: isHidden ? '🎁' : plan.emoji }), _jsxs("div", { className: s.heroPlanMain, children: [_jsx("p", { className: s.heroPlanTitle, children: isHidden ? 'A surprise, from them' : plan.title }), _jsxs("p", { className: s.heroPlanMeta, children: [formatPlanDate(plan.date), plan.time ? ` · ${plan.time}` : '', !isHidden && plan.place ? ` · ${plan.place}` : ''] })] })] }), _jsxs("div", { className: s.actions, children: [_jsx(StatusChip, { view: view }), view.status === 'planned' && !isHidden ? (_jsxs(ButtonLink, { to: `/plan/${plan.id}?ask=1`, variant: "accent", size: "sm", children: ["Ask ", partner.name, " \uD83D\uDC8C"] })) : (_jsx(ButtonLink, { to: `/plan/${plan.id}`, variant: "secondary", size: "sm", children: "See plan" }))] })] })) : (_jsx(_Fragment, { children: _jsxs("div", { className: s.actions, children: [_jsx(ButtonLink, { to: `/explore?cycle=${view.cycle.id}`, variant: "accent", size: "sm", icon: COMPASS, children: "Find an idea" }), _jsx(ButtonLink, { to: `/plan/new?cycle=${view.cycle.id}`, variant: "quiet", size: "sm", icon: PLUS, children: "Create my own" })] }) }))] })] }));
 }
 export { CYCLE_NOUN };
