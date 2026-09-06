@@ -19,6 +19,9 @@ import MemoriesScreen from './screens/Memories';
 import MemoryDetailScreen from './screens/MemoryDetail';
 import MemoryCaptureScreen from './screens/MemoryCapture';
 import TalkScreen from './screens/Talk';
+import CommunityScreen from './screens/Community';
+import PostDetailScreen from './screens/PostDetail';
+import PostComposeScreen from './screens/PostCompose';
 import DailyQuestionScreen from './screens/DailyQuestion';
 import RoomScreen from './screens/Room';
 import RoomSessionScreen from './screens/RoomSession';
@@ -28,6 +31,12 @@ import PlanEditScreen from './screens/PlanEdit';
 import PlanDetailScreen from './screens/PlanDetail';
 import UsScreen from './screens/Us';
 import SettingsScreen from './screens/Settings';
+
+/** Everything that used to live at /talk/... now lives under /us/talk/... */
+function TalkRedirect() {
+  const { pathname, search } = useLocation();
+  return <Navigate to={`/us${pathname}${search}`} replace />;
+}
 
 /**
  * The app proper is behind a real account in a real couple.
@@ -87,7 +96,9 @@ export function App() {
             <Route index element={<HomeScreen />} />
             <Route path="/explore" element={<ExploreScreen />} />
             <Route path="/memories" element={<MemoriesScreen />} />
-            <Route path="/talk" element={<TalkScreen />} />
+            {/* Community opens on the feed. There is no landing page in
+                between, so the tab and the reading are the same tap. */}
+            <Route path="/community" element={<CommunityScreen />} />
             <Route path="/us" element={<UsScreen />} />
           </Route>
 
@@ -106,15 +117,24 @@ export function App() {
             <Route path="/memories/new" element={<MemoryCaptureScreen />} />
             <Route path="/memories/:memoryId" element={<MemoryDetailScreen />} />
 
-            <Route path="/talk/daily" element={<DailyQuestionScreen />} />
-            <Route path="/talk/room" element={<RoomScreen />} />
-            <Route path="/talk/room/:topicId" element={<RoomSessionScreen />} />
-            <Route path="/talk/notes" element={<NotesScreen />} />
-            <Route path="/talk/notes/new" element={<NoteComposeScreen />} />
+            {/* The conversation belongs to the two of you, so it lives under
+                Us. The old /talk/* paths still resolve — they are in sent
+                notifications and in people's history. */}
+            <Route path="/us/talk" element={<TalkScreen />} />
+            <Route path="/us/talk/daily" element={<DailyQuestionScreen />} />
+            <Route path="/us/talk/room" element={<RoomScreen />} />
+            <Route path="/us/talk/room/:topicId" element={<RoomSessionScreen />} />
+            <Route path="/us/talk/notes" element={<NotesScreen />} />
+            <Route path="/us/talk/notes/new" element={<NoteComposeScreen />} />
+
+            <Route path="/community/new" element={<PostComposeScreen />} />
+            <Route path="/community/:postId" element={<PostDetailScreen />} />
 
             <Route path="/us/settings" element={<SettingsScreen />} />
           </Route>
 
+          <Route path="/talk" element={<Navigate to="/us/talk" replace />} />
+          <Route path="/talk/*" element={<TalkRedirect />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

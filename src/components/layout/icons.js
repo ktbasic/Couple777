@@ -19,6 +19,14 @@ export function IconMemories({ active }) {
 export function IconTalk({ active }) {
     return (_jsx("svg", { viewBox: "0 0 24 24", width: "22", height: "22", "aria-hidden": true, children: _jsx("path", { ...base, fill: active ? 'currentColor' : 'none', fillOpacity: active ? 0.12 : 0, d: "M20 12.4c0 3.5-3.4 6.3-7.6 6.3-.9 0-1.8-.1-2.6-.4L5 20l1.2-3.1C4.9 15.7 4 14.2 4 12.4 4 8.9 7.6 6 11.9 6S20 8.9 20 12.4Z" }) }));
 }
+/* The speech bubble from Talk, with the three dots a forum thread implies. */
+export function IconCommunity({ active }) {
+    return (_jsxs("svg", { viewBox: "0 0 24 24", width: "22", height: "22", "aria-hidden": true, children: [_jsx("path", { ...base, fill: active ? 'currentColor' : 'none', fillOpacity: active ? 0.12 : 0, d: "M20 12.4c0 3.5-3.4 6.3-7.6 6.3-.9 0-1.8-.1-2.6-.4L5 20l1.2-3.1C4.9 15.7 4 14.2 4 12.4 4 8.9 7.6 6 11.9 6S20 8.9 20 12.4Z" }), _jsx("circle", { cx: "9", cy: "12.3", r: "1.05", fill: "currentColor" }), _jsx("circle", { cx: "12", cy: "12.3", r: "1.05", fill: "currentColor" }), _jsx("circle", { cx: "15", cy: "12.3", r: "1.05", fill: "currentColor" })] }));
+}
+/* Solid, because it sits on the raised gradient button rather than beside it. */
+export function IconHomeSolid() {
+    return (_jsx("svg", { viewBox: "0 0 24 24", width: "24", height: "24", "aria-hidden": true, children: _jsx("path", { d: "M4.2 10.6 12 4.3l7.8 6.3V19a1.2 1.2 0 0 1-1.2 1.2h-3.9v-5.6H9.3v5.6H5.4A1.2 1.2 0 0 1 4.2 19z", fill: "currentColor" }) }));
+}
 export function IconUs({ active }) {
     return (_jsxs("svg", { viewBox: "0 0 24 24", width: "22", height: "22", "aria-hidden": true, children: [_jsx("circle", { ...base, cx: "9.4", cy: "12", r: "5.3", fill: active ? 'currentColor' : 'none', fillOpacity: active ? 0.14 : 0 }), _jsx("circle", { ...base, cx: "14.6", cy: "12", r: "5.3" })] }));
 }

@@ -249,7 +249,7 @@ export function notifications(state: AppState, meId: ID, partnerId: ID, now = to
       body: status.answeredByMe
         ? 'Both answers are unlocked.'
         : 'Write yours to reveal both answers.',
-      to: '/talk/daily',
+      to: '/us/talk/daily',
       cta: status.answeredByMe ? undefined : 'Write my answer',
       at: Date.now(),
     });
@@ -263,7 +263,7 @@ export function notifications(state: AppState, meId: ID, partnerId: ID, now = to
       emoji: '💌',
       title: `A note from ${partnerName}`,
       body: note.body.length > 62 ? `${note.body.slice(0, 62)}…` : note.body,
-      to: '/talk/notes',
+      to: '/us/talk/notes',
       at: new Date(note.createdAt).getTime(),
     });
   }
@@ -318,6 +318,22 @@ export function unreadNotificationCount(state: AppState, meId: ID, partnerId: ID
   return notifications(state, meId, partnerId).filter((n) => !n.read).length;
 }
 
+/* ------------------------------ Little Quest ------------------------------ */
+
+/**
+ * Stars earned since Monday.
+ *
+ * Counted from the log rather than stored, so it resets by itself and there is
+ * nothing to reset — a missed week costs the week and nothing else.
+ */
+export function starsThisWeek(state: AppState, now = new Date()): number {
+  const monday = new Date(now);
+  const day = (monday.getDay() + 6) % 7; // Monday = 0
+  monday.setDate(monday.getDate() - day);
+  monday.setHours(0, 0, 0, 0);
+  return state.questsDone.filter((q) => new Date(q.at) >= monday).length;
+}
+
 /* ------------------------------- Milestones ------------------------------- */
 
 export interface Milestone {
@@ -353,7 +369,7 @@ export function milestones(state: AppState): Milestone[] {
       label: '25 days of checking in',
       done: stats.checkInDays >= 25,
       progress: `${stats.checkInDays} days`,
-      to: '/talk/daily',
+      to: '/us/talk/daily',
     },
     {
       id: 'dates',

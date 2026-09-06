@@ -246,3 +246,28 @@
   color: var(--c-ink-2);
   margin-bottom: var(--s-5);
 }
+
+/* ---------- Saved ideas, in three groups ---------- */
+
+.savedTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+
+.savedNote {
+  margin-bottom: var(--s-4);
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+}
+
+.savedEmpty {
+  padding: var(--s-5);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-hairline-soft);
+  text-align: center;
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+}

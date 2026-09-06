@@ -14,6 +14,7 @@ import {
   milestones,
   relationshipStats,
   ritualViews,
+  dailyStatus,
 } from '@/lib/selectors';
 import { TIER_META, countdownLabel, durationTogether, formatMonthYear, today } from '@/lib/dates';
 import type { ID } from '@/lib/types';
@@ -31,6 +32,7 @@ export default function UsScreen() {
   const toast = useToast();
   const [editingId, setEditingId] = useState<ID | null>(null);
   const [params, setParams] = useSearchParams();
+  const daily = dailyStatus(state, me.id, partner.id);
 
   /* ?edit=me opens your own profile straight away, so the nudge in the bell
      lands on the thing it is asking for rather than near it. */
@@ -209,6 +211,43 @@ export default function UsScreen() {
         </div>
       </Section>
 
+      {/* The conversation moved here from its own tab: it was never a place to
+          go, it was something the two of you do, and this is the screen about
+          the two of you. */}
+      <Section>
+        <SectionHeader title="Talk together" sub="Answer privately, reveal together." />
+        <div className={s.rows}>
+          <Link to="/us/talk" className={s.row}>
+            <span className={s.rowEmoji} aria-hidden>
+              💬
+            </span>
+            Today&rsquo;s question
+            <span className={s.rowValue}>
+              {daily.bothAnswered ? 'Both in' : daily.answeredByMe ? 'Waiting' : 'Unanswered'}
+            </span>
+            {CHEV}
+          </Link>
+          <Link to="/us/talk/room" className={s.row}>
+            <span className={s.rowEmoji} aria-hidden>
+              🪞
+            </span>
+            Relationship Room
+            <span className={s.rowValue}>
+              {state.roomSessions.filter((r) => r.completedAt).length}
+            </span>
+            {CHEV}
+          </Link>
+          <Link to="/us/talk/notes" className={s.row}>
+            <span className={s.rowEmoji} aria-hidden>
+              💌
+            </span>
+            Notes
+            <span className={s.rowValue}>{state.notes.length}</span>
+            {CHEV}
+          </Link>
+        </div>
+      </Section>
+
       <Section>
         <SectionHeader title="The two of you" />
         <div className={s.rows}>
@@ -220,14 +259,6 @@ export default function UsScreen() {
             <span className={s.rowValue}>
               {matched.length ? matched.map((m) => m.name).join(', ') : 'None yet'}
             </span>
-            {CHEV}
-          </Link>
-          <Link to="/talk/notes" className={s.row}>
-            <span className={s.rowEmoji} aria-hidden>
-              💌
-            </span>
-            Notes
-            <span className={s.rowValue}>{state.notes.length}</span>
             {CHEV}
           </Link>
           <Link to="/memories" className={s.row}>

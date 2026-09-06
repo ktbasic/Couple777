@@ -124,7 +124,7 @@ export function DailyCard({ compact }: { compact?: boolean }) {
           </div>
           <div className={s.cta}>
             <ButtonLink
-              to="/talk/daily"
+              to="/us/talk/daily"
               variant="accent"
               block={!compact}
               trailingIcon={ARROW}

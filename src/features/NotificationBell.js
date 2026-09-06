@@ -57,7 +57,7 @@ export function NotificationBell() {
             emoji: '\uD83D\uDCAC',
             title: 'Your daily reflection',
             body: "Today's question is waiting for you. Write your answer when you're ready.",
-            to: '/talk/daily',
+            to: '/us/talk/daily',
             cta: 'Write my answer',
             at: Date.now(),
             read: state.readNotificationIds.includes(`daily-nudge-${date}`),

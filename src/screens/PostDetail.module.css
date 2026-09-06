@@ -1,0 +1,111 @@
+.replies {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.reply {
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-hairline-soft);
+}
+
+.replyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.replyName {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-2);
+}
+
+.you {
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.replyAge {
+  font-size: var(--t-micro);
+  color: var(--c-ink-4);
+}
+
+.replyBody {
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--c-ink-2);
+  text-wrap: pretty;
+}
+
+.none {
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+}
+
+.area {
+  width: 100%;
+  min-height: 92px;
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-accent-edge);
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-body);
+  line-height: 1.55;
+  color: var(--c-ink);
+  resize: vertical;
+}
+
+.area:focus {
+  outline: none;
+  border-color: var(--c-accent);
+}
+
+.send {
+  margin-top: var(--s-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+/* A toggle rather than a second button: posting anonymously is a property of
+   the reply you are already writing, not a different action. */
+.anon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-full);
+  border: 1px solid var(--c-hairline);
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-3);
+  cursor: pointer;
+  transition:
+    background-color var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease),
+    border-color var(--d-fast) var(--ease);
+}
+
+.anonOn {
+  background: var(--c-accent-wash);
+  border-color: var(--c-accent-edge);
+  color: var(--c-accent-ink);
+}

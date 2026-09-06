@@ -1,3 +1,4 @@
+import { SEED_POSTS } from './community';
 import { DESTINATIONS } from './destinations';
 import { buildHistory } from './history';
 import { photo } from '@/lib/photo';
@@ -277,7 +278,13 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Marian') {
             },
         ],
         roomSessions: [],
-        savedIdeaIds: ['i-stargaze', 'i-letters'],
+        savedIdeas: [
+            { id: 'i-stargaze', savedBy: [PERSON_A, PERSON_B] },
+            { id: 'i-letters', savedBy: [PERSON_A] },
+        ],
+        communityPosts: SEED_POSTS,
+        questsDone: [],
+        questsSkipped: [],
         notificationsEnabled: true,
         readNotificationIds: [],
         checkInDays: 25,

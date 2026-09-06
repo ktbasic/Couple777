@@ -1,0 +1,86 @@
+.card {
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: linear-gradient(168deg, var(--c-gold-wash) 0%, #fdf6ee 100%);
+  border: 1px solid color-mix(in srgb, var(--c-gold) 22%, transparent);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.eyebrow {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-gold-ink);
+}
+
+.count {
+  font-size: var(--t-small);
+  font-weight: 700;
+  color: var(--c-gold-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.main {
+  margin-top: var(--s-4);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+
+.emoji {
+  font-size: 24px;
+  line-height: 1.1;
+  flex: none;
+}
+
+.title {
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+
+.body {
+  margin-top: 2px;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--c-ink-3);
+  text-wrap: pretty;
+}
+
+.stars {
+  margin-top: var(--s-5);
+  display: flex;
+  gap: 6px;
+}
+
+.star {
+  font-size: 15px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--c-gold) 26%, transparent);
+  transition: color var(--d-base) var(--ease);
+}
+
+.starOn {
+  color: var(--c-gold);
+}
+
+.scale {
+  margin-top: var(--s-3);
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+}
+
+.actions {
+  margin-top: var(--s-4);
+  display: flex;
+  gap: var(--s-2);
+}

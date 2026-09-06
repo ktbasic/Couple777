@@ -12,7 +12,7 @@ const DEPTH_LABEL = {
 export default function RoomScreen() {
   return (
     <>
-      <BackBar title="Relationship Room" fallbackTo="/talk" />
+      <BackBar title="Relationship Room" fallbackTo="/us/talk" />
       <Screen>
         <ScreenHeader
           eyebrow="Talk together"

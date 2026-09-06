@@ -281,3 +281,36 @@
 .detailLink:hover {
   text-decoration: underline;
 }
+
+/* ---------- A surprise the creator can call off ---------- */
+
+.reveal {
+  margin-top: var(--s-5);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-accent-wash);
+  border: 1px solid var(--c-accent-edge);
+}
+
+.revealMain {
+  flex: 1 1 170px;
+  min-width: 0;
+}
+
+.revealTitle {
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.revealBody {
+  margin-top: 1px;
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--c-ink-3);
+  text-wrap: pretty;
+}

@@ -39,7 +39,7 @@ export default function TalkScreen() {
       <Section>
         <SectionHeader title="Go deeper" />
         <div className={s.rows}>
-          <Link to="/talk/room" className={s.row}>
+          <Link to="/us/talk/room" className={s.row}>
             <span className={s.rowEmoji} aria-hidden>
               🪞
             </span>
@@ -53,7 +53,7 @@ export default function TalkScreen() {
             <span className={s.rowMeta}>{CHEV}</span>
           </Link>
 
-          <Link to="/talk/notes" className={s.row}>
+          <Link to="/us/talk/notes" className={s.row}>
             <span className={s.rowEmoji} aria-hidden>
               💌
             </span>
@@ -70,7 +70,7 @@ export default function TalkScreen() {
             </span>
           </Link>
 
-          <Link to="/talk/daily" className={s.row}>
+          <Link to="/us/talk/daily" className={s.row}>
             <span className={s.rowEmoji} aria-hidden>
               🌿
             </span>

@@ -16,12 +16,12 @@ function cost(euros) {
     return euros === 0 ? 'Free' : `~€${euros}`;
 }
 export function IdeaCard({ idea, index = 0, cycleId, }) {
-    const { state, dispatch } = useStore();
+    const { state, dispatch, me } = useStore();
     const toast = useToast();
     const navigate = useNavigate();
-    const saved = state.savedIdeaIds.includes(idea.id);
+    const saved = state.savedIdeas.some((i) => i.id === idea.id && i.savedBy.includes(me.id));
     return (_jsxs("article", { className: s.card, style: { animationDelay: `${index * 70}ms` }, children: [_jsxs("div", { className: s.hero, children: [_jsx(Photo, { src: idea.image, seed: idea.id, ratio: "16 / 9", className: s.img, alt: "" }), _jsx(HeartToggle, { saved: saved, label: saved ? 'Saved' : 'Save this idea', onToggle: () => {
-                            dispatch({ type: 'toggleSavedIdea', id: idea.id });
+                            dispatch({ type: 'toggleSavedIdea', id: idea.id, personId: me.id });
                             toast.show({
                                 message: saved ? 'Removed from saved' : 'Saved to your ideas',
                             });

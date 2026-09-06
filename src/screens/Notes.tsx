@@ -30,7 +30,7 @@ export default function NotesScreen() {
 
   return (
     <>
-      <BackBar title="Notes" fallbackTo="/talk" />
+      <BackBar title="Notes" fallbackTo="/us/talk" />
       <Screen>
         <ScreenHeader
           eyebrow="Notes"
@@ -92,7 +92,7 @@ export default function NotesScreen() {
               title="You haven't written one yet"
               body="Appreciation, a request, or something you have been meaning to say."
               action={
-                <ButtonLink to="/talk/notes/new" variant="accent" size="sm">
+                <ButtonLink to="/us/talk/notes/new" variant="accent" size="sm">
                   Write a note
                 </ButtonLink>
               }
@@ -119,7 +119,7 @@ export default function NotesScreen() {
         ) : null}
 
         <div className={s.tail} />
-        <FloatingAction to="/talk/notes/new" label="Write a note" bare />
+        <FloatingAction to="/us/talk/notes/new" label="Write a note" bare />
       </Screen>
     </>
   );

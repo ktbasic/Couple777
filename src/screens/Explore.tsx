@@ -21,7 +21,6 @@ import {
   MOOD_OPTIONS,
   SETTING_OPTIONS,
   VIBE_OPTIONS,
-  WEATHER_OPTIONS,
   generateAdventures,
   generateDateIdeas,
 } from '@/lib/generator';
@@ -29,6 +28,8 @@ import { useStore } from '@/context/store';
 import { TIER_META } from '@/lib/dates';
 import { matches, newMatch } from '@/lib/selectors';
 import type {
+  DateIdea,
+  SavedIdea,
   AdventureMood,
   Daypart,
   Distance,
@@ -101,10 +102,18 @@ export default function ExploreScreen() {
   );
 }
 
+type SavedGroup = 'shared' | 'mine' | 'surprises';
+
+const SAVED_GROUPS: { key: SavedGroup; label: string; note: string }[] = [
+  { key: 'shared', label: 'Shared', note: 'You both saved these, so you both know.' },
+  { key: 'mine', label: 'Mine', note: 'Only you have saved these so far.' },
+  { key: 'surprises', label: 'Surprises', note: 'Kept out of matching. Your partner will not see these.' },
+];
+
 /* ------------------------------ 7 days ---------------------------------- */
 
 function DateIdeasTab({ cycleId }: { cycleId?: string }) {
-  const { state } = useStore();
+  const { state, me } = useStore();
   const [params, setParams] = useSearchParams();
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -127,6 +136,7 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
   const [seen, setSeen] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [surprised, setSurprised] = useState(false);
+  const [savedTab, setSavedTab] = useState<SavedGroup>('shared');
 
   useEffect(() => {
     if (hasCue) setFilters(cued);
@@ -152,7 +162,23 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
     [filters, seed, state.couple.profile, feedback, seen],
   );
 
-  const saved = DATE_IDEAS.filter((i) => state.savedIdeaIds.includes(i.id));
+  /*
+   * Saved ideas, in the three groups the app actually distinguishes between:
+   * both of you saved it, only you did, or you saved it as a surprise and it
+   * is deliberately out of matching.
+   */
+  const savedGroups = (() => {
+    const rows = state.savedIdeas
+      .map((row) => ({ row, idea: DATE_IDEAS.find((i) => i.id === row.id) }))
+      .filter((x): x is { row: SavedIdea; idea: DateIdea } => Boolean(x.idea));
+    return {
+      shared: rows.filter((x) => !x.row.surprise && x.row.savedBy.length === 2).map((x) => x.idea),
+      mine: rows
+        .filter((x) => !x.row.surprise && x.row.savedBy.length < 2 && x.row.savedBy.includes(me.id))
+        .map((x) => x.idea),
+      surprises: rows.filter((x) => x.row.surprise && x.row.savedBy.includes(me.id)).map((x) => x.idea),
+    };
+  })();
 
   // Selecting the value that is already set clears it, so filters stay escapable.
   const set = <K extends keyof IdeaFilters>(key: K, value: IdeaFilters[K]) =>
@@ -261,16 +287,6 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
           </ChipRow>
         </div>
 
-        <div className={s.filterGroup}>
-          <p className={s.filterLabel}>What is it doing outside?</p>
-          <ChipRow>
-            {WEATHER_OPTIONS.map((o) => (
-              <Chip key={o.value} emoji={o.emoji} selected={filters.weather === o.value} onClick={() => set('weather', o.value)}>
-                {o.label}
-              </Chip>
-            ))}
-          </ChipRow>
-        </div>
       </div>
 
       <div className={s.surprise}>
@@ -333,14 +349,26 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
         )}
       </div>
 
-      {saved.length ? (
+      {savedGroups.shared.length || savedGroups.mine.length || savedGroups.surprises.length ? (
         <Section>
-          <SectionHeader title="Saved" sub="Ideas you both liked the look of." />
-          <div className={s.results}>
-            {saved.map((idea, i) => (
-              <IdeaCard key={idea.id} idea={idea} index={i} cycleId={cycleId} />
+          <SectionHeader title="Saved ideas" />
+          <div className={s.savedTabs}>
+            {SAVED_GROUPS.map((g) => (
+              <Chip key={g.key} selected={savedTab === g.key} onClick={() => setSavedTab(g.key)}>
+                {g.label} {savedGroups[g.key].length}
+              </Chip>
             ))}
           </div>
+          <p className={s.savedNote}>{SAVED_GROUPS.find((g) => g.key === savedTab)?.note}</p>
+          {savedGroups[savedTab].length ? (
+            <div className={s.results}>
+              {savedGroups[savedTab].map((idea, i) => (
+                <IdeaCard key={idea.id} idea={idea} index={i} cycleId={cycleId} />
+              ))}
+            </div>
+          ) : (
+            <p className={s.savedEmpty}>Nothing in here yet.</p>
+          )}
         </Section>
       ) : null}
     </>

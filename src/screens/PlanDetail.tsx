@@ -193,6 +193,30 @@ export default function PlanDetailScreen() {
           </div>
         </div>
 
+        {/* A surprise is a choice the person who made it can undo at any
+            point — before the day, on the day, whenever they decide the
+            waiting has done its job. It is not a lock with a timer on it. */}
+        {plan.surprise && plan.createdBy === me.id && !cycle.completedAt ? (
+          <div className={s.reveal}>
+            <div className={s.revealMain}>
+              <p className={s.revealTitle}>🎁 Hidden from {partner.name}</p>
+              <p className={s.revealBody}>
+                They can see something is planned and when. Reveal it whenever you like.
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                dispatch({ type: 'upsertPlan', plan: { ...plan, surprise: false } });
+                toast.show({ emoji: '🎉', message: `${partner.name} can see it now` });
+              }}
+            >
+              Reveal it
+            </Button>
+          </div>
+        ) : null}
+
         <PlanningHelpers tier={tier} destination={destination} />
 
         {!cycle.completedAt ? (

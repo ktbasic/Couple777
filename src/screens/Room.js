@@ -9,7 +9,7 @@ const DEPTH_LABEL = {
     deep: 'Goes deep',
 };
 export default function RoomScreen() {
-    return (_jsxs(_Fragment, { children: [_jsx(BackBar, { title: "Relationship Room", fallbackTo: "/talk" }), _jsxs(Screen, { children: [_jsx(ScreenHeader, { eyebrow: "Talk together", title: "Pick something to talk about", sub: "Twelve conversations most couples mean to have and never quite start." }), _jsxs("div", { className: s.intro, children: [_jsx("p", { className: s.introTitle, children: "How it works" }), _jsx("div", { className: s.steps, children: [
+    return (_jsxs(_Fragment, { children: [_jsx(BackBar, { title: "Relationship Room", fallbackTo: "/us/talk" }), _jsxs(Screen, { children: [_jsx(ScreenHeader, { eyebrow: "Talk together", title: "Pick something to talk about", sub: "Twelve conversations most couples mean to have and never quite start." }), _jsxs("div", { className: s.intro, children: [_jsx("p", { className: s.introTitle, children: "How it works" }), _jsx("div", { className: s.steps, children: [
                                     'You each answer privately, on your own phone.',
                                     'Both answers unlock at once. Nobody reads first.',
                                     'You respond to what you actually read, not what you assumed.',

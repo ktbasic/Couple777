@@ -54,12 +54,12 @@ export default function NoteComposeScreen() {
           ? `${partner.name} will get it ${WHEN.find((w) => w.hours === delay)?.label.toLowerCase()}`
           : `Sent to ${partner.name}`,
     });
-    navigate('/talk/notes', { replace: true });
+    navigate('/us/talk/notes', { replace: true });
   };
 
   return (
     <>
-      <BackBar title="New note" fallbackTo="/talk/notes" />
+      <BackBar title="New note" fallbackTo="/us/talk/notes" />
       <Screen>
         <ScreenHeader
           eyebrow="Notes"

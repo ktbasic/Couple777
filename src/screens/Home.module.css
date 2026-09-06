@@ -169,6 +169,38 @@
   text-wrap: pretty;
 }
 
+/* ---------- One thread from the community ---------- */
+
+.highlight {
+  display: block;
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
+  box-shadow: var(--e-1);
+  transition: transform var(--d-fast) var(--ease);
+}
+
+.highlight:active {
+  transform: scale(0.99);
+}
+
+.highlightMeta {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+}
+
+.highlightBody {
+  margin-top: var(--s-3);
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--c-ink-2);
+  text-wrap: pretty;
+}
+
 /* ---------- Nothing captured yet ---------- */
 
 .storyStart {

@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from 'react';
 import type {
+  CommunityPost,
+  CommunityReply,
   AppState,
   CoupleProfile,
   DailyEntry,
@@ -40,7 +42,10 @@ const LOCAL_SLICES = [
   'daily',
   'roomSessions',
   'destinations',
-  'savedIdeaIds',
+  'savedIdeas',
+  'communityPosts',
+  'questsDone',
+  'questsSkipped',
   'readNotificationIds',
   'notificationsEnabled',
   'checkInDays',
@@ -102,10 +107,15 @@ type Action =
   | { type: 'addNote'; note: Note }
   | { type: 'removeNote'; id: ID }
   | { type: 'markNoteRead'; id: ID }
-  | { type: 'toggleSavedIdea'; id: ID }
+  | { type: 'toggleSavedIdea'; id: ID; personId: ID; surprise?: boolean }
   | { type: 'toggleDestination'; id: ID; personId: ID }
   | { type: 'markMatchSeen'; id: ID }
-  | { type: 'saveRoomSession'; session: RoomSession };
+  | { type: 'saveRoomSession'; session: RoomSession }
+  | { type: 'addPost'; post: CommunityPost }
+  | { type: 'addReply'; postId: ID; reply: CommunityReply }
+  | { type: 'toggleHeart'; postId: ID }
+  | { type: 'completeQuest'; questId: string }
+  | { type: 'skipQuest'; questId: string };
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -291,6 +301,46 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, daily, checkInDays };
     }
 
+    case 'addPost':
+      return { ...state, communityPosts: [action.post, ...state.communityPosts] };
+
+    case 'addReply':
+      return {
+        ...state,
+        communityPosts: state.communityPosts.map((p) =>
+          p.id === action.postId ? { ...p, replies: [...p.replies, action.reply] } : p,
+        ),
+      };
+
+    case 'toggleHeart':
+      return {
+        ...state,
+        communityPosts: state.communityPosts.map((p) =>
+          p.id === action.postId
+            ? {
+                ...p,
+                heartedByMe: !p.heartedByMe,
+                hearts: p.hearts + (p.heartedByMe ? -1 : 1),
+              }
+            : p,
+        ),
+      };
+
+    /* A quest can be finished once. Doing it again on another day is a new
+       star, so the log keeps every completion rather than a set of ids. */
+    case 'completeQuest':
+      return {
+        ...state,
+        questsDone: [...state.questsDone, { questId: action.questId, at: new Date().toISOString() }],
+        questsSkipped: state.questsSkipped.filter((id) => id !== action.questId),
+      };
+
+    case 'skipQuest':
+      return {
+        ...state,
+        questsSkipped: [...new Set([...state.questsSkipped, action.questId])],
+      };
+
     case 'addNote':
       return { ...state, notes: [action.note, ...state.notes] };
 
@@ -305,13 +355,28 @@ function reducer(state: AppState, action: Action): AppState {
         ),
       };
 
-    case 'toggleSavedIdea':
-      return {
-        ...state,
-        savedIdeaIds: state.savedIdeaIds.includes(action.id)
-          ? state.savedIdeaIds.filter((i) => i !== action.id)
-          : [...state.savedIdeaIds, action.id],
-      };
+    case 'toggleSavedIdea': {
+      const existing = state.savedIdeas.find((i) => i.id === action.id);
+      const mine = existing?.savedBy.includes(action.personId);
+      /* Unsaving removes you, not the row: your partner may have saved it too,
+         and their save is not yours to delete. */
+      const savedIdeas = existing
+        ? state.savedIdeas
+            .map((i) =>
+              i.id === action.id
+                ? {
+                    ...i,
+                    savedBy: mine
+                      ? i.savedBy.filter((p) => p !== action.personId)
+                      : [...i.savedBy, action.personId],
+                    surprise: action.surprise ?? i.surprise,
+                  }
+                : i,
+            )
+            .filter((i) => i.savedBy.length)
+        : [...state.savedIdeas, { id: action.id, savedBy: [action.personId], surprise: action.surprise }];
+      return { ...state, savedIdeas };
+    }
 
     case 'toggleDestination':
       return {

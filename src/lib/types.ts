@@ -214,7 +214,6 @@ export interface IdeaFilters {
   setting: Setting | null;
   vibe: Vibe | null;
   energy: Energy | null;
-  weather: Weather | null;
 }
 
 /** Why a suggestion missed, fed back into the next round. */
@@ -363,6 +362,71 @@ export interface RoomSession {
 
 /* ---------------- Persisted app state ---------------- */
 
+/**
+ * A saved idea, and who saved it.
+ *
+ * The same shape as a saved destination, and for the same reason: saving is
+ * private until you both do it, and "you both saved this" is the only way a
+ * match can happen without either of you announcing anything. A surprise is
+ * saved by one person on purpose and stays out of matching entirely.
+ */
+export interface SavedIdea {
+  id: ID;
+  savedBy: ID[];
+  surprise?: boolean;
+}
+
+/* ------------------------------- Community ------------------------------- */
+
+export type CommunityTopic = 'question' | 'experience' | 'advice' | 'reflection' | 'tips';
+
+export interface CommunityReply {
+  id: ID;
+  /** The display name shown, already resolved — 'Anonymous' when anonymous. */
+  author: string;
+  anonymous: boolean;
+  /** Written on this device, so it can be shown as yours. */
+  mine?: boolean;
+  body: string;
+  createdAt: string;
+}
+
+export interface CommunityPost {
+  id: ID;
+  author: string;
+  anonymous: boolean;
+  mine?: boolean;
+  topic: CommunityTopic;
+  body: string;
+  createdAt: string;
+  hearts: number;
+  heartedByMe?: boolean;
+  replies: CommunityReply[];
+}
+
+/* ------------------------------ Little Quest ------------------------------ */
+
+/**
+ * One tiny shared thing at a time, five to twenty minutes, worth a star.
+ * Stars are counted per week against a gentle goal — there is no streak to
+ * break, and a missed week costs nothing but the week.
+ */
+export interface Quest {
+  id: string;
+  emoji: string;
+  title: string;
+  body: string;
+  /** Roughly how long, in minutes. */
+  minutes: number;
+  /** Which onboarding wishes this leans toward, for the light personalisation. */
+  vibes: Wish[];
+}
+
+export interface QuestDone {
+  questId: string;
+  at: string;
+}
+
 export interface AppState {
   onboarded: boolean;
   couple: Couple;
@@ -375,7 +439,13 @@ export interface AppState {
   destinations: Destination[];
   daily: DailyEntry[];
   roomSessions: RoomSession[];
-  savedIdeaIds: ID[];
+  savedIdeas: SavedIdea[];
+  /** The forum, local for now — see `data/community.ts`. */
+  communityPosts: CommunityPost[];
+  /** Little Quests finished, newest last. Stars are counted from this. */
+  questsDone: QuestDone[];
+  /** Quests passed on, so today's pick moves along. */
+  questsSkipped: string[];
   notificationsEnabled: boolean;
   /**
    * Notifications are derived from state rather than stored, so they can never

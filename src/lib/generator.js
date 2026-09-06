@@ -95,9 +95,6 @@ function scoreIdea(idea, f) {
         score += idea.vibes.includes(f.vibe) ? 3 : -1;
     if (f.energy)
         score += idea.energy === f.energy ? 2 : -1;
-    if (f.weather && f.weather !== 'any') {
-        score += idea.weather.includes(f.weather) || idea.weather.includes('any') ? 2 : -2;
-    }
     return score;
 }
 export const EMPTY_FILTERS = {
@@ -107,7 +104,6 @@ export const EMPTY_FILTERS = {
     setting: null,
     vibe: null,
     energy: null,
-    weather: null,
 };
 export function hasFilters(f) {
     return Object.values(f).some((v) => v !== null);
@@ -203,12 +199,6 @@ export const ENERGY_OPTIONS = [
     { label: 'Low energy', value: 'low', emoji: '🌙' },
     { label: 'Some energy', value: 'medium', emoji: '🌤' },
     { label: 'Plenty', value: 'high', emoji: '⚡' },
-];
-export const WEATHER_OPTIONS = [
-    { label: 'Rainy', value: 'rain', emoji: '🌧' },
-    { label: 'Sunny', value: 'sun', emoji: '☀️' },
-    { label: 'Cold', value: 'cold', emoji: '❄️' },
-    { label: 'Warm', value: 'warm', emoji: '🌡' },
 ];
 export const DISTANCE_OPTIONS = [
     { label: 'Under an hour', value: 'under1', emoji: '🚌' },

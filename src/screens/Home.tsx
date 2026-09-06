@@ -9,6 +9,7 @@ import { DailyCard } from '@/features/DailyCard';
 import { MemoryCard } from '@/features/MemoryCard';
 import { MatchReveal } from '@/features/DestinationCard';
 import { NotificationBell } from '@/features/NotificationBell';
+import { LittleQuest } from '@/features/LittleQuest';
 import { IncomingInvite } from '@/features/IncomingInvite';
 import { useStore } from '@/context/store';
 import {
@@ -22,6 +23,7 @@ import {
   upNext,
 } from '@/lib/selectors';
 import { quoteForDate } from '@/data/prompts';
+import { TOPIC_EMOJI } from '@/data/community';
 import { cueFromText, cueToParams } from '@/lib/generator';
 import { today } from '@/lib/dates';
 import s from './Home.module.css';
@@ -45,6 +47,13 @@ export default function HomeScreen() {
   const awaiting = cycleAwaitingMemory(state);
   const match = newMatch(state);
   const matched = hasMatches(state);
+  /* The busiest recent thread, so the one shown is the one worth opening. */
+  const highlight = [...state.communityPosts]
+    .sort(
+      (a, b) =>
+        b.replies.length - a.replies.length || b.createdAt.localeCompare(a.createdAt),
+    )
+    .find((p) => !p.mine);
   const [howOpen, setHowOpen] = useState(false);
 
   // Once both have answered, their own words seed the date generator.
@@ -116,6 +125,10 @@ export default function HomeScreen() {
         <DailyCard />
       </Section>
 
+      <Section>
+        <LittleQuest />
+      </Section>
+
       {match ? (
         <Section>
           <MatchReveal destination={match} />
@@ -182,6 +195,25 @@ export default function HomeScreen() {
           </div>
         </Section>
       )}
+
+      {highlight ? (
+        /* One thread, not a feed. Home's job is to say the community is alive
+           and hand you a door into it, not to become a second reader. */
+        <Section>
+          <SectionHeader title="From the community" actionLabel="See all →" actionTo="/community" />
+          <Link to={`/community/${highlight.id}`} className={s.highlight}>
+            <p className={s.highlightMeta}>
+              {TOPIC_EMOJI[highlight.topic]} {highlight.author} · {highlight.replies.length}{' '}
+              {highlight.replies.length === 1 ? 'reply' : 'replies'}
+            </p>
+            <p className={s.highlightBody}>
+              {highlight.body.length > 150
+                ? `${highlight.body.slice(0, 150).trimEnd()}…`
+                : highlight.body}
+            </p>
+          </Link>
+        </Section>
+      ) : null}
 
       {memories.length ? (
         <Section>

@@ -1,0 +1,96 @@
+.card {
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
+  box-shadow: var(--e-1);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.avatar {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+  font-size: var(--t-small);
+  font-weight: 700;
+}
+
+.who {
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+/* Your own posts are marked, because anonymous ones are otherwise
+   indistinguishable from everyone else's — including to you. */
+.you {
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.meta {
+  margin-top: 1px;
+  font-size: var(--t-micro);
+  color: var(--c-ink-4);
+}
+
+.bodyLink {
+  display: block;
+}
+
+.body {
+  margin-top: var(--s-3);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--c-ink-2);
+  text-wrap: pretty;
+  white-space: pre-wrap;
+}
+
+.foot {
+  margin-top: var(--s-4);
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+}
+
+.act {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-4);
+  transition: color var(--d-fast) var(--ease);
+}
+
+.act:hover {
+  color: var(--c-ink-3);
+}
+
+.acted {
+  color: var(--c-accent);
+}

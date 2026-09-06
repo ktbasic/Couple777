@@ -27,10 +27,10 @@ export function IdeaCard({
   /** The cycle this idea would fill, when one is being planned. */
   cycleId?: string;
 }) {
-  const { state, dispatch } = useStore();
+  const { state, dispatch, me } = useStore();
   const toast = useToast();
   const navigate = useNavigate();
-  const saved = state.savedIdeaIds.includes(idea.id);
+  const saved = state.savedIdeas.some((i) => i.id === idea.id && i.savedBy.includes(me.id));
 
   return (
     <article className={s.card} style={{ animationDelay: `${index * 70}ms` }}>
@@ -40,7 +40,7 @@ export function IdeaCard({
           saved={saved}
           label={saved ? 'Saved' : 'Save this idea'}
           onToggle={() => {
-            dispatch({ type: 'toggleSavedIdea', id: idea.id });
+            dispatch({ type: 'toggleSavedIdea', id: idea.id, personId: me.id });
             toast.show({
               message: saved ? 'Removed from saved' : 'Saved to your ideas',
             });

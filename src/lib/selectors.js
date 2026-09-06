@@ -158,7 +158,7 @@ export function notifications(state, meId, partnerId, now = today()) {
             body: status.answeredByMe
                 ? 'Both answers are unlocked.'
                 : 'Write yours to reveal both answers.',
-            to: '/talk/daily',
+            to: '/us/talk/daily',
             cta: status.answeredByMe ? undefined : 'Write my answer',
             at: Date.now(),
         });
@@ -172,7 +172,7 @@ export function notifications(state, meId, partnerId, now = today()) {
             emoji: '💌',
             title: `A note from ${partnerName}`,
             body: note.body.length > 62 ? `${note.body.slice(0, 62)}…` : note.body,
-            to: '/talk/notes',
+            to: '/us/talk/notes',
             at: new Date(note.createdAt).getTime(),
         });
     }
@@ -221,6 +221,20 @@ export function notifications(state, meId, partnerId, now = today()) {
 export function unreadNotificationCount(state, meId, partnerId) {
     return notifications(state, meId, partnerId).filter((n) => !n.read).length;
 }
+/* ------------------------------ Little Quest ------------------------------ */
+/**
+ * Stars earned since Monday.
+ *
+ * Counted from the log rather than stored, so it resets by itself and there is
+ * nothing to reset — a missed week costs the week and nothing else.
+ */
+export function starsThisWeek(state, now = new Date()) {
+    const monday = new Date(now);
+    const day = (monday.getDay() + 6) % 7; // Monday = 0
+    monday.setDate(monday.getDate() - day);
+    monday.setHours(0, 0, 0, 0);
+    return state.questsDone.filter((q) => new Date(q.at) >= monday).length;
+}
 /**
  * Deliberately not a score. These mark things that actually happened, and none
  * of them rate the relationship — there is no "streak lost" and no league.
@@ -243,7 +257,7 @@ export function milestones(state) {
             label: '25 days of checking in',
             done: stats.checkInDays >= 25,
             progress: `${stats.checkInDays} days`,
-            to: '/talk/daily',
+            to: '/us/talk/daily',
         },
         {
             id: 'dates',

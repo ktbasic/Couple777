@@ -29,7 +29,7 @@ export default function RoomSessionScreen() {
   const [answers, setAnswers] = useState<Record<number, Record<ID, string>>>({});
   const [commitment, setCommitment] = useState('');
 
-  if (!topic) return <Navigate to="/talk/room" replace />;
+  if (!topic) return <Navigate to="/us/talk/room" replace />;
 
   const step = topic.steps[stepIndex];
   const total = topic.steps.length;
@@ -89,7 +89,7 @@ export default function RoomSessionScreen() {
 
   return (
     <>
-      <BackBar title={topic.label} fallbackTo="/talk/room" />
+      <BackBar title={topic.label} fallbackTo="/us/talk/room" />
       <Screen>
         <div className={s.progress} aria-hidden>
           {topic.steps.map((_, i) => (
@@ -207,7 +207,7 @@ export default function RoomSessionScreen() {
               >
                 Put something in the diary
               </Button>
-              <ButtonLink to="/talk" variant="quiet" block>
+              <ButtonLink to="/us/talk" variant="quiet" block>
                 Back to Talk
               </ButtonLink>
             </div>

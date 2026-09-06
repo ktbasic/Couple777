@@ -56,7 +56,7 @@ export default function DailyQuestionScreen() {
 
   return (
     <>
-      <BackBar title="Back" fallbackTo="/talk" />
+      <BackBar title="Back" fallbackTo="/us/talk" />
       <Screen>
         <header className={s.head}>
           <p className={s.kind}>{DAILY_LABEL}</p>
@@ -93,7 +93,7 @@ export default function DailyQuestionScreen() {
               >
                 {cue ? `Find something ${cue.label}` : 'Turn this into a plan'}
               </ButtonLink>
-              <ButtonLink to="/talk/room" variant="quiet" block>
+              <ButtonLink to="/us/talk/room" variant="quiet" block>
                 Take it further in the Relationship Room
               </ButtonLink>
             </div>
