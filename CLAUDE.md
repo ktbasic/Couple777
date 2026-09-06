@@ -86,6 +86,19 @@ session here can talk to a real project — credentials will not change that.
 Verify what can be verified locally (typecheck, build, the RLS suite), and ask
 the user to run `docs/TWO_PHONE_TEST.md` and report where it breaks.
 
+## vercel.json takes no comments
+
+It is schema-validated on every deployment, and an unknown key — including a
+`"//"` note — fails the build outright. A failed build is not obvious from the
+app: Vercel keeps serving the last deployment that worked, so the symptom is
+that changes silently do not appear. Anything worth explaining about it goes
+here instead.
+
+Two things in it matter. `outputDirectory` is the Vite build; the `rewrites`
+entry sends everything *except* `/api/...` to index.html, so the serverless
+functions stay reachable. Rewrites are applied after the filesystem check, so
+a real function already wins — but the exclusion says the intent out loud.
+
 ## Reading a memory
 
 The capture flow asks one open question and then two or three short ones,

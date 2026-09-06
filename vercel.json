@@ -3,7 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "//": "Rewrites run after the filesystem check, so a real function under api/ already wins. The exclusion stays as belt and braces, and it is the first thing to check if /api/... ever serves the app instead of JSON.",
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
   "headers": [
     {
