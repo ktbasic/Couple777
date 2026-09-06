@@ -15,7 +15,8 @@ say so before you do.
 
 - **`supabase/migrations/0001_init.sql`** — the schema and every RLS policy.
   Add a new migration file rather than editing this one; a project has already
-  run it.
+  run it. `0002_memory_visibility.sql` is the first such addition: it is what
+  makes a private memory private, and both files run in order.
 - **The 777 cycle engine** (`src/lib/cycles.ts`). Three independent clocks,
   status derived rather than stored, and the overlap rule: a 7-month moment
   satisfies the 7-week and 7-day cycles it covered, a 7-week satisfies the
@@ -51,13 +52,19 @@ are still browser-local, keyed per account.
 ## Checks
 
 ```
-npx tsc --noEmit
+npm run typecheck
+npm run typecheck:api   # the serverless functions, which the app config skips
 npm run build
-npm run test:rls     # 42 checks, real Postgres via PGlite — no project needed
+npm run test:rls        # 46 checks, real Postgres via PGlite — no project needed
+npm run test:memory     # how a written memory is read when no model is configured
+npm run test:ai         # the rules the memory endpoint holds whatever the model says
 ```
 
 `npm run test:rls` is the one that matters most: each check is a privacy
 promise the app makes. Run it after touching anything in `supabase/`.
+
+`npm run test:memory` is the second: its corpus is sentences people actually
+write, and a failure there means a hard evening would be met with a sparkle.
 
 `supabase/tests/local-server.mjs` is a frozen local stand-in for Supabase. It
 is test-only, nothing in `src/` imports it, and it is not being developed
@@ -78,6 +85,20 @@ The egress gateway answers **403 to CONNECT** for `*.supabase.co`, so no
 session here can talk to a real project — credentials will not change that.
 Verify what can be verified locally (typecheck, build, the RLS suite), and ask
 the user to run `docs/TWO_PHONE_TEST.md` and report where it breaks.
+
+## Reading a memory
+
+The capture flow asks one open question and then two or three short ones,
+chosen by what the note already said. What reads it is `api/memory-read.ts`, a
+serverless function — the API key stays on the server, set as
+`MEMORY_AI_API_KEY` where the function runs, never with a `VITE_` prefix.
+`src/lib/memoryAi.ts` calls it and builds the same object on the phone when
+there is no key, no endpoint or no signal.
+
+Two rules do not depend on the model and are enforced in the prompt, in the
+endpoint and in the client: a difficult memory defaults to private, and a
+difficult memory is never offered a date idea. Do not move either of them into
+one layer only.
 
 ## Next: design and UX, not backend
 
