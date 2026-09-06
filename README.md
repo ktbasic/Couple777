@@ -70,6 +70,32 @@ The split is enforced in the data model, not just hidden in the UI.
 A partner's surprise renders as "A surprise, from them" and nothing more. A
 mutual wishlist save is never named anywhere until the reveal has been shown.
 
+## Reading memories
+
+Writing a memory is one box and then a short conversation: what was written is
+read for when, where, how it felt and what kind of moment it is, and only what
+the note left out is asked about — two or three questions, one at a time, all
+skippable.
+
+The reading happens in `api/memory-read.ts`, a serverless function, so the API
+key stays on the server. It returns one structured object (tone, type, title,
+date, place, feelings, the next question and its quick replies, a default
+visibility, and which follow-on offers fit). `src/lib/memoryAi.ts` calls it and
+builds the same object on the phone when there is no key, no endpoint, or no
+signal — the screens never learn which they got.
+
+Two rules do not depend on the model, and are enforced in the prompt, in the
+endpoint and in the client:
+
+- a difficult memory defaults to **private**, and privacy here is a row policy
+  (`supabase/migrations/0002_memory_visibility.sql`), not a flag the client
+  respects;
+- a difficult memory is never offered a date idea. What it is offered is a
+  reflection, one small thing to ask for, or a way to open the conversation.
+
+`MEMORY_AI_API_KEY` and `MEMORY_AI_MODEL` (default `claude-opus-5`) configure
+it. `npm run test:ai` checks the rules against a model that ignores its brief.
+
 ## Stack
 
 React 19 · TypeScript · Vite · react-router · CSS Modules over a design-token

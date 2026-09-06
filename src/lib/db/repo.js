@@ -176,12 +176,39 @@ export async function getMemories(coupleId) {
         .eq('couple_id', coupleId)
         .order('happened_on', { ascending: false }));
 }
+/**
+ * PostgREST's way of saying a column is not there — either the schema cache
+ * rejecting it (PGRST204) or Postgres itself (42703). Both arrive as prose.
+ */
+function isMissingColumn(e, column) {
+    const message = e instanceof Error ? e.message : String(e);
+    return message.includes(column) && /column|schema cache/i.test(message);
+}
 export async function upsertMemoryRow(row, id) {
     const db = requireDb();
-    if (id) {
-        return unwrap(await db.from('memories').update(row).eq('id', id).select().single());
+    const write = async (r) => id
+        ? unwrap(await db.from('memories').update(r).eq('id', id).select().single())
+        : unwrap(await db.from('memories').insert(r).select().single());
+    try {
+        return await write(row);
     }
-    return unwrap(await db.from('memories').insert(row).select().single());
+    catch (e) {
+        /*
+         * A project that has not run migration 0002 has no visibility column. A
+         * shared memory is exactly the same without it, so it is written again
+         * without the field — but a private one is not, and writing it anyway
+         * would put a private reflection somewhere the partner can read it. That
+         * one fails, and says why.
+         */
+        if (!isMissingColumn(e, 'visibility'))
+            throw e;
+        if (row.visibility === 'private') {
+            throw new Error('Private memories need one more migration. Run supabase/migrations/0002_memory_visibility.sql in the SQL editor, then keep this again.');
+        }
+        const withoutVisibility = { ...row };
+        delete withoutVisibility.visibility;
+        return write(withoutVisibility);
+    }
 }
 export async function deleteMemory(id) {
     const { error } = await requireDb().from('memories').delete().eq('id', id);

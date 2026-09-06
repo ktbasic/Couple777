@@ -19,7 +19,15 @@ import { PGlite } from '@electric-sql/pglite';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 
-const MIGRATION = new URL('../migrations/0001_init.sql', import.meta.url).pathname;
+/* Every migration, in name order — the schema is 0001 plus whatever has been
+   added since, and a test that only runs the first one is testing a database
+   nobody has. */
+const MIGRATIONS_DIR = new URL('../migrations/', import.meta.url).pathname;
+const MIGRATIONS = fs
+  .readdirSync(MIGRATIONS_DIR)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()
+  .map((f) => MIGRATIONS_DIR + f);
 const PORT = Number(process.env.PORT || 54321);
 
 const db = new PGlite();
@@ -41,7 +49,7 @@ await db.exec(`
   create role authenticated nologin;
   grant usage on schema public, auth to anon, authenticated;
 `);
-await db.exec(fs.readFileSync(MIGRATION, 'utf8'));
+for (const file of MIGRATIONS) await db.exec(fs.readFileSync(file, 'utf8'));
 await db.exec(`
   grant select, insert, update, delete on all tables in schema public to authenticated;
   grant select on all tables in schema public to anon;

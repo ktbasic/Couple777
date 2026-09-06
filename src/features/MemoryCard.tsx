@@ -49,6 +49,9 @@ export function MemoryCard({ memory }: { memory: Memory }) {
           <span className={s.rhythm} data-kind={memory.kind}>
             {KIND_LABEL[memory.kind]}
           </span>
+          {/* Only its author ever sees a private one, but they should be able
+              to tell which is which without opening it. */}
+          {memory.visibility === 'private' ? <span>🔒 Private</span> : null}
           {memory.place ? <span>{memory.place}</span> : null}
           {memory.photos.length ? (
             <span>

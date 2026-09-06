@@ -178,6 +178,7 @@ export function memoryFromRow(r, privateNote, ownerId) {
         place: r.place ?? undefined,
         photos: r.photos ?? [],
         ...feelingsFromColumn(r.mood),
+        visibility: r.visibility === 'private' ? 'private' : 'shared',
         sharedNote: r.shared_note ?? undefined,
         notes: {},
         privateNotes: privateNote && ownerId ? { [ownerId]: privateNote } : {},

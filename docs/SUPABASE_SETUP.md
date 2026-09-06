@@ -31,6 +31,12 @@ To check it properly, open a new query, paste in **`supabase/verify.sql`** and
 run it. You want a single row reading `ok | ok | ok | ok`. Anything else names
 what is missing, and re-running the migration is safe.
 
+Then do the same with **`supabase/migrations/0002_memory_visibility.sql`** —
+new query, paste the whole file, Run. It adds the column and the policy behind
+private memories, and it is safe on a project that already has data. Until it
+has run, the capture flow still works but refuses to keep a private memory,
+and says so rather than quietly sharing it.
+
 You can also just look: click **Table Editor** in the sidebar. You should see `profiles`,
 `couples`, `cycles`, `plans`, `plan_invites`, `memories`,
 `memory_private_notes` and `notifications`.
@@ -164,6 +170,17 @@ it.
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Project Settings → API Keys → publishable | Yes* |
 | `VITE_SUPABASE_ANON_KEY` | Project Settings → API → anon public (older projects) | Yes* |
 | `VITE_PUBLIC_APP_URL` | The address you deploy to | Only when deployed |
+| `MEMORY_AI_API_KEY` | An Anthropic API key, for reading memories | Optional |
+| `MEMORY_AI_MODEL` | Which model reads them | Optional |
+
+The first four are `VITE_`-prefixed, which means they are compiled into the
+bundle and are public. The last two are not, and must never be: they are read
+by the serverless function in `api/`, on the server. Set them in Vercel under
+Project Settings → Environment Variables, not in `.env.local`.
+
+Without `MEMORY_AI_API_KEY` the memory flow reads notes on the device instead —
+coarser, but it works, and it holds the same rules. See "Reading memories"
+in the README.
 
 Never add `SUPABASE_SERVICE_ROLE_KEY` to this app.
 

@@ -52,8 +52,30 @@ function readPlace(text) {
         return proper[1];
     return undefined;
 }
+const HARD_WORDS = /\b(argu\w*|fight|fought|shout|shouted|yelled|angry|anger|upset|hurt|hurts|cried|crying|tears|lonely|alone|ignored|dismissed|not listening|wasn.t listening|didn.t listen|resent|distant|cold|exhausted|drained|anxious|scared|afraid|worried|sad|awful|terrible|hate|misunderstood|unheard|apart|shut down|walked out|silent treatment)\b/;
+const SOFT_WORDS = /\b(laugh\w*|danc\w*|smil\w*|happy|joy|lovely|beautiful|grateful|thankful|love|loved|warm|proud|glad|fun|sweet|calm|peaceful|close|closer)\b/;
+/**
+ * Which way the note leans, on the words alone. Only ever a fallback for the
+ * model's own read — but a fallback that gets this wrong is worse than none,
+ * because it decides whether someone's worst evening is met with a sparkle.
+ * So it errs toward difficult: any hard word present is enough.
+ */
+export function readTone(text) {
+    const t = text.toLowerCase();
+    const hard = HARD_WORDS.test(t);
+    const soft = SOFT_WORDS.test(t);
+    if (hard && soft)
+        return 'mixed';
+    if (hard)
+        return 'difficult';
+    if (soft)
+        return 'positive';
+    return 'neutral';
+}
 /* ------------------------------- The feeling ------------------------------ */
 export const FEELINGS = ['Warm', 'Joyful', 'Grateful', 'Connected', 'Calm', 'Loved'];
+/** What is offered when a note is hard. Nobody is "joyful" about an argument. */
+export const HARD_FEELINGS = ['Sad', 'Angry', 'Hurt', 'Lonely', 'Anxious', 'Tired'];
 /** The face each one wears, on a chip and on the review card. */
 export const FEELING_EMOJI = {
     Warm: '☀️',
@@ -62,7 +84,22 @@ export const FEELING_EMOJI = {
     Connected: '❤️',
     Calm: '🌙',
     Loved: '✨',
+    Sad: '🌧',
+    Angry: '🌩',
+    Hurt: '💔',
+    Lonely: '🌫',
+    Anxious: '🌀',
+    Tired: '🌵',
+    Unheard: '🔇',
+    Distant: '🌌',
+    Relieved: '🌤',
+    Hopeful: '🌱',
 };
+/** A word the model returned that is not in either list still gets a face. */
+export function feelingEmoji(feeling) {
+    const key = feeling.charAt(0).toUpperCase() + feeling.slice(1).toLowerCase();
+    return FEELING_EMOJI[key] ?? '·';
+}
 /**
  * Where a feeling lands in the six-mood vocabulary the rest of the app draws
  * with. Two of them share `tender`, which is the honest answer: the older set
@@ -77,16 +114,25 @@ export const FEELING_MOOD = {
     Loved: 'tender',
 };
 const FEELING_CUES = {
+    Sad: /\b(sad|cried|crying|tears|down|low|grief|miss|missed)\b/,
+    Angry: /\b(angry|anger|furious|annoyed|frustrated|snapped|shouted|yelled)\b/,
+    Hurt: /\b(hurt|wounded|stung|betrayed|dismissed|ignored|unheard|not listening|wasn.t listening)\b/,
+    Lonely: /\b(lonely|alone|distant|apart|shut out|cold)\b/,
+    Anxious: /\b(anxious|worried|scared|afraid|nervous|on edge)\b/,
+    Tired: /\b(tired|exhausted|drained|worn out|done in)\b/,
     Warm: /\b(warm|cosy|cozy|hug|hugged|held|snug|blanket|candle|fire)\b/,
-    Joyful: /\b(laugh|laughed|laughing|danc|silly|giggl|smil|happy|joy|fun|played|sang|singing)\b/,
+    Joyful: /\b(laugh\w*|danc\w*|silly|giggl\w*|smil\w*|happy|joy|joyful|fun|played|sang|singing)\b/,
     Grateful: /\b(grateful|thankful|lucky|appreciate|glad|blessed)\b/,
     Connected: /\b(talked|listened|close|closer|connected|understood|honest|opened up|together again)\b/,
     Calm: /\b(calm|quiet|peaceful|slow|still|rest|restful|breathe|easy|gentle)\b/,
     Loved: /\b(love|loved|loving|adore|heart|tender|cherish)\b/,
 };
-function readFeelings(text) {
+function readFeelings(text, tone) {
     const t = text.toLowerCase();
-    return FEELINGS.filter((f) => FEELING_CUES[f].test(t)).slice(0, 2);
+    // A hard note is read against the hard words first: "we argued and laughed
+    // about it after" should not come back as Joyful and nothing else.
+    const order = tone === 'positive' ? [...FEELINGS, ...HARD_FEELINGS] : [...HARD_FEELINGS, ...FEELINGS];
+    return order.filter((f) => FEELING_CUES[f]?.test(t)).slice(0, 2);
 }
 /* -------------------------------- The title ------------------------------- */
 /** -ing words that are not somebody doing something. */
@@ -94,7 +140,7 @@ const NOT_A_VERB = /^(nothing|something|anything|everything|morning|evening|duri
 const EMOJI_CUES = [
     [/\b(pasta|pizza|cooked|cooking|dinner|recipe|baked|baking|supper)\b/, '🍝'],
     [/\b(coffee|espresso|latte|breakfast|brunch|croissant)\b/, '☕'],
-    [/\b(danc|music|song|playlist|sang|singing|vinyl)\b/, '🎶'],
+    [/\b(danc\w*|music|song|playlist|sang|singing|vinyl)\b/, '🎶'],
     [/\b(walk|walked|hike|hiked|park|forest|woods)\b/, '🌿'],
     [/\b(beach|sea|swim|swam|lake|river)\b/, '🌊'],
     [/\b(film|movie|cinema|series|watched)\b/, '🎬'],
@@ -132,11 +178,14 @@ function readTitle(text) {
 /* --------------------------------- Reading -------------------------------- */
 export function readNote(text, now = today()) {
     const t = text.trim();
-    const emoji = EMOJI_CUES.find(([re]) => re.test(t.toLowerCase()))?.[1] ?? '✨';
+    const tone = readTone(t);
+    // A hard note gets no cheerful little picture at the top of it.
+    const emoji = tone === 'difficult' ? '🤍' : (EMOJI_CUES.find(([re]) => re.test(t.toLowerCase()))?.[1] ?? '✨');
     return {
+        tone,
         date: readDate(t, now),
         place: readPlace(t),
-        feelings: readFeelings(t),
+        feelings: readFeelings(t, tone),
         title: readTitle(t),
         emoji,
     };
@@ -158,46 +207,4 @@ export function asksFor(reading, known = {}) {
     asks.push('feeling');
     asks.push('more');
     return asks.slice(0, 3);
-}
-/**
- * Offered after saving, and only when the memory actually points somewhere.
- * Every one of these opens a screen that exists — a plan to write, a note to
- * send — because a suggestion that leads nowhere is worse than no suggestion.
- */
-export function suggestionsFor(note, place, partnerName) {
-    const t = note.toLowerCase();
-    const out = [];
-    const plan = (title, where) => `/plan/new?title=${encodeURIComponent(title)}${where ? `&place=${encodeURIComponent(where)}` : ''}`;
-    if (place === 'Home') {
-        out.push({ id: 'home-night', icon: '🏠', label: 'Plan another night in', to: plan('Another night in', 'Home') });
-    }
-    else if (place) {
-        // "The beach" reads as "back to the beach"; "Bocca" must keep its capital.
-        const named = place.startsWith('The ') ? place.toLowerCase() : place;
-        out.push({ id: 'again', icon: '📍', label: `Go back to ${named}`, to: plan(`Back to ${place}`, place) });
-    }
-    if (/\b(pasta|cooked|cooking|dinner|recipe|baked|baking|supper|pizza)\b/.test(t)) {
-        out.push({ id: 'recipe', icon: '🍝', label: 'Try a new recipe together', to: plan('Try a new recipe together') });
-    }
-    if (/\b(danc|music|song|sang|singing|vinyl|playlist)\b/.test(t)) {
-        out.push({ id: 'music', icon: '🎶', label: 'Plan an evening of just music', to: plan('An evening of just music') });
-    }
-    if (/\b(walk|walked|hike|hiked|park|forest|woods|beach|sea|lake)\b/.test(t)) {
-        out.push({ id: 'walk', icon: '🌿', label: 'Plan a longer walk together', to: plan('A longer walk together') });
-    }
-    if (/\b(talked|talk|conversation|listened|honest|opened up)\b/.test(t)) {
-        out.push({ id: 'talk', icon: '💬', label: 'Pick up where that conversation left off', to: '/us/talk/room' });
-    }
-    // Nothing in the words pointed anywhere, so there is nothing to offer.
-    if (!out.length)
-        return [];
-    // No prefilled words here on purpose: the note is the one thing that has to
-    // be theirs. The screen opens on the right kind, and that is all.
-    out.push({
-        id: 'note',
-        icon: '💌',
-        label: `Tell ${partnerName} what it meant to you`,
-        to: '/us/talk/notes/new?kind=appreciation',
-    });
-    return out.slice(0, 3);
 }

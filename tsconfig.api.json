@@ -1,0 +1,19 @@
+{
+  "//": "The serverless functions. Separate from the app because they run on Node rather than in the browser, and because this project's main config emits JavaScript next to its sources — which in api/ would leave Vercel two files claiming the same route.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "moduleDetection": "force"
+  },
+  "include": ["api"]
+}

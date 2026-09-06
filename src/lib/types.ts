@@ -304,6 +304,13 @@ export interface Memory {
    * the app draws with; this is what was actually said.
    */
   feelings?: string[];
+  /**
+   * Who this is for. 'private' means the author only — enforced by the row
+   * policy in migration 0002, not by this field, which is why the flow can
+   * offer it honestly. Absent means shared, which is what every memory kept
+   * before this existed was.
+   */
+  visibility?: 'private' | 'shared';
   /** A line both partners see. */
   sharedNote?: string;
   /** Each partner's own words on the same moment. */

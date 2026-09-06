@@ -8,7 +8,15 @@
 import { PGlite } from '@electric-sql/pglite';
 import fs from 'node:fs';
 
-const MIGRATION = new URL('../migrations/0001_init.sql', import.meta.url).pathname;
+/* Every migration, in name order — the schema is 0001 plus whatever has been
+   added since, and a test that only runs the first one is testing a database
+   nobody has. */
+const MIGRATIONS_DIR = new URL('../migrations/', import.meta.url).pathname;
+const MIGRATIONS = fs
+  .readdirSync(MIGRATIONS_DIR)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()
+  .map((f) => MIGRATIONS_DIR + f);
 
 export async function freshDb() {
   const db = new PGlite();
@@ -30,7 +38,7 @@ export async function freshDb() {
     create role authenticated nologin;
     grant usage on schema public, auth to anon, authenticated;
   `);
-  await db.exec(fs.readFileSync(MIGRATION, 'utf8'));
+  for (const file of MIGRATIONS) await db.exec(fs.readFileSync(file, 'utf8'));
   // Supabase grants table privileges to these roles; RLS then narrows them.
   await db.exec(`
     grant select, insert, update, delete on all tables in schema public to authenticated;

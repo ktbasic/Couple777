@@ -193,6 +193,31 @@ await as(db, marian, async () => {
       [memoryId, katy]));
 });
 
+console.log('\nA private memory');
+let privateId;
+await as(db, katy, async () => {
+  privateId = one(await db.query(
+    `insert into public.memories (couple_id, created_by, happened_on, title, shared_note, visibility)
+     values ($1, $2, current_date, 'The same argument', 'I felt unheard.', 'private') returning id`,
+    [coupleId, katy])).id;
+  check('its author can read it back',
+    (await db.query('select id from public.memories where id = $1', [privateId])).rows.length === 1);
+});
+await as(db, marian, async () => {
+  check('the partner cannot see it at all',
+    (await db.query('select id from public.memories where id = $1', [privateId])).rows.length === 0);
+  check('nor find it by listing the couple\u2019s memories',
+    (await db.query('select id from public.memories where couple_id = $1', [coupleId]))
+      .rows.every((r) => r.id !== privateId));
+  // An update that matches no visible row is not an error, it is a no-op —
+  // which is the point: there is nothing there to change.
+  await db.query(`update public.memories set title = 'peeked' where id = $1`, [privateId]);
+});
+await as(db, katy, async () => {
+  check('and cannot rewrite it from the other side',
+    one(await db.query('select title from public.memories where id = $1', [privateId])).title === 'The same argument');
+});
+
 console.log('\nNotifications');
 await as(db, marian, async () => {
   await db.query(

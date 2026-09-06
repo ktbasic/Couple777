@@ -847,6 +847,7 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
         mood: moodColumn(m),
         shared_note: m.sharedNote ?? null,
         photos: m.photos ?? [],
+        visibility: m.visibility ?? 'shared',
         ...(known ? {} : { id: m.id }),
       }, known ? m.id : undefined);
       const mine = m.privateNotes?.[userId];

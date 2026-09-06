@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -9,16 +9,8 @@ import { CosmicGreeter } from '@/components/ui/CosmicPair';
 import { useToast } from '@/components/ui/Toast';
 import { useStore } from '@/context/store';
 import { MAX_PHOTOS, readPickedPhoto } from '@/lib/imageFile';
-import {
-  FEELINGS,
-  FEELING_EMOJI,
-  FEELING_MOOD,
-  asksFor,
-  readNote,
-  suggestionsFor,
-  type Ask,
-  type Suggestion,
-} from '@/lib/memoryRead';
+import { NEXT_STEP, OPENING, readMemory, type Answered, type MemoryReading } from '@/lib/memoryAi';
+import { FEELINGS, FEELING_MOOD, HARD_FEELINGS, feelingEmoji } from '@/lib/memoryRead';
 import { formatStamp, today } from '@/lib/dates';
 import { uid } from '@/lib/id';
 import type { Memory } from '@/lib/types';
@@ -27,29 +19,39 @@ import s from './MemoryCapture.module.css';
 /**
  * Keeping a memory, as a short conversation rather than a form.
  *
- * One thing is asked outright: write it down. Everything else — when, where,
- * how it felt — is read out of those words first (see lib/memoryRead) and only
- * asked when the words did not already say. Two or three questions, one at a
- * time, each with an answer that is one tap and each skippable.
+ * One thing is asked outright: write it down. What happens next depends on
+ * what was written — read by the model behind /api/memory-read, or by the
+ * phone itself when there is no key and no signal (lib/memoryAi). Either way
+ * the flow is the same: at most three questions, one screen each, every one
+ * skippable, and none of them about something the note already said.
  *
- * This is one person's memory. Nothing here waits on the other one, asks them
- * to fill anything in, or shows them a half-finished thing: it is written,
- * kept, and only then does it appear on the shared timeline.
+ * The part that has to be right is tone. "We argued again and I felt like he
+ * wasn't listening" is not a lovely little moment, and meeting it with a
+ * sparkle and a date-night suggestion would be worse than saying nothing. So a
+ * difficult note gets a calm opening, questions about what they want to
+ * remember rather than about what went wrong, private as the default, and
+ * never an idea for a night out. Those rules are enforced three times over —
+ * in the prompt, in the endpoint, and in lib/memoryAi — because any one layer
+ * can fail and this is not a thing to be wrong about.
+ *
+ * This is one person's memory. Nothing here asks the other one for anything.
  */
 
-type Step = 'write' | 'ask' | 'review' | 'edit' | 'suggest' | 'done';
+type Step = 'write' | 'thinking' | 'ask' | 'review' | 'edit' | 'suggest' | 'done' | 'failed';
 
 const PLACEHOLDER =
   'Write it however it comes to you…\n\ne.g. We cooked pasta tonight and somehow ended up dancing in the kitchen. I haven’t laughed like that in a while.';
+
+/** The most questions anyone is asked, whatever the model would like. */
+const MAX_ASKS = 3;
 
 export default function MemoryCaptureScreen() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
-  const { state, dispatch, me, partner } = useStore();
+  const { state, dispatch, me, error } = useStore();
 
-  // Arriving from a finished plan means the when and where are already known,
-  // so those questions are never asked.
+  // Arriving from a finished plan means the when and where are already known.
   const cycle = state.cycles.find((c) => c.id === params.get('cycle'));
   const plan = state.plans.find((p) => p.id === (cycle?.planId ?? params.get('plan')));
 
@@ -59,20 +61,39 @@ export default function MemoryCaptureScreen() {
   const [busyPhotos, setBusyPhotos] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
 
+  const [reading, setReading] = useState<MemoryReading | null>(null);
+  const [answers, setAnswers] = useState<Answered[]>([]);
+
   const [title, setTitle] = useState('');
   const [emoji, setEmoji] = useState('✨');
   const [date, setDate] = useState<string | null>(plan?.date ?? null);
   const [place, setPlace] = useState(plan?.place ?? '');
   const [feelings, setFeelings] = useState<string[]>([]);
   const [extra, setExtra] = useState('');
-  const [ownFeeling, setOwnFeeling] = useState(false);
-
-  const [asks, setAsks] = useState<Ask[]>([]);
-  const [asked, setAsked] = useState(0);
+  const [visibility, setVisibility] = useState<'private' | 'shared'>('shared');
   const [saved, setSaved] = useState<Memory | null>(null);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
   const fileInput = useRef<HTMLInputElement>(null);
+  /*
+   * Saving is optimistic — the reducer runs, then the write goes out. When the
+   * write fails the store reloads from the server and the memory quietly
+   * disappears, so this watches for that: being told "Kept" about something
+   * that was not kept is the one outcome this screen must never produce.
+   */
+  const errorBefore = useRef<string | null>(null);
+  const waitingOnSave = useRef(false);
+
+  useEffect(() => {
+    if (!waitingOnSave.current || error === errorBefore.current) return;
+    if (error) {
+      waitingOnSave.current = false;
+      setSaveError(error);
+      setStep('failed');
+    }
+  }, [error]);
+
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const hard = reading?.tone === 'difficult' || reading?.type === 'conflict';
 
   /* ------------------------------- Photos -------------------------------- */
 
@@ -94,45 +115,62 @@ export default function MemoryCaptureScreen() {
     }
   };
 
-  /* -------------------------- Reading, then asking ------------------------ */
+  /* ------------------------------ The reading ----------------------------- */
 
-  const begin = () => {
-    const reading = readNote(note);
-    setTitle(reading.title);
-    setEmoji(plan?.emoji ?? reading.emoji);
-    if (reading.date && !date) setDate(reading.date);
-    if (reading.place && !place) setPlace(reading.place);
-    setFeelings(reading.feelings);
-
-    const queue = asksFor(reading, { date: Boolean(date), place: Boolean(place) });
-    setAsks(queue);
-    setAsked(0);
-    setStep(queue.length ? 'ask' : 'review');
+  /**
+   * What comes back is a starting point, never an overwrite: once someone has
+   * answered something themselves, their answer is the answer.
+   */
+  const apply = (next: MemoryReading, asked: Answered[]) => {
+    setReading(next);
+    setTitle((current) => current || next.title);
+    setEmoji(plan?.emoji ?? emojiFor(next));
+    if (next.date && !date) setDate(next.date);
+    if (next.place && !place) setPlace(next.place);
+    if (!asked.some((a) => a.field === 'feelings') && next.feelings.length) {
+      setFeelings(next.feelings.map(titleCase));
+    }
+    if (!asked.length) setVisibility(next.defaultVisibility);
+    setStep(next.needsFollowUp && asked.length < MAX_ASKS ? 'ask' : 'review');
   };
 
-  const nextAsk = () => {
-    if (asked + 1 < asks.length) setAsked(asked + 1);
-    else setStep('review');
+  const ask = async (asked: Answered[]) => {
+    setStep('thinking');
+    setAnswers(asked);
+    const { reading: next } = await readMemory(note.trim(), asked);
+    apply(next, asked);
+  };
+
+  const begin = () => {
+    /* What the plan already told us counts as answered — it is conversation
+       state like any other, and it stops the flow asking where someone was on
+       an evening it arranged itself. */
+    const known: Answered[] = [];
+    if (plan?.date) known.push({ question: 'When was this?', field: 'date', answer: plan.date });
+    if (plan?.place) known.push({ question: 'Where was this?', field: 'place', answer: plan.place });
+    void ask(known);
+  };
+
+  /** One answer, then straight back for whatever is worth asking next. */
+  const answer = (value: string) => {
+    if (!reading?.nextQuestion) return;
+    void ask([
+      ...answers,
+      { question: reading.nextQuestion, field: reading.questionField, answer: value },
+    ]);
   };
 
   const back = () => {
     setPhotoError(null);
     if (step === 'write') {
       navigate(-1);
-    } else if (step === 'ask') {
-      if (asked > 0) setAsked(asked - 1);
-      else setStep('write');
+    } else if (step === 'ask' || step === 'thinking') {
+      setStep('write');
     } else if (step === 'review') {
-      if (asks.length) {
-        setAsked(asks.length - 1);
-        setStep('ask');
-      } else {
-        setStep('write');
-      }
+      setStep(reading?.nextQuestion ? 'ask' : 'write');
     } else if (step === 'edit') {
       setStep('review');
     } else {
-      // Saved already — there is nothing behind this but the memory itself.
       navigate(saved ? `/memories/${saved.id}` : '/memories', { replace: true });
     }
   };
@@ -151,35 +189,46 @@ export default function MemoryCaptureScreen() {
       photos,
       mood: feelings.length ? FEELING_MOOD[feelings[0]] : undefined,
       feelings: feelings.length ? feelings : undefined,
+      visibility,
       sharedNote: written || undefined,
       notes: {},
-      /*
-       * "Anything else you want to remember" is a note to yourself — the
-       * screen says as much — so it is kept as one. It is also the only
-       * per-person text on a memory that survives a reload: the shared
-       * per-person note has no column behind it.
-       */
+      /* The last answer is a note to yourself, and it is kept as one — it is
+         also the only per-person text on a memory that survives a reload. */
       privateNotes: extra.trim() ? { [me.id]: extra.trim() } : {},
       planId: plan?.id,
       cycleId: cycle?.id,
     };
 
+    errorBefore.current = error;
+    waitingOnSave.current = true;
+    setSaveError(null);
+
     dispatch({ type: 'upsertMemory', memory });
     if (plan) dispatch({ type: 'linkMemoryToPlan', planId: plan.id, memoryId: memory.id });
     setSaved(memory);
-    /* Said here rather than on the last screen, because a suggestion can carry
-       someone off to the plan editor without ever seeing it. */
     toast.show({ emoji: '✓', message: 'Kept', actionLabel: 'See it', actionTo: `/memories/${memory.id}` });
+    setStep(reading?.offerNextSteps && reading.nextSteps.length ? 'suggest' : 'done');
+  };
 
-    const next = suggestionsFor(`${written} ${extra}`, place || undefined, partner.name);
-    setSuggestions(next);
-    setStep(next.length ? 'suggest' : 'done');
+  const restart = () => {
+    setNote('');
+    setPhotos([]);
+    setReading(null);
+    setAnswers([]);
+    setTitle('');
+    setEmoji('✨');
+    setDate(null);
+    setPlace('');
+    setFeelings([]);
+    setExtra('');
+    setVisibility('shared');
+    setSaved(null);
+    setStep('write');
   };
 
   /* ------------------------------- Rendering ------------------------------ */
 
   const dateLabel = date ? formatStamp(date) : null;
-  const ask = step === 'ask' ? asks[asked] : null;
 
   return (
     <>
@@ -249,11 +298,7 @@ export default function MemoryCaptureScreen() {
                 disabled={busyPhotos || photos.length >= MAX_PHOTOS}
                 onClick={() => fileInput.current?.click()}
               >
-                {busyPhotos
-                  ? 'Adding…'
-                  : photos.length
-                    ? 'Add more photos'
-                    : 'Add photos'}
+                {busyPhotos ? 'Adding…' : photos.length ? 'Add more photos' : 'Add photos'}
               </Button>
               {photoError ? <p className={s.hint}>{photoError}</p> : null}
             </div>
@@ -273,35 +318,45 @@ export default function MemoryCaptureScreen() {
           </>
         ) : null}
 
-        {ask ? (
+        {step === 'thinking' ? (
+          <div className={s.chat}>
+            <div className={s.greeter}>
+              <CosmicGreeter />
+            </div>
+            <p className={`${s.bubble} ${s.thinking}`}>
+              <span aria-hidden>·</span>
+              <span aria-hidden>·</span>
+              <span aria-hidden>·</span>
+              <span className={s.sr}>Reading what you wrote</span>
+            </p>
+          </div>
+        ) : null}
+
+        {step === 'ask' && reading?.nextQuestion ? (
           <AskStep
-            ask={ask}
-            first={asked === 0}
-            partnerName={partner.name}
+            reading={reading}
+            first={answers.length === 0}
+            onAnswer={answer}
+            onSkip={() => answer('')}
             onDate={(value) => {
               setDate(value);
-              nextAsk();
+              answer(value ? formatStamp(value) : 'Doesn’t matter');
             }}
             onPlace={(value) => {
-              if (value !== null) setPlace(value);
-              nextAsk();
+              setPlace(value ?? '');
+              answer(value ?? '');
             }}
             feelings={feelings}
-            ownFeeling={ownFeeling}
-            onFeeling={setFeelings}
-            onOwnFeeling={setOwnFeeling}
+            onFeelings={setFeelings}
             extra={extra}
             onExtra={setExtra}
-            onNext={nextAsk}
           />
         ) : null}
 
         {step === 'review' && (
           <>
             <header className={s.head}>
-              <h1 className={s.title}>
-                Your memory <span aria-hidden>✨</span>
-              </h1>
+              <h1 className={s.title}>{hard ? 'Your memory' : 'Your memory ✨'}</h1>
               <p className={s.sub}>Here’s what we’ve captured.</p>
             </header>
 
@@ -338,11 +393,13 @@ export default function MemoryCaptureScreen() {
                 <div className={s.tags}>
                   {feelings.map((f) => (
                     <span key={f} className={s.tag}>
-                      <span aria-hidden>{FEELING_EMOJI[f] ?? '✨'}</span> {f}
+                      <span aria-hidden>{feelingEmoji(f)}</span> {f}
                     </span>
                   ))}
                 </div>
               ) : null}
+
+              <Visibility value={visibility} onChange={setVisibility} />
             </article>
 
             <div className={s.foot}>
@@ -388,10 +445,10 @@ export default function MemoryCaptureScreen() {
               <div>
                 <p className={s.label}>How it felt</p>
                 <div className={s.chips}>
-                  {FEELINGS.map((f) => (
+                  {feelingChoices(hard, feelings).map((f) => (
                     <Chip
                       key={f}
-                      emoji={FEELING_EMOJI[f]}
+                      emoji={feelingEmoji(f)}
                       selected={feelings.includes(f)}
                       onClick={() =>
                         setFeelings(
@@ -414,28 +471,34 @@ export default function MemoryCaptureScreen() {
           </>
         )}
 
-        {step === 'suggest' && (
+        {step === 'suggest' && reading && (
           <>
             <header className={s.headCentre}>
-              <span className={s.sparkle} aria-hidden>
-                ✨
-              </span>
-              <h1 className={s.title}>Want to turn this into something more?</h1>
-              <p className={s.sub}>Here are a few ideas based on this memory.</p>
+              {hard ? null : (
+                <span className={s.sparkle} aria-hidden>
+                  ✨
+                </span>
+              )}
+              <h1 className={s.title}>
+                {hard ? 'Would any of this help?' : 'Want to turn this into something more?'}
+              </h1>
+              <p className={s.sub}>
+                {hard ? 'No rush, and no wrong answer.' : 'Here are a few ideas based on this memory.'}
+              </p>
             </header>
 
             <div className={s.options}>
-              {suggestions.map((sug) => (
+              {reading.nextSteps.map((id) => (
                 <button
-                  key={sug.id}
+                  key={id}
                   type="button"
                   className={s.option}
-                  onClick={() => navigate(sug.to)}
+                  onClick={() => navigate(NEXT_STEP[id].to)}
                 >
                   <span className={s.optionIcon} aria-hidden>
-                    {sug.icon}
+                    {NEXT_STEP[id].icon}
                   </span>
-                  <span className={s.optionLabel}>{sug.label}</span>
+                  <span className={s.optionLabel}>{NEXT_STEP[id].label}</span>
                   <span className={s.plus} aria-hidden>
                     +
                   </span>
@@ -449,15 +512,41 @@ export default function MemoryCaptureScreen() {
           </>
         )}
 
+        {step === 'failed' && (
+          <div className={s.done}>
+            <span className={s.moon} aria-hidden>
+              🌧
+            </span>
+            <h1 className={s.title}>That didn’t save</h1>
+            <p className={s.sub}>
+              Your words are still here — nothing is lost. This is what came back:
+            </p>
+            <p className={s.error}>{saveError}</p>
+
+            <div className={s.foot}>
+              <Button variant="accent" size="lg" block onClick={keep}>
+                Try again
+              </Button>
+              <Button variant="secondary" size="lg" block onClick={() => setStep('review')}>
+                Back to the memory
+              </Button>
+            </div>
+          </div>
+        )}
+
         {step === 'done' && (
           <div className={s.done}>
             <span className={s.moon} aria-hidden>
               🌙
             </span>
-            <h1 className={s.title}>
-              Saved <span aria-hidden>✨</span>
-            </h1>
-            <p className={s.sub}>Another beautiful moment in your 777 universe.</p>
+            <h1 className={s.title}>{hard ? 'Kept' : 'Saved ✨'}</h1>
+            <p className={s.sub}>
+              {hard
+                ? visibility === 'private'
+                  ? 'This one is just for you. It will be here when you want it.'
+                  : 'It is written down. That is enough for now.'
+                : 'Another beautiful moment in your 777 universe.'}
+            </p>
 
             <div className={s.foot}>
               <Button
@@ -468,84 +557,84 @@ export default function MemoryCaptureScreen() {
               >
                 View memory
               </Button>
-              <Button variant="secondary" size="lg" block onClick={() => restart()}>
+              <Button variant="secondary" size="lg" block onClick={restart}>
                 Add another
               </Button>
             </div>
 
-            <p className={s.hand}>More moments. A closer us. ♡</p>
+            {hard ? null : <p className={s.hand}>More moments. A closer us. ♡</p>}
           </div>
         )}
       </Screen>
     </>
   );
-
-  function restart() {
-    setNote('');
-    setPhotos([]);
-    setTitle('');
-    setEmoji('✨');
-    setDate(null);
-    setPlace('');
-    setFeelings([]);
-    setExtra('');
-    setOwnFeeling(false);
-    setAsks([]);
-    setAsked(0);
-    setSaved(null);
-    setSuggestions([]);
-    setStep('write');
-  }
 }
 
 /* ------------------------------- One question ------------------------------ */
 
 function AskStep({
-  ask,
+  reading,
   first,
   feelings,
-  ownFeeling,
   extra,
+  onAnswer,
+  onSkip,
   onDate,
   onPlace,
-  onFeeling,
-  onOwnFeeling,
+  onFeelings,
   onExtra,
-  onNext,
 }: {
-  ask: Ask;
+  reading: MemoryReading;
   first: boolean;
-  partnerName: string;
   feelings: string[];
-  ownFeeling: boolean;
   extra: string;
+  onAnswer: (value: string) => void;
+  onSkip: () => void;
   onDate: (value: string | null) => void;
   onPlace: (value: string | null) => void;
-  onFeeling: (value: string[]) => void;
-  onOwnFeeling: (value: boolean) => void;
+  onFeelings: (value: string[]) => void;
   onExtra: (value: string) => void;
-  onNext: () => void;
 }) {
-  const [picking, setPicking] = useState(false);
-  const [typedPlace, setTypedPlace] = useState('');
-  const [typedFeeling, setTypedFeeling] = useState('');
+  const [typing, setTyping] = useState<'date' | 'place' | 'feeling' | null>(null);
+  const [typed, setTyped] = useState('');
+  const hard = reading.tone === 'difficult' || reading.type === 'conflict';
+  const field = reading.questionField;
 
-  const question = {
-    date: 'Was this today?',
-    place: 'Do you want to remember where this happened?',
-    feeling: 'How did this moment leave you feeling?',
-    more: 'Anything else you want to remember about this?',
-  }[ask];
+  const hand = hard
+    ? 'Whatever you need to keep. ♡'
+    : field === 'date'
+      ? 'Little moments make a big love story. ♡'
+      : field === 'place'
+        ? 'Same place, now memories. ♡'
+        : field === 'feelings'
+          ? 'Feel it. Keep it. ♡'
+          : 'A kinder you for future you. ♡';
 
-  const hand = {
-    date: 'Little moments make a big love story. ♡',
-    place: 'Same place, now memories. ♡',
-    feeling: 'Feel it. Keep it. ♡',
-    more: 'A kinder you for future you. ♡',
-  }[ask];
+  /* A tapped reply is words, not a value — the model writes them — so each one
+     is read for what it means before it is acted on, and anything
+     unrecognised is still recorded as the answer it was. */
+  const tapDate = (reply: string) => {
+    if (/toda|tonight|this (morning|afternoon|evening)|^yes/i.test(reply)) return onDate(today());
+    if (/choose|another|different|pick|date/i.test(reply)) return setTyping('date');
+    if (/matter|skip|sure|remember/i.test(reply)) return onDate(null);
+    return onAnswer(reply);
+  };
+
+  const tapPlace = (reply: string) => {
+    if (/^(at )?home$/i.test(reply.trim())) return onPlace('Home');
+    if (/add|another|somewhere|else|choose|where/i.test(reply)) return setTyping('place');
+    if (/skip|rather not|doesn|matter/i.test(reply)) return onPlace(null);
+    return onPlace(reply);
+  };
 
   const toggle = (f: string) =>
-    onFeeling(feelings.includes(f) ? feelings.filter((v) => v !== f) : [...feelings, f]);
+    onFeelings(feelings.includes(f) ? feelings.filter((v) => v !== f) : [...feelings, f]);
+
+  const replies = reading.quickReplies.length
+    ? reading.quickReplies
+    : field === 'feelings'
+      ? [...(hard ? HARD_FEELINGS : FEELINGS)]
+      : [];
 
   return (
     <div className={s.chat}>
@@ -553,117 +642,125 @@ function AskStep({
         <CosmicGreeter />
       </div>
 
-      {/* The reaction is said once, on the way in, and then it gets out of the
-          way — three screens of enthusiasm is not warmth, it is noise. */}
-      {first ? <p className={s.bubble}>That sounds like a lovely little moment ✨</p> : null}
-      <p className={s.bubble}>{question}</p>
+      {/* The opening is said once, and its words come from the tone of the note
+          rather than from the model — an argument is never met with a sparkle,
+          whatever else varies. */}
+      {first ? <p className={s.bubble}>{OPENING[reading.tone]}</p> : null}
+      <p className={s.bubble}>{reading.nextQuestion}</p>
 
-      {ask === 'date' && (
+      {field === 'date' && (
         <div className={s.options}>
-          {picking ? (
+          {typing === 'date' ? (
             <>
               <Input
                 type="date"
                 autoFocus
                 onChange={(e) => (e.target.value ? onDate(e.target.value) : undefined)}
               />
-              <button type="button" className={s.skip} onClick={() => setPicking(false)}>
+              <button type="button" className={s.skip} onClick={() => setTyping(null)}>
                 Back to the quick answers
               </button>
             </>
           ) : (
             <>
-              <Option icon="💗" label="Yes, today" onClick={() => onDate(today())} />
-              <Option icon="🗓" label="Choose another date" onClick={() => setPicking(true)} />
-              <Option icon="···" label="Doesn’t matter" onClick={() => onDate(null)} />
+              {replies.map((r) => (
+                <Option key={r} icon={dateIcon(r)} label={r} onClick={() => tapDate(r)} />
+              ))}
+              <button type="button" className={s.skip} onClick={onSkip}>
+                Skip
+              </button>
             </>
           )}
         </div>
       )}
 
-      {ask === 'place' && (
+      {field === 'place' && (
         <div className={s.options}>
-          {picking ? (
+          {typing === 'place' ? (
             <form
               className={s.inline}
               onSubmit={(e) => {
                 e.preventDefault();
-                onPlace(typedPlace.trim() || null);
+                onPlace(typed.trim() || null);
               }}
             >
               <Input
                 autoFocus
                 placeholder="Where were you?"
-                value={typedPlace}
-                onChange={(e) => setTypedPlace(e.target.value)}
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
               />
-              <Button type="submit" variant="accent" size="lg" block disabled={!typedPlace.trim()}>
+              <Button type="submit" variant="accent" size="lg" block disabled={!typed.trim()}>
                 Save this place
               </Button>
             </form>
           ) : (
             <>
-              <Option icon="🏠" label="At home" onClick={() => onPlace('Home')} />
-              <Option icon="📍" label="Add a place" onClick={() => setPicking(true)} />
-              <Option icon="···" label="Skip" onClick={() => onPlace(null)} />
+              {replies.map((r) => (
+                <Option key={r} icon={placeIcon(r)} label={r} onClick={() => tapPlace(r)} />
+              ))}
+              <button type="button" className={s.skip} onClick={onSkip}>
+                Skip
+              </button>
             </>
           )}
         </div>
       )}
 
-      {ask === 'feeling' && (
+      {field === 'feelings' && (
         <>
           <div className={s.feelings}>
-            {FEELINGS.map((f) => (
+            {replies.map((f) => (
               <Chip
                 key={f}
-                emoji={FEELING_EMOJI[f]}
-                selected={feelings.includes(f)}
-                onClick={() => toggle(f)}
+                emoji={feelingEmoji(f)}
+                selected={feelings.includes(titleCase(f))}
+                onClick={() => toggle(titleCase(f))}
               >
-                {f}
+                {titleCase(f)}
               </Chip>
             ))}
-            <Chip emoji="✏️" selected={ownFeeling} onClick={() => onOwnFeeling(!ownFeeling)}>
+            <Chip
+              emoji="✏️"
+              selected={typing === 'feeling'}
+              onClick={() => setTyping(typing === 'feeling' ? null : 'feeling')}
+            >
               Add my own
             </Chip>
           </div>
 
-          {ownFeeling ? (
+          {typing === 'feeling' ? (
             <form
               className={s.own}
               onSubmit={(e) => {
                 e.preventDefault();
-                const word = typedFeeling.trim();
+                const word = titleCase(typed.trim());
                 if (!word) return;
-                if (!feelings.includes(word)) onFeeling([...feelings, word]);
-                setTypedFeeling('');
-                onOwnFeeling(false);
+                if (!feelings.includes(word)) onFeelings([...feelings, word]);
+                setTyped('');
+                setTyping(null);
               }}
             >
               <Input
                 autoFocus
                 placeholder="In your own word"
                 maxLength={24}
-                value={typedFeeling}
-                onChange={(e) => setTypedFeeling(e.target.value)}
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
               />
-              <Button type="submit" variant="secondary" size="md" disabled={!typedFeeling.trim()}>
+              <Button type="submit" variant="secondary" size="md" disabled={!typed.trim()}>
                 Add
               </Button>
             </form>
           ) : null}
 
-          {/* One way on, whichever it is: a second button that does the same
-              thing under a different word only makes people wonder which one
-              keeps their answer. */}
           <div className={s.foot}>
             {feelings.length ? (
-              <Button variant="accent" size="lg" block onClick={onNext}>
+              <Button variant="accent" size="lg" block onClick={() => onAnswer(feelings.join(', '))}>
                 Continue
               </Button>
             ) : (
-              <button type="button" className={s.skip} onClick={onNext}>
+              <button type="button" className={s.skip} onClick={onSkip}>
                 Skip
               </button>
             )}
@@ -671,12 +768,12 @@ function AskStep({
         </>
       )}
 
-      {ask === 'more' && (
+      {(field === 'context' || field === null) && (
         <>
           <Textarea
             value={extra}
             onChange={(e) => onExtra(e.target.value)}
-            placeholder={'Add a note, just for you (optional)\n\ne.g. I loved how spontaneous it was. We should do this more often!'}
+            placeholder="Add a note, just for you (optional)"
             maxLength={500}
             showCount
             rows={5}
@@ -684,11 +781,11 @@ function AskStep({
           />
           <div className={s.foot}>
             {extra.trim() ? (
-              <Button variant="accent" size="lg" block onClick={onNext}>
+              <Button variant="accent" size="lg" block onClick={() => onAnswer(extra.trim())}>
                 Continue
               </Button>
             ) : (
-              <button type="button" className={s.skip} onClick={onNext}>
+              <button type="button" className={s.skip} onClick={onSkip}>
                 Skip
               </button>
             )}
@@ -697,6 +794,44 @@ function AskStep({
       )}
 
       <p className={s.hand}>{hand}</p>
+    </div>
+  );
+}
+
+/* --------------------------------- Pieces ---------------------------------- */
+
+function Visibility({
+  value,
+  onChange,
+}: {
+  value: 'private' | 'shared';
+  onChange: (v: 'private' | 'shared') => void;
+}) {
+  return (
+    <div className={s.visibility}>
+      <div className={s.visRow}>
+        <button
+          type="button"
+          className={s.vis}
+          aria-pressed={value === 'private'}
+          onClick={() => onChange('private')}
+        >
+          🔒 Private
+        </button>
+        <button
+          type="button"
+          className={s.vis}
+          aria-pressed={value === 'shared'}
+          onClick={() => onChange('shared')}
+        >
+          💞 Shared
+        </button>
+      </div>
+      <p className={s.visNote}>
+        {value === 'private'
+          ? 'Only you can see this one.'
+          : 'This goes on the timeline you both see.'}
+      </p>
     </div>
   );
 }
@@ -710,6 +845,45 @@ function Option({ icon, label, onClick }: { icon: string; label: string; onClick
       <span className={s.optionLabel}>{label}</span>
     </button>
   );
+}
+
+function titleCase(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+/** The set on the edit screen: the right six, plus anything already chosen. */
+function feelingChoices(hard: boolean, chosen: string[]): string[] {
+  const base: string[] = hard ? [...HARD_FEELINGS] : [...FEELINGS];
+  return [...base, ...chosen.filter((f) => !base.includes(f))];
+}
+
+function dateIcon(reply: string): string {
+  if (/toda|tonight|^yes/i.test(reply)) return '💗';
+  if (/matter|skip|sure/i.test(reply)) return '···';
+  return '🗓';
+}
+
+function placeIcon(reply: string): string {
+  if (/home/i.test(reply)) return '🏠';
+  if (/skip|matter|rather not/i.test(reply)) return '···';
+  return '📍';
+}
+
+/** Something small at the top of the card, chosen by what kind of note it is. */
+function emojiFor(reading: MemoryReading): string {
+  if (reading.tone === 'difficult') return '🤍';
+  switch (reading.type) {
+    case 'gratitude':
+      return '🌿';
+    case 'milestone':
+      return '🎉';
+    case 'reflection':
+      return '💭';
+    case 'conflict':
+      return '🤍';
+    default:
+      return '✨';
+  }
 }
 
 /* --------------------------------- Marks ---------------------------------- */

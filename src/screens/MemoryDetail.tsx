@@ -77,6 +77,10 @@ export default function MemoryDetailScreen() {
           </h1>
           <div className={s.meta}>
             <Pill tone={kind.tone}>{kind.label}</Pill>
+            {/* Not decoration: on a shared timeline, the one thing the author
+                needs to see at a glance is which of these the other person
+                cannot. */}
+            {memory.visibility === 'private' ? <Pill>🔒 Private</Pill> : null}
             {memory.place ? <Pill>{memory.place}</Pill> : null}
             {/* What was actually said about how it felt, when the capture flow
                 caught it; otherwise the single mood the older form kept. */}

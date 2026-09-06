@@ -443,3 +443,100 @@
   color: var(--c-ink-4);
   opacity: 0.85;
 }
+
+/* ------------------------------- Still reading ----------------------------- */
+
+/* Three dots in a bubble, so a pause reads as someone thinking rather than as
+   a screen that has stopped working. */
+.thinking {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  min-height: 52px;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--c-ink-4);
+}
+
+.thinking span[aria-hidden] {
+  animation: dot 1.25s var(--ease-soft) infinite;
+}
+.thinking span[aria-hidden]:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.thinking span[aria-hidden]:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes dot {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* -------------------------------- Visibility ------------------------------- */
+
+.visibility {
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--c-hairline-soft);
+}
+
+.visRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+  padding: 4px;
+  border-radius: var(--r-full);
+  background: var(--c-surface-2);
+}
+
+.vis {
+  padding: 9px var(--s-3);
+  border-radius: var(--r-full);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-3);
+  transition:
+    background var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease);
+}
+
+.vis[aria-pressed='true'] {
+  background: var(--c-surface);
+  color: var(--c-ink);
+  box-shadow: var(--e-1);
+}
+
+.visNote {
+  margin-top: var(--s-2);
+  text-align: center;
+  font-size: var(--t-micro);
+  color: var(--c-ink-4);
+}
+
+/* What the server said, when it would not take the memory. */
+.error {
+  margin: var(--s-5) auto 0;
+  max-width: 34ch;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+  font-size: var(--t-small);
+  line-height: 1.5;
+}

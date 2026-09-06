@@ -122,6 +122,8 @@ export type MemoryRow = {
   mood: string | null;
   shared_note: string | null;
   photos: string[];
+  /** 'shared' | 'private'. Added by migration 0002; older projects lack it. */
+  visibility?: string | null;
   created_at: string;
 }
 
