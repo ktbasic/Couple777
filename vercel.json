@@ -3,7 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "//": "Everything but /api is the single-page app. The negative lookahead keeps the serverless functions reachable: without it, a request to /api/... is rewritten to index.html and the function never runs.",
+  "//": "Rewrites run after the filesystem check, so a real function under api/ already wins. The exclusion stays as belt and braces, and it is the first thing to check if /api/... ever serves the app instead of JSON.",
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
   "headers": [
     {

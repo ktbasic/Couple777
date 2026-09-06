@@ -8,8 +8,13 @@
  * never offered a date idea.
  *
  * Run with: npm run test:ai
+ *
+ * It lives here rather than beside the endpoint because Vercel turns every
+ * file under api/ into a public serverless function — a test file there is an
+ * endpoint that runs process.exit() when someone opens it, and a build error
+ * if its imports do not suit the function builder.
  */
-import handler, { settle, type Reading } from './memory-read.ts';
+import handler, { settle, type Reading } from '../api/memory-read.ts';
 
 let failures = 0;
 const check = (what: string, ok: boolean, detail = '') => {
@@ -88,6 +93,11 @@ check(
 );
 
 console.log('\nThe route itself');
+/** The two fields the handler actually reads, shaped as the real thing. */
+function req(method: string, body?: unknown) {
+  return { method, body } as unknown as Parameters<typeof handler>[0];
+}
+
 function spy() {
   const out: { code?: number; body?: unknown } = {};
   const res = {
@@ -99,19 +109,19 @@ function spy() {
       out.body = body;
     },
   };
-  return { res, out };
+  return { res: res as unknown as Parameters<typeof handler>[1], out };
 }
 
 delete process.env.MEMORY_AI_API_KEY;
 delete process.env.ANTHROPIC_API_KEY;
 {
   const { res, out } = spy();
-  await handler({ method: 'POST', body: { note: 'hello' } }, res);
+  await handler(req('POST', { note: 'hello' }), res);
   check('with no key it says so, rather than pretending', out.code === 503, JSON.stringify(out.body));
 }
 {
   const { res, out } = spy();
-  await handler({ method: 'GET' }, res);
+  await handler(req('GET'), res);
   const body = out.body as { configured: boolean; working: boolean };
   check(
     'a GET says it is off, without spending a call',
@@ -121,7 +131,7 @@ delete process.env.ANTHROPIC_API_KEY;
 }
 {
   const { res, out } = spy();
-  await handler({ method: 'PUT', body: {} }, res);
+  await handler(req('PUT', {}), res);
   check('anything else is refused', out.code === 405);
 }
 
@@ -130,7 +140,7 @@ process.env.MEMORY_AI_API_KEY = 'sk-ant-deliberately-invalid';
   // A key that is present but refused must not report itself as working: that
   // is the state where everything looks fine and nothing is being read.
   const { res, out } = spy();
-  await handler({ method: 'GET' }, res);
+  await handler(req('GET'), res);
   const body = out.body as { configured: boolean; working: boolean; reason?: string };
   check(
     'a key that is set but refused says so',
@@ -140,14 +150,14 @@ process.env.MEMORY_AI_API_KEY = 'sk-ant-deliberately-invalid';
 }
 {
   const { res, out } = spy();
-  await handler({ method: 'POST', body: { note: '   ' } }, res);
+  await handler(req('POST', { note: '   ' }), res);
   check('an empty note is a bad request', out.code === 400, JSON.stringify(out.body));
 }
 {
   // Reaches the API and is turned away, or cannot reach it at all. Either way
   // the endpoint answers rather than throwing, which is what the client needs.
   const { res, out } = spy();
-  await handler({ method: 'POST', body: { note: 'a real note' } }, res);
+  await handler(req('POST', { note: 'a real note' }), res);
   check('an upstream failure comes back as one', out.code === 502 || out.code === 429, String(out.code));
 }
 

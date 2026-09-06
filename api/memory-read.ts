@@ -1,3 +1,4 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
 
 /**
@@ -305,16 +306,12 @@ export function settle(reading: Reading): Reading {
 
 /* -------------------------------- The route ------------------------------- */
 
-interface Req {
-  method?: string;
-  body?: unknown;
-}
-interface Res {
-  status: (code: number) => Res;
-  json: (body: unknown) => void;
-}
-
-export default async function handler(req: Req, res: Res) {
+/**
+ * A default-exported (req, res) handler in api/ is what Vercel builds into a
+ * serverless function. Typed with the platform's own types rather than
+ * hand-rolled ones, so there is no question about the shape it expects.
+ */
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   const key = process.env.MEMORY_AI_API_KEY || process.env.ANTHROPIC_API_KEY;
 
   /*

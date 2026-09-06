@@ -13,7 +13,7 @@
     "dev:local": "node supabase/tests/local-server.mjs",
     "test:hosted": "node supabase/tests/hosted.e2e.mjs",
     "typecheck:api": "tsc -p tsconfig.api.json",
-    "test:ai": "node --experimental-strip-types --no-warnings api/memory-read.test.ts",
+    "test:ai": "node --experimental-strip-types --no-warnings tests/memory-read.test.ts",
     "test:memory": "esbuild src/lib/memoryRead.test.ts --bundle --platform=node --format=esm --log-level=error --outfile=node_modules/.cache/memory.test.mjs && node node_modules/.cache/memory.test.mjs"
   },
   "dependencies": {
@@ -32,5 +32,8 @@
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "^5.9.0",
     "vite": "^7.1.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
