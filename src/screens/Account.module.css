@@ -8,14 +8,18 @@
   background: linear-gradient(178deg, #FFFAF6 0%, #FDF0EE 52%, #FBE3E2 100%);
 }
 
-.top {
-  text-align: center;
+/* Short screens: the same screen with less air, so the email form still
+   lands without a scroll. */
+@media (max-height: 700px) {
+  .screen {
+    gap: var(--s-5);
+    padding-top: var(--s-5);
+    padding-bottom: calc(var(--s-5) + var(--safe-b));
+  }
 }
 
-.icon {
-  width: 56px;
-  margin: 0 auto var(--s-5);
-  box-shadow: var(--e-accent);
+.top {
+  text-align: center;
 }
 
 .title {
@@ -23,6 +27,9 @@
   font-size: var(--t-display-l);
   font-weight: 700;
   letter-spacing: -0.03em;
+  line-height: 1.2;
+  /* Two even lines rather than a long one and an orphan. */
+  text-wrap: balance;
   color: var(--c-ink);
 }
 

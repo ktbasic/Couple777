@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Field';
-import { AppIcon } from '@/components/ui/Logo777';
+import { SaveUniverse } from '@/features/SaveUniverse';
 import { readableAuthError, useAuth } from '@/context/auth';
 import * as repo from '@/lib/db/repo';
 import s from './Account.module.css';
@@ -116,10 +116,11 @@ export default function AccountScreen() {
   return (
     <Screen className={s.screen}>
       <div className={s.top}>
-        <AppIcon tone="on-accent" className={s.icon} />
-        <h1 className={s.title}>Save your Couple777</h1>
+        <SaveUniverse />
+        {/* The sparkle is part of the last word, not a line of its own. */}
+        <h1 className={s.title}>Your 777 universe starts here&nbsp;✨</h1>
         <p className={s.body}>
-          Your memories, plans, and shared space stay connected to your account.
+          Save your memories, plans, and shared space so they’re always here when you come back.
         </p>
       </div>
 
@@ -162,7 +163,7 @@ export default function AccountScreen() {
           </Button>
 
           <button type="button" className={s.link} onClick={() => setMode('email-in')}>
-            I already have an account
+            Already have an account? Sign in
           </button>
         </div>
       ) : (
@@ -212,7 +213,7 @@ export default function AccountScreen() {
             className={s.link}
             onClick={() => setMode(mode === 'email-up' ? 'email-in' : 'email-up')}
           >
-            {mode === 'email-up' ? 'I already have an account' : 'Create an account instead'}
+            {mode === 'email-up' ? 'Already have an account? Sign in' : 'Create an account instead'}
           </button>
           <button type="button" className={s.link} onClick={() => setMode('choose')}>
             Back

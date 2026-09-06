@@ -1,0 +1,183 @@
+/*
+ * One number sets the size of everything: --rx is the orbit's half-width in
+ * px, the ring is drawn from it, and --squash turns the circle the chips ride
+ * into the ellipse the ring draws. Change --rx alone and the whole composition
+ * scales together — which is exactly what the short-screen rule at the bottom
+ * does.
+ */
+.universe {
+  --rx: 80px;
+  --chip: 24px;
+  /* How far in a chip drifts when it is saved. Kept small deliberately: the
+     squash means a pull at the top of the ring only closes --pull * --squash
+     of the gap to the mark, and the chips must never graze it. */
+  --pull: 6px;
+  position: relative;
+  width: 100%;
+  height: 132px;
+  margin-bottom: var(--s-5);
+}
+
+/* The bloom under the mark. Centred on margins rather than a translate,
+   because the only thing animating here is scale — a transform that reverts
+   to none under reduced motion must not be carrying the centring with it. */
+.glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 148px;
+  height: 148px;
+  margin: -74px 0 0 -74px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(238, 93, 145, 0.26) 0%, rgba(238, 93, 145, 0) 62%),
+    radial-gradient(circle at 50% 50%, rgba(199, 155, 220, 0.2) 0%, rgba(199, 155, 220, 0) 72%);
+  animation: uGlow 4.5s var(--ease-soft) infinite;
+  will-change: transform, opacity;
+}
+
+/* Drawn at rx=100 in its own units, so this width is the only place the
+   ring's size is decided: 212 viewBox units across = 2.12 x the orbit's rx. */
+.ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--rx) * 2.12);
+  height: auto;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+}
+
+.icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  transform: translate(-50%, -50%);
+  box-shadow: var(--e-accent);
+}
+
+/* A circle of --rx, squashed and tilted into the ellipse the ring draws.
+   Invisible; it only carries the three chips. */
+.track {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--rx) * 2);
+  height: calc(var(--rx) * 2);
+  margin-left: calc(var(--rx) * -1);
+  margin-top: calc(var(--rx) * -1);
+  transform: rotate(var(--tilt)) scaleY(var(--squash));
+}
+
+/* Where on the ring this chip starts. Static on purpose — a negative
+   animation-delay would do the same job until motion is turned off, and then
+   all three would sit on top of each other. */
+.arm {
+  position: absolute;
+  inset: 0;
+  transform: rotate(var(--phase));
+}
+
+.spin {
+  position: absolute;
+  inset: 0;
+  animation: uOrbit 18s linear infinite;
+  will-change: transform;
+}
+
+/* The only layer that leaves the ring: a small pull toward the middle and
+   back, once every other revolution, staggered so they take turns. */
+.pull {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  width: var(--chip);
+  height: var(--chip);
+  margin: calc(var(--chip) / -2) 0 0 calc(var(--chip) / -2);
+  animation: uSave 9s var(--ease-soft) infinite;
+  will-change: transform;
+}
+
+.unspin {
+  width: 100%;
+  height: 100%;
+  /* Exactly undoes .spin, once per revolution. */
+  animation: uOrbitReturn 18s linear infinite;
+  will-change: transform;
+}
+
+/* And exactly undoes the phase, the squash and the tilt, so a card stays a
+   square card wherever it is on the ring. */
+.face {
+  width: 100%;
+  height: 100%;
+  transform: rotate(calc(-1 * var(--phase))) scaleY(calc(1 / var(--squash)))
+    rotate(calc(-1 * var(--tilt)));
+}
+
+.chip {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* The sparkle sits outside the drawing's own box and grows as it twinkles. */
+  overflow: visible;
+  filter: drop-shadow(0 3px 8px rgba(196, 110, 140, 0.26));
+}
+
+/* The sparkle is the one thing that twinkles, and it does it slowly. */
+.spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: uSpark 4.5s var(--ease-soft) infinite;
+}
+
+@keyframes uOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes uOrbitReturn {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+/*
+ * Out on the ring for most of the loop, then a short drift inward — far
+ * enough to read as being drawn in, small enough that nothing bounces.
+ */
+@keyframes uSave {
+  0%, 60% { transform: translateX(0) scale(1); }
+  72%     { transform: translateX(calc(-1 * var(--pull))) scale(0.93); }
+  86%     { transform: translateX(0) scale(1); }
+  100%    { transform: translateX(0) scale(1); }
+}
+
+@keyframes uGlow {
+  0%, 100% { opacity: 0.5; transform: scale(0.93); }
+  50%      { opacity: 0.95; transform: scale(1.07); }
+}
+
+@keyframes uSpark {
+  0%, 100% { opacity: 0.55; transform: scale(0.82); }
+  46%      { opacity: 1; transform: scale(1.1); }
+}
+
+/* Short screens: the same composition, smaller, so the form below it still
+   lands above the fold. */
+@media (max-height: 700px) {
+  .universe {
+    --rx: 68px;
+    --pull: 5px;
+    height: 116px;
+    margin-bottom: var(--s-4);
+  }
+  .icon {
+    width: 44px;
+  }
+  .glow {
+    width: 124px;
+    height: 124px;
+    margin: -62px 0 0 -62px;
+  }
+}
