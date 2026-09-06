@@ -78,7 +78,13 @@ export default function MemoryDetailScreen() {
           <div className={s.meta}>
             <Pill tone={kind.tone}>{kind.label}</Pill>
             {memory.place ? <Pill>{memory.place}</Pill> : null}
-            {memory.mood ? <Pill>{MOOD_LABEL[memory.mood]}</Pill> : null}
+            {/* What was actually said about how it felt, when the capture flow
+                caught it; otherwise the single mood the older form kept. */}
+            {memory.feelings?.length
+              ? memory.feelings.map((f) => <Pill key={f}>{f}</Pill>)
+              : memory.mood
+                ? <Pill>{MOOD_LABEL[memory.mood]}</Pill>
+                : null}
           </div>
         </header>
 

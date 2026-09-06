@@ -11,7 +11,7 @@ export function Input({ label, hint, ...rest }) {
 export function Textarea({ label, hint, showCount, ...rest }) {
     const id = useId();
     const len = typeof rest.value === 'string' ? rest.value.length : 0;
-    return (_jsxs(Wrapper, { label: label, hint: hint, htmlFor: id, children: [_jsx("textarea", { id: id, className: `${s.control} ${s.textarea}`, ...rest }), showCount ? _jsx("span", { className: s.counter, children: len }) : null] }));
+    return (_jsxs(Wrapper, { label: label, hint: hint, htmlFor: id, children: [_jsx("textarea", { id: id, className: `${s.control} ${s.textarea}`, ...rest }), showCount ? (_jsx("span", { className: s.counter, children: rest.maxLength ? `${len}/${rest.maxLength}` : len })) : null] }));
 }
 export function Select({ label, hint, children, ...rest }) {
     const id = useId();

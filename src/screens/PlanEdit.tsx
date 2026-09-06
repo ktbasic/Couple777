@@ -43,8 +43,15 @@ export default function PlanEditScreen() {
   const sourceAdventure = ADVENTURE_IDEAS.find((a) => a.id === params.get('adventure'));
   const sourceDestination = state.destinations.find((d) => d.id === params.get('destination'));
 
+  /* A plan can also arrive from a memory — "another night in", "back to the
+     beach" — which carries its own words rather than one of the seeded ideas. */
   const [title, setTitle] = useState(
-    existing?.title ?? sourceIdea?.title ?? sourceAdventure?.title ?? sourceDestination?.name ?? '',
+    existing?.title ??
+      params.get('title') ??
+      sourceIdea?.title ??
+      sourceAdventure?.title ??
+      sourceDestination?.name ??
+      '',
   );
   const [emoji, setEmoji] = useState(
     existing?.emoji ?? sourceIdea?.emoji ?? sourceAdventure?.emoji ?? EMOJI[tier][0],
@@ -54,7 +61,11 @@ export default function PlanEditScreen() {
   );
   const [time, setTime] = useState(existing?.time ?? '');
   const [place, setPlace] = useState(
-    existing?.place ?? sourceAdventure?.place ?? sourceDestination?.country ?? '',
+    existing?.place ??
+      params.get('place') ??
+      sourceAdventure?.place ??
+      sourceDestination?.country ??
+      '',
   );
   const [cost, setCost] = useState(
     existing?.cost ??

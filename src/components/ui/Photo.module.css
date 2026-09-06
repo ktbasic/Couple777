@@ -5,6 +5,14 @@
 }
 
 .img {
+  /*
+   * Positioned so it paints above the fallback. Without this the
+   * gradient underneath is a positioned element and the photo is not, so the
+   * placeholder covers every image that actually loads — and it stays in flow
+   * rather than absolute, because a wrap with no ratio takes its height from
+   * this element.
+   */
+  position: relative;
   width: 100%;
   height: 100%;
   object-fit: cover;

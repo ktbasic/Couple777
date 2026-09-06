@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BackBar, Screen, ScreenHeader } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
@@ -19,9 +19,13 @@ const WHEN = [
 ];
 export default function NoteComposeScreen() {
     const navigate = useNavigate();
+    const [params] = useSearchParams();
     const toast = useToast();
     const { dispatch, me, partner } = useStore();
-    const [kind, setKind] = useState('appreciation');
+    /* Somewhere else can suggest what this note is — the memory flow offers
+       "tell them what it meant to you" — but only one of the real kinds. */
+    const suggested = NOTE_KINDS.find((k) => k.value === params.get('kind'))?.value;
+    const [kind, setKind] = useState(suggested ?? 'appreciation');
     const [body, setBody] = useState('');
     const [when, setWhen] = useState(0);
     const isPrivate = kind === 'private';

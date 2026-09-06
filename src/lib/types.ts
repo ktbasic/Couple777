@@ -298,6 +298,12 @@ export interface Memory {
   place?: string;
   photos: string[];
   mood?: Mood;
+  /**
+   * How it felt, in the words the capture flow offers — and in the writer's
+   * own, when none of them fit. `mood` is the nearest of the six the rest of
+   * the app draws with; this is what was actually said.
+   */
+  feelings?: string[];
   /** A line both partners see. */
   sharedNote?: string;
   /** Each partner's own words on the same moment. */

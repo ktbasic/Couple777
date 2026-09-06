@@ -20,6 +20,7 @@ import type {
   ProfileRow,
 } from './schema';
 import * as repo from './repo';
+import { FEELING_MOOD } from '@/lib/memoryRead';
 
 /**
  * Remote rows in, the app's existing read model out.
@@ -185,6 +186,38 @@ export function planToRow(
   };
 }
 
+/*
+ * How a memory felt, in the column the schema already has.
+ *
+ * `memories.mood` is a plain text column holding one of six words. The capture
+ * flow keeps what was actually said instead — which can be two words, and can
+ * be a word of the writer's own — so when there is more than the old vocabulary
+ * can hold, the column carries the list as JSON and `mood` is derived from the
+ * first of them for everything that still draws by mood.
+ *
+ * Encoded this way rather than in a new column because adding one means
+ * running SQL against a project that is already live. A row written by the
+ * older form still reads correctly: anything that is not JSON is one mood.
+ */
+export function moodColumn(memory: Memory): string | null {
+  if (memory.feelings?.length) return JSON.stringify(memory.feelings);
+  return memory.mood ?? null;
+}
+
+export function feelingsFromColumn(value: string | null): Pick<Memory, 'mood' | 'feelings'> {
+  if (!value) return {};
+  if (value.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      const feelings = Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
+      if (feelings.length) return { feelings, mood: FEELING_MOOD[feelings[0]] };
+    } catch {
+      /* Not ours after all. Fall through and treat it as a plain word. */
+    }
+  }
+  return { mood: value as Memory['mood'] };
+}
+
 export function memoryFromRow(r: MemoryRow, privateNote?: string, ownerId?: string): Memory {
   return {
     id: r.id,
@@ -194,7 +227,7 @@ export function memoryFromRow(r: MemoryRow, privateNote?: string, ownerId?: stri
     kind: r.kind as Memory['kind'],
     place: r.place ?? undefined,
     photos: r.photos ?? [],
-    mood: (r.mood as Memory['mood']) ?? undefined,
+    ...feelingsFromColumn(r.mood),
     sharedNote: r.shared_note ?? undefined,
     notes: {},
     privateNotes: privateNote && ownerId ? { [ownerId]: privateNote } : {},

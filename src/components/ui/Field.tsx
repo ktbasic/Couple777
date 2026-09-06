@@ -61,7 +61,10 @@ export function Textarea({
   return (
     <Wrapper label={label} hint={hint} htmlFor={id}>
       <textarea id={id} className={`${s.control} ${s.textarea}`} {...rest} />
-      {showCount ? <span className={s.counter}>{len}</span> : null}
+      {/* With a limit set, the count is only useful against it. */}
+      {showCount ? (
+        <span className={s.counter}>{rest.maxLength ? `${len}/${rest.maxLength}` : len}</span>
+      ) : null}
     </Wrapper>
   );
 }

@@ -6,7 +6,7 @@ import { today } from '@/lib/dates';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/auth';
 import * as repo from '@/lib/db/repo';
-import { applySpace, loadCoupleSpace, planToRow } from '@/lib/db/sync';
+import { applySpace, loadCoupleSpace, moodColumn, planToRow } from '@/lib/db/sync';
 /**
  * Local-only slices — love notes, the daily question, room sessions, saved
  * ideas — still live in the browser. They are keyed per account so two people
@@ -636,7 +636,7 @@ async function persist(action, ctx) {
                 emoji: m.emoji,
                 kind: m.kind,
                 place: m.place ?? null,
-                mood: m.mood ?? null,
+                mood: moodColumn(m),
                 shared_note: m.sharedNote ?? null,
                 photos: m.photos ?? [],
                 ...(known ? {} : { id: m.id }),

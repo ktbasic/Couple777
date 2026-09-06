@@ -1,22 +1,71 @@
-.head {
-  padding: var(--s-6) 0 var(--s-5);
+/*
+ * The capture flow. Every step is one column down the middle of the screen,
+ * because each one asks a single thing and a single thing does not want a
+ * layout — it wants space around it.
+ */
+
+.screen {
+  padding-bottom: calc(var(--s-9) + var(--safe-b));
 }
 
-.eyebrow {
-  font-size: var(--t-micro);
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--c-gold-ink);
+/* ---------------------------------- Bar ----------------------------------- */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  height: 56px;
+  padding: var(--safe-t) var(--s-5) 0;
+  background: color-mix(in srgb, var(--c-page) 86%, transparent);
+  backdrop-filter: saturate(180%) blur(14px);
+}
+
+.back {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  color: var(--c-ink);
+  flex: none;
+  transition: transform var(--d-fast) var(--ease);
+}
+.back:active {
+  transform: scale(0.92);
+}
+
+.barTitle {
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+/* --------------------------------- Heads ---------------------------------- */
+
+.head,
+.headCentre {
+  text-align: center;
+  padding: var(--s-6) 0 var(--s-6);
+}
+
+.sparkle {
+  display: block;
+  font-size: 26px;
+  line-height: 1;
+  margin-bottom: var(--s-3);
 }
 
 .title {
-  margin-top: var(--s-2);
   font-family: var(--f-display);
   font-size: var(--t-display-l);
   font-weight: 700;
   letter-spacing: -0.03em;
-  line-height: 1.15;
+  line-height: 1.2;
   color: var(--c-ink);
   text-wrap: balance;
 }
@@ -27,12 +76,9 @@
   color: var(--c-ink-3);
   line-height: 1.55;
   text-wrap: pretty;
-}
-
-.form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--s-5);
+  max-width: 34ch;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .label {
@@ -43,66 +89,357 @@
 }
 
 .hint {
+  margin-top: var(--s-2);
   font-size: var(--t-small);
   color: var(--c-ink-4);
-  margin-top: var(--s-2);
   line-height: 1.45;
+  text-align: center;
 }
 
-.roll {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--s-2);
+/* --------------------------------- Photos --------------------------------- */
+
+.photos {
+  margin-top: var(--s-4);
 }
 
-.tile {
-  position: relative;
-  border-radius: var(--r-sm);
-  overflow: hidden;
-  aspect-ratio: 1;
-  transition: transform var(--d-fast) var(--ease);
-}
-.tile:active {
-  transform: scale(0.94);
-}
-
-.tileOn::after {
-  content: '✓';
+/* The picker itself. Visually gone, still focusable by the button. */
+.file {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(28, 19, 30, 0.50);
-  color: #fff;
-  font-size: 20px;
-  font-weight: 700;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.tileImg {
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+
+.thumb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.thumbImg {
   width: 100%;
   height: 100%;
+  border-radius: var(--r-sm);
 }
 
-.moods {
+.remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--c-ink);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  box-shadow: var(--e-1);
+}
+
+/* -------------------------------- The chat -------------------------------- */
+
+.chat {
+  padding-top: var(--s-4);
+}
+
+.greeter {
+  width: 132px;
+  margin: 0 auto var(--s-2);
+}
+
+/*
+ * A said thing, not a card: one corner is square, and it is the one nearest
+ * the traveller above it.
+ */
+.bubble {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-lg) var(--r-lg) var(--r-lg) var(--s-2);
+  background: var(--c-surface);
+  box-shadow: var(--e-1);
+  font-size: var(--t-title);
+  line-height: 1.45;
+  color: var(--c-ink);
+  text-wrap: pretty;
+  animation: said 340ms var(--ease) both;
+}
+
+.bubble + .bubble {
+  animation-delay: 120ms;
+}
+
+@keyframes said {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------ Quick replies ----------------------------- */
+
+.options {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: var(--s-4) var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  box-shadow: var(--e-1);
+  text-align: left;
+  transition:
+    transform var(--d-fast) var(--ease),
+    border-color var(--d-fast) var(--ease);
+}
+.option:active {
+  transform: scale(0.985);
+  border-color: var(--c-accent-edge);
+}
+
+.optionIcon {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c-accent-wash);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.optionLabel {
+  flex: 1;
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+  line-height: 1.35;
+}
+
+.plus {
+  flex: none;
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--c-ink-4);
+}
+
+.inline {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.feelings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-5);
+}
+
+.chips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-2);
 }
 
-.actions {
-  margin-top: var(--s-8);
+.own {
+  display: flex;
+  align-items: end;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+.own > :first-child {
+  flex: 1;
+}
+
+/* --------------------------------- Review --------------------------------- */
+
+.card {
+  padding: var(--s-4);
+  border-radius: var(--r-xl);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  box-shadow: var(--e-2);
+}
+
+.strip {
+  display: flex;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.stripImg {
+  flex: 1;
+  min-width: 0;
+  aspect-ratio: 1;
+  border-radius: var(--r-md);
+}
+
+/* The rest of the roll, counted rather than shown. */
+.more {
+  flex: none;
+  width: 30%;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-md);
+  background: var(--c-surface-3);
+  color: var(--c-ink-2);
+  font-size: var(--t-title);
+  font-weight: 700;
+}
+
+.cardTitle {
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--c-ink);
+  text-wrap: balance;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  margin-top: var(--s-3);
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+}
+
+.quote {
+  margin-top: var(--s-4);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--c-ink-2);
+  text-wrap: pretty;
+}
+
+.extraLabel {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+}
+
+.extra {
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--c-hairline-soft);
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--c-ink-3);
+  text-wrap: pretty;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px var(--s-3);
+  border-radius: var(--r-full);
+  background: var(--c-accent-wash);
+  border: 1px solid var(--c-accent-edge);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-accent-ink);
+}
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-5);
+}
+
+/* --------------------------------- Saved ---------------------------------- */
+
+.done {
+  text-align: center;
+  padding-top: var(--s-8);
+}
+
+.moon {
+  display: block;
+  font-size: 46px;
+  line-height: 1;
+  margin-bottom: var(--s-6);
+  animation: rise 700ms var(--ease) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* -------------------------------- Footers --------------------------------- */
+
+.foot {
+  margin-top: var(--s-6);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 
 .skip {
+  display: block;
+  width: 100%;
+  padding: var(--s-3);
   text-align: center;
   font-size: var(--t-small);
   font-weight: 600;
   color: var(--c-ink-4);
-  padding: var(--s-3);
 }
 .skip:hover {
   color: var(--c-ink-2);
+}
+
+/* A handwritten aside, in the same hand the couple setup uses. */
+.hand {
+  margin-top: var(--s-8);
+  text-align: right;
+  font-family: 'Caveat', 'Bradley Hand', 'Snell Roundhand', 'Segoe Script', cursive;
+  font-size: 19px;
+  line-height: 1.25;
+  color: var(--c-ink-4);
+  opacity: 0.85;
 }

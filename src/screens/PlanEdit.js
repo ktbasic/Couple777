@@ -35,11 +35,22 @@ export default function PlanEditScreen() {
     const sourceIdea = DATE_IDEAS.find((i) => i.id === params.get('idea'));
     const sourceAdventure = ADVENTURE_IDEAS.find((a) => a.id === params.get('adventure'));
     const sourceDestination = state.destinations.find((d) => d.id === params.get('destination'));
-    const [title, setTitle] = useState(existing?.title ?? sourceIdea?.title ?? sourceAdventure?.title ?? sourceDestination?.name ?? '');
+    /* A plan can also arrive from a memory — "another night in", "back to the
+       beach" — which carries its own words rather than one of the seeded ideas. */
+    const [title, setTitle] = useState(existing?.title ??
+        params.get('title') ??
+        sourceIdea?.title ??
+        sourceAdventure?.title ??
+        sourceDestination?.name ??
+        '');
     const [emoji, setEmoji] = useState(existing?.emoji ?? sourceIdea?.emoji ?? sourceAdventure?.emoji ?? EMOJI[tier][0]);
     const [date, setDate] = useState(existing?.date ?? (cycle.dueDate < today() ? addDays(today(), 3) : cycle.dueDate));
     const [time, setTime] = useState(existing?.time ?? '');
-    const [place, setPlace] = useState(existing?.place ?? sourceAdventure?.place ?? sourceDestination?.country ?? '');
+    const [place, setPlace] = useState(existing?.place ??
+        params.get('place') ??
+        sourceAdventure?.place ??
+        sourceDestination?.country ??
+        '');
     const [cost, setCost] = useState(existing?.cost ??
         (sourceIdea ? (sourceIdea.cost ? `€${sourceIdea.cost}` : 'Free') : (sourceAdventure?.cost ?? '')));
     const [note, setNote] = useState(existing?.note ?? sourceIdea?.description ?? sourceAdventure?.description ?? '');
