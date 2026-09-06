@@ -47,13 +47,15 @@ export default function HomeScreen() {
   const awaiting = cycleAwaitingMemory(state);
   const match = newMatch(state);
   const matched = hasMatches(state);
-  /* The busiest recent thread, so the one shown is the one worth opening. */
-  const highlight = [...state.communityPosts]
+  /* The three busiest recent threads, so what is on offer is what is worth
+     opening. Your own posts are not news to you. */
+  const highlights = [...state.communityPosts]
+    .filter((p) => !p.mine)
     .sort(
       (a, b) =>
         b.replies.length - a.replies.length || b.createdAt.localeCompare(a.createdAt),
     )
-    .find((p) => !p.mine);
+    .slice(0, 3);
   const [howOpen, setHowOpen] = useState(false);
 
   // Once both have answered, their own words seed the date generator.
@@ -182,22 +184,25 @@ export default function HomeScreen() {
         </Section>
       ) : null}
 
-      {highlight ? (
-        /* One thread, not a feed. Home's job is to say the community is alive
-           and hand you a door into it, not to become a second reader. */
+      {highlights.length ? (
+        /* Three, swipeable — not a feed. Home's job is to say the community is
+           alive and hand you a door into it, not to become a second reader,
+           and one card looked like the only thing anyone had said. */
         <Section>
           <SectionHeader title="From the community" actionLabel="See all →" actionTo="/community" />
-          <Link to={`/community/${highlight.id}`} className={s.highlight}>
-            <p className={s.highlightMeta}>
-              {TOPIC_EMOJI[highlight.topic]} {highlight.author} · {highlight.replies.length}{' '}
-              {highlight.replies.length === 1 ? 'reply' : 'replies'}
-            </p>
-            <p className={s.highlightBody}>
-              {highlight.body.length > 150
-                ? `${highlight.body.slice(0, 150).trimEnd()}…`
-                : highlight.body}
-            </p>
-          </Link>
+          <div className={`${s.threads} no-scrollbar`}>
+            {highlights.map((post) => (
+              <Link key={post.id} to={`/community/${post.id}`} className={s.thread}>
+                <p className={s.highlightMeta}>
+                  {TOPIC_EMOJI[post.topic]} {post.author} · {post.replies.length}{' '}
+                  {post.replies.length === 1 ? 'reply' : 'replies'}
+                </p>
+                <p className={s.highlightBody}>
+                  {post.body.length > 150 ? `${post.body.slice(0, 150).trimEnd()}…` : post.body}
+                </p>
+              </Link>
+            ))}
+          </div>
         </Section>
       ) : null}
 

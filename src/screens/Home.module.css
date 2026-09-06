@@ -140,8 +140,27 @@
 
 /* ---------- One thread from the community ---------- */
 
-.highlight {
-  display: block;
+/* The same shape the memories row uses: the cards run past the screen edge so
+   it is obvious there is more than the one you can see. */
+.threads {
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-3);
+  overflow-x: auto;
+  padding: 2px var(--s-5) var(--s-2);
+  margin: 0 calc(-1 * var(--s-5));
+  scroll-snap-type: x mandatory;
+  /* Snapping aligns a card with the scrollport, not with the content, so
+     without this the row starts 20px left of the heading above it. */
+  scroll-padding-left: var(--s-5);
+}
+
+.thread {
+  flex: none;
+  width: 82%;
+  max-width: 300px;
+  scroll-snap-align: start;
   padding: var(--s-5);
   border-radius: var(--r-lg);
   background: var(--c-surface);
@@ -150,7 +169,7 @@
   transition: transform var(--d-fast) var(--ease);
 }
 
-.highlight:active {
+.thread:active {
   transform: scale(0.99);
 }
 

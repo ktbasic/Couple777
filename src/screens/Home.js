@@ -40,10 +40,12 @@ export default function HomeScreen() {
     const awaiting = cycleAwaitingMemory(state);
     const match = newMatch(state);
     const matched = hasMatches(state);
-    /* The busiest recent thread, so the one shown is the one worth opening. */
-    const highlight = [...state.communityPosts]
+    /* The three busiest recent threads, so what is on offer is what is worth
+       opening. Your own posts are not news to you. */
+    const highlights = [...state.communityPosts]
+        .filter((p) => !p.mine)
         .sort((a, b) => b.replies.length - a.replies.length || b.createdAt.localeCompare(a.createdAt))
-        .find((p) => !p.mine);
+        .slice(0, 3);
     const [howOpen, setHowOpen] = useState(false);
     // Once both have answered, their own words seed the date generator.
     const daily = dailyStatus(state, me.id, partner.id, now);
@@ -58,12 +60,11 @@ export default function HomeScreen() {
              * It is silent once a match exists and has been seen — announcing "no
              * matches yet" to a couple who have one would simply be wrong.
              */
-            _jsx(Section, { children: _jsxs("div", { className: s.matchEmpty, children: [_jsx("p", { className: s.matchEyebrow, children: "Our matches" }), _jsx("p", { className: s.matchTitle, children: "No matches yet \uD83D\uDD16" }), _jsx("p", { className: s.matchBody, children: "Save things you\u2019d love to do. If you both save the same one, we\u2019ll reveal it here." }), _jsx("button", { type: "button", className: s.matchHow, "aria-expanded": howOpen, onClick: () => setHowOpen((o) => !o), children: "How it works" }), _jsx("div", { className: s.matchReveal, "data-open": howOpen || undefined, children: _jsx("p", { className: s.matchRevealText, children: "Neither of you can see what the other has saved. Save anything you like from Explore \u2014 the moment you both save the same thing, it turns up here." }) })] }) })) : null, cue ? (_jsx(Section, { children: _jsxs("div", { className: s.cue, children: [_jsx("p", { className: s.cueLabel, children: "From what you both wrote" }), _jsxs("p", { className: s.cueText, children: ["Sounds like something ", cue.label, ". Want to make it a plan?"] }), _jsxs(ButtonLink, { to: `/explore?${cueToParams(cue)}`, variant: "accent", size: "sm", children: ["Find something ", cue.label] })] }) })) : null, highlight ? (
-            /* One thread, not a feed. Home's job is to say the community is alive
-               and hand you a door into it, not to become a second reader. */
-            _jsxs(Section, { children: [_jsx(SectionHeader, { title: "From the community", actionLabel: "See all \u2192", actionTo: "/community" }), _jsxs(Link, { to: `/community/${highlight.id}`, className: s.highlight, children: [_jsxs("p", { className: s.highlightMeta, children: [TOPIC_EMOJI[highlight.topic], " ", highlight.author, " \u00B7 ", highlight.replies.length, ' ', highlight.replies.length === 1 ? 'reply' : 'replies'] }), _jsx("p", { className: s.highlightBody, children: highlight.body.length > 150
-                                    ? `${highlight.body.slice(0, 150).trimEnd()}…`
-                                    : highlight.body })] })] })) : null, memories.length ? (_jsxs(Section, { children: [_jsx(SectionHeader, { title: "Recently together", actionLabel: "See all memories \u2192", actionTo: "/memories" }), _jsx("div", { className: `${s.recent} no-scrollbar`, children: memories.map((m) => (_jsx("div", { className: s.recentItem, children: _jsx(MemoryCard, { memory: m }) }, m.id))) })] })) : (
+            _jsx(Section, { children: _jsxs("div", { className: s.matchEmpty, children: [_jsx("p", { className: s.matchEyebrow, children: "Our matches" }), _jsx("p", { className: s.matchTitle, children: "No matches yet \uD83D\uDD16" }), _jsx("p", { className: s.matchBody, children: "Save things you\u2019d love to do. If you both save the same one, we\u2019ll reveal it here." }), _jsx("button", { type: "button", className: s.matchHow, "aria-expanded": howOpen, onClick: () => setHowOpen((o) => !o), children: "How it works" }), _jsx("div", { className: s.matchReveal, "data-open": howOpen || undefined, children: _jsx("p", { className: s.matchRevealText, children: "Neither of you can see what the other has saved. Save anything you like from Explore \u2014 the moment you both save the same thing, it turns up here." }) })] }) })) : null, cue ? (_jsx(Section, { children: _jsxs("div", { className: s.cue, children: [_jsx("p", { className: s.cueLabel, children: "From what you both wrote" }), _jsxs("p", { className: s.cueText, children: ["Sounds like something ", cue.label, ". Want to make it a plan?"] }), _jsxs(ButtonLink, { to: `/explore?${cueToParams(cue)}`, variant: "accent", size: "sm", children: ["Find something ", cue.label] })] }) })) : null, highlights.length ? (
+            /* Three, swipeable — not a feed. Home's job is to say the community is
+               alive and hand you a door into it, not to become a second reader,
+               and one card looked like the only thing anyone had said. */
+            _jsxs(Section, { children: [_jsx(SectionHeader, { title: "From the community", actionLabel: "See all \u2192", actionTo: "/community" }), _jsx("div", { className: `${s.threads} no-scrollbar`, children: highlights.map((post) => (_jsxs(Link, { to: `/community/${post.id}`, className: s.thread, children: [_jsxs("p", { className: s.highlightMeta, children: [TOPIC_EMOJI[post.topic], " ", post.author, " \u00B7 ", post.replies.length, ' ', post.replies.length === 1 ? 'reply' : 'replies'] }), _jsx("p", { className: s.highlightBody, children: post.body.length > 150 ? `${post.body.slice(0, 150).trimEnd()}…` : post.body })] }, post.id))) })] })) : null, memories.length ? (_jsxs(Section, { children: [_jsx(SectionHeader, { title: "Recently together", actionLabel: "See all memories \u2192", actionTo: "/memories" }), _jsx("div", { className: `${s.recent} no-scrollbar`, children: memories.map((m) => (_jsx("div", { className: s.recentItem, children: _jsx(MemoryCard, { memory: m }) }, m.id))) })] })) : (
             /* This was a full-width button that did nothing when tapped — an empty
                state that looked like a control. It is a real invitation now. */
             _jsxs(Section, { children: [_jsx(SectionHeader, { title: "Recently together" }), _jsxs("div", { className: s.storyStart, children: [_jsx("p", { className: s.storyTitle, children: "Your story starts here \uD83D\uDCCD" }), _jsx("p", { className: s.storyBody, children: "Save a photo, note, or anything you want to remember." }), _jsx(ButtonLink, { to: "/memories/new", variant: "accent", size: "sm", children: "Capture a moment" })] })] }))] }));
