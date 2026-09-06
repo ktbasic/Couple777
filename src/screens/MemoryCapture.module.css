@@ -540,3 +540,35 @@
   font-size: var(--t-small);
   line-height: 1.5;
 }
+
+/* ---------------------------------- Debug ---------------------------------- */
+
+/* Only rendered with ?debug=1. Deliberately plain and a little ugly: it is a
+   diagnostic, and it should never be mistaken for part of the screen. */
+.badge {
+  display: grid;
+  gap: 2px;
+  margin: var(--s-3) 0 0;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.badgeModel {
+  background: #EAF6EE;
+  color: #2F6B45;
+  border: 1px solid #C7E6D3;
+}
+
+.badgeLocal {
+  background: #FDF1E3;
+  color: #8A5A22;
+  border: 1px solid #F2DDC2;
+}
+
+.badgeDetail {
+  opacity: 0.8;
+}

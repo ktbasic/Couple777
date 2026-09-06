@@ -9,7 +9,15 @@ import { CosmicGreeter } from '@/components/ui/CosmicPair';
 import { useToast } from '@/components/ui/Toast';
 import { useStore } from '@/context/store';
 import { MAX_PHOTOS, readPickedPhoto } from '@/lib/imageFile';
-import { NEXT_STEP, OPENING, readMemory, type Answered, type MemoryReading } from '@/lib/memoryAi';
+import {
+  NEXT_STEP,
+  OPENING,
+  fallbackReason,
+  readMemory,
+  type Answered,
+  type MemoryReading,
+  type ReadingSource,
+} from '@/lib/memoryAi';
 import { FEELINGS, FEELING_MOOD, HARD_FEELINGS, feelingEmoji } from '@/lib/memoryRead';
 import { formatStamp, today } from '@/lib/dates';
 import { uid } from '@/lib/id';
@@ -72,6 +80,7 @@ export default function MemoryCaptureScreen() {
   const [extra, setExtra] = useState('');
   const [visibility, setVisibility] = useState<'private' | 'shared'>('shared');
   const [saved, setSaved] = useState<Memory | null>(null);
+  const [source, setSource] = useState<ReadingSource | null>(null);
 
   const fileInput = useRef<HTMLInputElement>(null);
   /*
@@ -94,6 +103,13 @@ export default function MemoryCaptureScreen() {
 
   const [saveError, setSaveError] = useState<string | null>(null);
   const hard = reading?.tone === 'difficult' || reading?.type === 'conflict';
+  /*
+   * Anything but a plainly good note gets the quiet treatment. Mixed is the
+   * case that matters: "the wedding was beautiful, but I felt lonely" is not
+   * an occasion for a sparkle and a "beautiful moment", and gating only on
+   * `hard` would have handed it one.
+   */
+  const celebratory = reading?.tone === 'positive';
 
   /* ------------------------------- Photos -------------------------------- */
 
@@ -137,7 +153,8 @@ export default function MemoryCaptureScreen() {
   const ask = async (asked: Answered[]) => {
     setStep('thinking');
     setAnswers(asked);
-    const { reading: next } = await readMemory(note.trim(), asked);
+    const { reading: next, source: from } = await readMemory(note.trim(), asked);
+    setSource(from);
     apply(next, asked);
   };
 
@@ -240,6 +257,8 @@ export default function MemoryCaptureScreen() {
       </div>
 
       <Screen className={s.screen}>
+        {debugOn() && source ? <ReaderBadge source={source} reading={reading} /> : null}
+
         {step === 'write' ? (
           <>
             <header className={s.head}>
@@ -356,7 +375,7 @@ export default function MemoryCaptureScreen() {
         {step === 'review' && (
           <>
             <header className={s.head}>
-              <h1 className={s.title}>{hard ? 'Your memory' : 'Your memory ✨'}</h1>
+              <h1 className={s.title}>{celebratory ? 'Your memory ✨' : 'Your memory'}</h1>
               <p className={s.sub}>Here’s what we’ve captured.</p>
             </header>
 
@@ -474,16 +493,18 @@ export default function MemoryCaptureScreen() {
         {step === 'suggest' && reading && (
           <>
             <header className={s.headCentre}>
-              {hard ? null : (
+              {celebratory ? (
                 <span className={s.sparkle} aria-hidden>
                   ✨
                 </span>
-              )}
+              ) : null}
               <h1 className={s.title}>
-                {hard ? 'Would any of this help?' : 'Want to turn this into something more?'}
+                {celebratory ? 'Want to turn this into something more?' : 'Would any of this help?'}
               </h1>
               <p className={s.sub}>
-                {hard ? 'No rush, and no wrong answer.' : 'Here are a few ideas based on this memory.'}
+                {celebratory
+                  ? 'Here are a few ideas based on this memory.'
+                  : 'No rush, and no wrong answer.'}
               </p>
             </header>
 
@@ -539,13 +560,13 @@ export default function MemoryCaptureScreen() {
             <span className={s.moon} aria-hidden>
               🌙
             </span>
-            <h1 className={s.title}>{hard ? 'Kept' : 'Saved ✨'}</h1>
+            <h1 className={s.title}>{celebratory ? 'Saved ✨' : 'Kept'}</h1>
             <p className={s.sub}>
-              {hard
-                ? visibility === 'private'
+              {celebratory
+                ? 'Another beautiful moment in your 777 universe.'
+                : visibility === 'private'
                   ? 'This one is just for you. It will be here when you want it.'
-                  : 'It is written down. That is enough for now.'
-                : 'Another beautiful moment in your 777 universe.'}
+                  : 'It is written down, and it will be here when you want it.'}
             </p>
 
             <div className={s.foot}>
@@ -562,7 +583,7 @@ export default function MemoryCaptureScreen() {
               </Button>
             </div>
 
-            {hard ? null : <p className={s.hand}>More moments. A closer us. ♡</p>}
+            {celebratory ? <p className={s.hand}>More moments. A closer us. ♡</p> : null}
           </div>
         )}
       </Screen>
@@ -600,7 +621,8 @@ function AskStep({
   const hard = reading.tone === 'difficult' || reading.type === 'conflict';
   const field = reading.questionField;
 
-  const hand = hard
+  // Only a plainly good note gets a chirpy aside.
+  const hand = reading.tone !== 'positive'
     ? 'Whatever you need to keep. ♡'
     : field === 'date'
       ? 'Little moments make a big love story. ♡'
@@ -642,10 +664,15 @@ function AskStep({
         <CosmicGreeter />
       </div>
 
-      {/* The opening is said once, and its words come from the tone of the note
-          rather than from the model — an argument is never met with a sparkle,
-          whatever else varies. */}
-      {first ? <p className={s.bubble}>{OPENING[reading.tone]}</p> : null}
+      {/*
+        Said once, in words written for this note by whatever read it. The
+        fallback deliberately says the same plain thing to everybody: it is
+        pattern matching, not comprehension, and a wrong guess dressed as an
+        emotional response is worse than no response at all.
+      */}
+      {first ? (
+        <p className={s.bubble}>{reading.acknowledgement || OPENING[reading.tone]}</p>
+      ) : null}
       <p className={s.bubble}>{reading.nextQuestion}</p>
 
       {field === 'date' && (
@@ -795,6 +822,51 @@ function AskStep({
 
       <p className={s.hand}>{hand}</p>
     </div>
+  );
+}
+
+/* ---------------------------------- Debug ---------------------------------- */
+
+const DEBUG_KEY = 'couple777:debug';
+
+/**
+ * Off unless asked for. Open any screen with ?debug=1 to switch it on and
+ * ?debug=0 to switch it off; it is remembered in between so it survives the
+ * steps of the flow. Nothing about it is on for anybody else.
+ */
+function debugOn(): boolean {
+  try {
+    const param = new URLSearchParams(window.location.search).get('debug');
+    if (param === '1') window.localStorage.setItem(DEBUG_KEY, '1');
+    if (param === '0') window.localStorage.removeItem(DEBUG_KEY);
+    return window.localStorage.getItem(DEBUG_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+/** Which reader answered, and what it said. Only ever shown in debug. */
+function ReaderBadge({
+  source,
+  reading,
+}: {
+  source: ReadingSource;
+  reading: MemoryReading | null;
+}) {
+  const model = source === 'model';
+  return (
+    <p className={[s.badge, model ? s.badgeModel : s.badgeLocal].join(' ')}>
+      <span>{model ? '● Reading with Claude' : '● Using local fallback'}</span>
+      {reading ? (
+        <span className={s.badgeDetail}>
+          tone: {reading.tone} · type: {reading.type}
+          {reading.questionField ? ` · asking: ${reading.questionField}` : ''}
+        </span>
+      ) : null}
+      {!model && fallbackReason() ? (
+        <span className={s.badgeDetail}>why: {fallbackReason()}</span>
+      ) : null}
+    </p>
   );
 }
 

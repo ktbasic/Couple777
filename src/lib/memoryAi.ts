@@ -30,6 +30,8 @@ export interface MemoryReading {
   tone: Tone;
   type: MemoryType;
   title: string;
+  /** The line said back to them, written for this note by whatever read it. */
+  acknowledgement: string;
   date: string | null;
   place: string | null;
   feelings: string[];
@@ -51,16 +53,35 @@ export interface Answered {
 /** Which read this came from. Shown nowhere; used in tests and in logs. */
 export type ReadingSource = 'model' | 'device';
 
+/** Why the phone ended up doing the reading. Shown only in debug. */
+let lastFallbackReason: string | null = null;
+export function fallbackReason(): string | null {
+  return lastFallbackReason;
+}
+
 /* ------------------------------ The opening ------------------------------- */
 
 /**
- * The first thing said back, chosen by tone rather than written by the model —
- * so that whatever else varies, an argument is never met with a sparkle.
+ * What the phone says when it is the one reading.
+ *
+ * Deliberately the same sentence for every note. The device reader is pattern
+ * matching, not comprehension — it can be confidently wrong about a sentence
+ * it has never seen — and a wrong *guess* dressed as an emotional response is
+ * worse than no response at all. So it says something true instead: it heard
+ * you, and there is one more question. The reading it produces still drives
+ * privacy and what is offered afterwards, because those are protections rather
+ * than claims about how someone feels.
+ */
+export const NEUTRAL_ACKNOWLEDGEMENT = 'Got it.';
+
+/**
+ * Only reached when the model returned a reading with no sentence in it, which
+ * the endpoint already guards against. Kept as a floor, not as the usual path.
  */
 export const OPENING: Record<Tone, string> = {
   positive: 'That sounds like a lovely little moment ✨',
   neutral: 'Thank you for writing that down.',
-  mixed: 'That sounds like it held a few things at once.',
+  mixed: 'That sounds like it held two things at once.',
   difficult: 'That sounds like a difficult moment.',
 };
 
@@ -87,13 +108,19 @@ export async function readMemory(
     if (response.ok) {
       const reading = (await response.json()) as MemoryReading;
       rememberSource('model');
+      lastFallbackReason = null;
       // Trust it, but not with the two rules that matter.
       return { reading: settle(reading), source: 'model' };
     }
-  } catch {
+    const body = (await response.json().catch(() => ({}))) as { error?: string };
+    lastFallbackReason = `${response.status} ${body.error ?? response.statusText}`;
+  } catch (e) {
     /* No endpoint, no key, no network, or it took too long. The flow does not
-       stop for any of those. */
+       stop for any of those — but it says which, because "the app felt wrong"
+       is not something anyone can debug. */
+    lastFallbackReason = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
   }
+  console.warn(`[couple777] memory read fell back to this device — ${lastFallbackReason}`);
   rememberSource('device');
   // The status line is asked again next time it is shown, not cached from
   // before this happened.
@@ -168,6 +195,9 @@ const QUESTION: Record<string, Record<'soft' | 'hard', string>> = {
     soft: 'Was this today?',
     hard: 'Was this today?',
   },
+  /* Asked with no assumption about how the note felt, because the phone does
+     not know. "Anything else you'd like to remember about this?" is true of a
+     good evening and a hard one alike. */
   place: {
     soft: 'Do you want to remember where this happened?',
     hard: 'Do you want to remember where this happened?',
@@ -177,8 +207,8 @@ const QUESTION: Record<string, Record<'soft' | 'hard', string>> = {
     hard: 'How did it leave you feeling?',
   },
   context: {
-    soft: 'Anything else you want to remember about this?',
-    hard: 'What do you most want to remember about how it felt?',
+    soft: 'Is there anything else you’d like to remember about this?',
+    hard: 'Is there anything else you’d like to remember about this?',
   },
 };
 
@@ -232,6 +262,7 @@ export function localReading(
     tone: read.tone,
     type: hard ? 'conflict' : read.tone === 'mixed' ? 'reflection' : 'everyday_memory',
     title: read.title,
+    acknowledgement: NEUTRAL_ACKNOWLEDGEMENT,
     date: read.date ?? null,
     place: read.place ?? null,
     feelings: read.feelings,

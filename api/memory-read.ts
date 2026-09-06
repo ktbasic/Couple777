@@ -33,6 +33,8 @@ export interface Reading {
     | 'conflict'
     | 'other';
   title: string;
+  /** The one line said back to them. Written for this note, not chosen from a list. */
+  acknowledgement: string;
   date: string | null;
   place: string | null;
   feelings: string[];
@@ -61,6 +63,7 @@ const SCHEMA = {
     'tone',
     'type',
     'title',
+    'acknowledgement',
     'date',
     'place',
     'feelings',
@@ -79,6 +82,11 @@ const SCHEMA = {
       enum: ['everyday_memory', 'gratitude', 'milestone', 'reflection', 'conflict', 'other'],
     },
     title: { type: 'string', description: 'Four words or fewer, in the writer’s own words.' },
+    acknowledgement: {
+      type: 'string',
+      description:
+        'One short sentence said back to them, in the tone of what they wrote. Never contradicts the note.',
+    },
     date: {
       type: 'string',
       description: 'YYYY-MM-DD, only when the note names a day. Empty string otherwise.',
@@ -121,17 +129,46 @@ than through nextQuestion.
 
 HOW TO READ IT
 
-- tone is what they wrote, not what you would prefer it to be. "We argued
-  again and I felt like he wasn't listening" is difficult. Do not soften it,
-  reframe it, or find a silver lining.
+Read the whole note and work out what the person is telling you. Do not count
+positive and negative words: what matters is what the sentence means when it
+is read as a sentence.
+
+- tone is what they wrote, not what you would prefer it to be, and not what
+  the cheerful half of a sentence says on its own.
+    - "The wedding was beautiful, but I felt lonely and sad the entire
+      evening" is about being lonely at a wedding. It is difficult, or at the
+      very best mixed. It is never positive.
+    - "We argued and I felt ignored" is difficult. Do not soften it, reframe
+      it, or find a silver lining in it.
+    - A note that says something good happened and nothing else is positive.
+    - A note that records something plainly, with no feeling either way, is
+      neutral. Neutral is a real answer; do not reach for positive.
+  When someone states how they felt, that is the tone, whatever else the note
+  describes. Their feeling outranks the scenery around it.
 - type: everyday_memory, gratitude, milestone, reflection, conflict, other.
 - Extract only what is actually there. If the note says "tonight", the date is
-  today. If it says nothing about when, date is null — do not guess.
-- Feelings are the ones the words carry, difficult ones included: sad, angry,
+  today. If it says nothing about when, leave date empty — do not guess.
+- Feelings are the ones the note carries, difficult ones included: sad, angry,
   hurt, lonely, unheard, anxious, tired, as readily as warm or joyful.
 - title: four words or fewer, made of their own words, no invented drama and
   no summary voice. "Dancing in the kitchen". "The same argument". Never a
   judgement about the relationship.
+
+THE ACKNOWLEDGEMENT
+
+One short sentence, said back to them before the question. It is the first
+thing they read, so it has to fit what they actually wrote:
+
+- positive  — warm and small. "That sounds like a lovely little moment ✨"
+- neutral   — plain and unhurried. "Thank you for writing that down."
+- mixed     — hold both, decide neither. "That sounds like it held two things
+              at once." Never celebrate the good half.
+- difficult — calm, no cheer, no emoji, no advice, no reassurance that it will
+              be fine. "That sounds like a difficult moment."
+
+Write it for this note rather than copying those. Never say a hard note was
+lovely, and never open with a compliment on something the person is upset
+about.
 
 WHAT TO ASK
 
@@ -238,8 +275,21 @@ export function settle(reading: Reading): Reading {
   const steps = (reading.nextSteps ?? []).filter((s) => !(hard && s === 'idea'));
   // Empty string is how the schema says "nothing"; null is how the app does.
   const orNull = (v: string | null | undefined) => (v && v.trim() ? v : null);
+  /*
+   * The acknowledgement is the first thing a person reads, so it is the last
+   * thing left to chance. A model that called a hard note lovely gets its
+   * sentence replaced rather than softened — there is no version of "lovely"
+   * that belongs on top of an argument.
+   */
+  const congratulatory = /\b(lovely|wonderful|beautiful|great|sweet|delightful|magical|congrat\w*|how nice|so good)\b/i;
+  const acknowledgement =
+    hard && congratulatory.test(reading.acknowledgement ?? '')
+      ? 'That sounds like a difficult moment.'
+      : (orNull(reading.acknowledgement) ?? 'Thank you for writing that down.');
+
   return {
     ...reading,
+    acknowledgement,
     date: orNull(reading.date),
     place: orNull(reading.place),
     nextQuestion: orNull(reading.nextQuestion),

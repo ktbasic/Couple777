@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && tsc -p tsconfig.api.json && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit false --emitDeclarationOnly false --pretty",
+    "typecheck": "tsc -b --pretty",
     "build:static": "VITE_ROUTER=hash vite build --outDir dist-preview",
     "test:rls": "node supabase/tests/rls.test.mjs",
     "dev:local": "node supabase/tests/local-server.mjs",

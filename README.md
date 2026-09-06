@@ -93,8 +93,18 @@ endpoint and in the client:
 - a difficult memory is never offered a date idea. What it is offered is a
   reflection, one small thing to ask for, or a way to open the conversation.
 
+The sentence said back to you is written by whatever did the reading, for that
+note. The fallback does not write one: it says "Got it." to everybody, because
+pattern matching can be confidently wrong about a sentence it has never seen,
+and a wrong guess dressed as an emotional response is worse than none.
+
 `MEMORY_AI_API_KEY` and `MEMORY_AI_MODEL` (default `claude-opus-5`) configure
 it. `npm run test:ai` checks the rules against a model that ignores its brief.
+
+**Which reader is running.** Us → Settings says so in words. For the detail,
+open any screen with `?debug=1` — the capture flow then shows a small badge
+reading *Reading with Claude* or *Using local fallback*, with the tone that
+came back and, on a fallback, why. `?debug=0` turns it off again.
 
 ## Stack
 

@@ -21,6 +21,7 @@ const ROGUE: Reading = {
   tone: 'difficult',
   type: 'conflict',
   title: 'The same argument',
+  acknowledgement: 'What a lovely evening!',
   date: null,
   place: null,
   feelings: ['hurt', 'angry', 'tired', 'sad'],
@@ -37,6 +38,11 @@ const ROGUE: Reading = {
 console.log('\nA model that ignored its brief');
 const settled = settle(ROGUE);
 check('a difficult memory comes back private', settled.defaultVisibility === 'private');
+check(
+  'and is not congratulated, whatever the model wrote',
+  !/lovely|wonderful|great|congrat/i.test(settled.acknowledgement),
+  settled.acknowledgement,
+);
 check('the date idea is dropped', !settled.nextSteps.includes('idea'), JSON.stringify(settled.nextSteps));
 check('what remains is still offered', settled.offerNextSteps);
 check('feelings are capped at three', settled.feelings.length === 3);
