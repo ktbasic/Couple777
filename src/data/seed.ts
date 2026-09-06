@@ -289,8 +289,11 @@ export function buildSeedState(nameA = 'Katy', nameB = 'Marian'): AppState {
     ],
     roomSessions: [],
     savedIdeas: [
-      { id: 'i-stargaze', savedBy: [PERSON_A, PERSON_B] },
-      { id: 'i-letters', savedBy: [PERSON_A] },
+      /* One on the shared list, put there by the other person, and one they
+         have quietly hearted — so hearting it yourself is a real match rather
+         than a thing the app announced to itself. */
+      { id: 'i-stargaze', sharedBy: [PERSON_B], likedBy: [] },
+      { id: 'i-letters', sharedBy: [], likedBy: [PERSON_B] },
     ],
     communityPosts: SEED_POSTS,
     questsDone: [],

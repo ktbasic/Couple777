@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Screen, Section } from '@/components/layout/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -17,7 +16,6 @@ import {
   cycleAwaitingMemory,
   dailyEntry,
   dailyStatus,
-  hasMatches,
   newMatch,
   sortedMemories,
   upNext,
@@ -46,7 +44,6 @@ export default function HomeScreen() {
   const latest = sortedMemories(state.memories)[0];
   const awaiting = cycleAwaitingMemory(state);
   const match = newMatch(state);
-  const matched = hasMatches(state);
   /* The three busiest recent threads, so what is on offer is what is worth
      opening. Your own posts are not news to you. */
   const highlights = [...state.communityPosts]
@@ -56,7 +53,6 @@ export default function HomeScreen() {
         b.replies.length - a.replies.length || b.createdAt.localeCompare(a.createdAt),
     )
     .slice(0, 3);
-  const [howOpen, setHowOpen] = useState(false);
 
   // Once both have answered, their own words seed the date generator.
   const daily = dailyStatus(state, me.id, partner.id, now);
@@ -134,39 +130,6 @@ export default function HomeScreen() {
       {match ? (
         <Section>
           <MatchReveal destination={match} />
-        </Section>
-      ) : !matched ? (
-        /*
-         * A line, not a card with a hole in it. There is nothing to celebrate
-         * yet, so this says what would make one happen and gets out of the way.
-         * It is silent once a match exists and has been seen — announcing "no
-         * matches yet" to a couple who have one would simply be wrong.
-         */
-        <Section>
-          <div className={s.matchEmpty}>
-            <p className={s.matchEyebrow}>Our matches</p>
-            <p className={s.matchTitle}>No matches yet 🔖</p>
-            <p className={s.matchBody}>
-              Save things you&rsquo;d love to do. If you both save the same one, we&rsquo;ll
-              reveal it here.
-            </p>
-            <button
-              type="button"
-              className={s.matchHow}
-              aria-expanded={howOpen}
-              onClick={() => setHowOpen((o) => !o)}
-            >
-              How it works
-            </button>
-            {/* Expands in place rather than going somewhere: a "how it works"
-                that navigated away would be a detour out of an empty state. */}
-            <div className={s.matchReveal} data-open={howOpen || undefined}>
-              <p className={s.matchRevealText}>
-                Neither of you can see what the other has saved. Save anything you like from
-                Explore &mdash; the moment you both save the same thing, it turns up here.
-              </p>
-            </div>
-          </div>
         </Section>
       ) : null}
 

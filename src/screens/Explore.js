@@ -1,9 +1,10 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Screen, ScreenHeader, Section } from '@/components/layout/Screen';
 import { Segmented } from '@/components/ui/Segmented';
 import { Chip, ChipRow } from '@/components/ui/Chip';
+import { Photo } from '@/components/ui/Photo';
 import { Button } from '@/components/ui/Button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -11,10 +12,10 @@ import { IdeaCard } from '@/features/IdeaCard';
 import { AdventureCard } from '@/features/AdventureCard';
 import { DestinationCard, MatchReveal } from '@/features/DestinationCard';
 import { DATE_IDEAS } from '@/data/dateIdeas';
-import { BUDGET_OPTIONS, DAYPART_OPTIONS, DISTANCE_OPTIONS, DURATION_OPTIONS, EMPTY_FILTERS, ENERGY_OPTIONS, FEEDBACK_OPTIONS, MOOD_OPTIONS, SETTING_OPTIONS, VIBE_OPTIONS, generateAdventures, generateDateIdeas, } from '@/lib/generator';
+import { DISTANCE_OPTIONS, EMPTY_FILTERS, MOOD_OPTIONS, generateAdventures, generateDateIdeas, } from '@/lib/generator';
 import { useStore } from '@/context/store';
 import { TIER_META } from '@/lib/dates';
-import { matches, newMatch } from '@/lib/selectors';
+import { ideaMatches, matches, newMatch, sharedIdeas } from '@/lib/selectors';
 import s from './Explore.module.css';
 export default function ExploreScreen() {
     const { state } = useStore();
@@ -33,22 +34,46 @@ export default function ExploreScreen() {
         params.set('tier', t);
         setParams(params, { replace: true });
     };
-    return (_jsxs(Screen, { children: [_jsx(ScreenHeader, { eyebrow: "Explore", title: cycle ? `Ideas for your ${TIER_META[cycle.tier].cadence} moment` : 'What should we do?', sub: cycle
+    return (_jsxs(Screen, { children: [_jsx(ScreenHeader, { eyebrow: "Explore", title: cycle
+                    ? `Ideas for your ${TIER_META[cycle.tier].cadence} moment`
+                    : 'Find your next little moment', sub: cycle
                     ? TIER_META[cycle.tier].hint
-                    : 'Answer as much or as little as you like. The more you say, the better the suggestions.' }), cycle ? (_jsxs("p", { className: s.cycleBanner, children: [_jsx("span", { "aria-hidden": true, children: "\uD83C\uDF3F" }), _jsxs("span", { children: ["Planning your ", TIER_META[cycle.tier].cadence, " moment. Whatever you pick counts for it."] })] })) : (_jsx("div", { className: s.tabs, children: _jsx(Segmented, { value: tab, onChange: setTab, options: [
+                    : 'A few details, and Couple777 will suggest something that fits tonight.' }), cycle ? (_jsxs("p", { className: s.cycleBanner, children: [_jsx("span", { "aria-hidden": true, children: "\uD83C\uDF3F" }), _jsxs("span", { children: ["Planning your ", TIER_META[cycle.tier].cadence, " moment. Whatever you pick counts for it."] })] })) : (_jsx("div", { className: s.tabs, children: _jsx(Segmented, { value: tab, onChange: setTab, options: [
                         { value: 'day', label: 'Dates' },
                         { value: 'week', label: 'Nearby' },
                         { value: 'month', label: 'Big trips' },
                     ] }) })), tab === 'day' ? _jsx(DateIdeasTab, { cycleId: cycle?.id }) : null, tab === 'week' ? _jsx(MiniAdventuresTab, { cycleId: cycle?.id }) : null, tab === 'month' ? _jsx(BigAdventuresTab, {}) : null] }));
 }
-const SAVED_GROUPS = [
-    { key: 'shared', label: 'Shared', note: 'You both saved these, so you both know.' },
-    { key: 'mine', label: 'Mine', note: 'Only you have saved these so far.' },
-    { key: 'surprises', label: 'Surprises', note: 'Kept out of matching. Your partner will not see these.' },
-];
 /* ------------------------------ 7 days ---------------------------------- */
+/*
+ * The four questions worth asking, in the order someone actually thinks them:
+ * when, where, how much. Everything else the generator knows how to guess.
+ */
+const WHEN = [
+    { label: 'Morning', value: 'morning' },
+    { label: 'Afternoon', value: 'afternoon' },
+    { label: 'Evening', value: 'evening' },
+    { label: 'Night', value: 'late' },
+];
+const WHERE = [
+    { label: 'Indoor', value: 'home' },
+    { label: 'Outdoor', value: 'out' },
+];
+/* Shorter than the generator's own labels: in a row of four these have to fit
+   without being cut in half, and "Low energy" beside "Low" budget was saying
+   the word twice anyway. */
+const EFFORT = [
+    { label: 'Easy', value: 'low' },
+    { label: 'Some', value: 'medium' },
+    { label: 'Plenty', value: 'high' },
+];
+const SPEND = [
+    { label: 'Low', value: 30 },
+    { label: 'Medium', value: 60 },
+    { label: 'Special', value: 150 },
+];
 function DateIdeasTab({ cycleId }) {
-    const { state, me } = useStore();
+    const { state, me, partner } = useStore();
     const [params, setParams] = useSearchParams();
     const resultsRef = useRef(null);
     // A cue from Talk arrives as query params, so the generator opens already
@@ -65,19 +90,16 @@ function DateIdeasTab({ cycleId }) {
     const hasCue = Boolean(cued.daypart || cued.setting || cued.vibe);
     const [filters, setFilters] = useState(cued);
     const [seed, setSeed] = useState(1);
-    const [feedback, setFeedback] = useState([]);
-    const [seen, setSeen] = useState([]);
     const [loading, setLoading] = useState(false);
     const [surprised, setSurprised] = useState(false);
-    const [savedTab, setSavedTab] = useState('shared');
     useEffect(() => {
         if (hasCue)
             setFilters(cued);
     }, [cued, hasCue]);
     /*
-     * Home can ask for the surprise directly — "Get inspirations" should land on
-     * an answer, not on a screen with a button that produces one. The param is
-     * dropped straight away so a reload or a back-forward does not re-fire it.
+     * Home can ask for the surprise directly — an inspiration button should land
+     * on an answer, not on a screen with a button that produces one. The param
+     * is dropped straight away so a reload does not re-fire it.
      */
     useEffect(() => {
         if (!params.get('surprise'))
@@ -89,26 +111,18 @@ function DateIdeasTab({ cycleId }) {
         // surpriseUs is stable for this screen's lifetime.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [params]);
-    const ideas = useMemo(() => generateDateIdeas(filters, seed, 4, state.couple.profile, feedback, seen), [filters, seed, state.couple.profile, feedback, seen]);
-    /*
-     * Saved ideas, in the three groups the app actually distinguishes between:
-     * both of you saved it, only you did, or you saved it as a surprise and it
-     * is deliberately out of matching.
-     */
-    const savedGroups = (() => {
-        const rows = state.savedIdeas
-            .map((row) => ({ row, idea: DATE_IDEAS.find((i) => i.id === row.id) }))
-            .filter((x) => Boolean(x.idea));
-        return {
-            shared: rows.filter((x) => !x.row.surprise && x.row.savedBy.length === 2).map((x) => x.idea),
-            mine: rows
-                .filter((x) => !x.row.surprise && x.row.savedBy.length < 2 && x.row.savedBy.includes(me.id))
-                .map((x) => x.idea),
-            surprises: rows.filter((x) => x.row.surprise && x.row.savedBy.includes(me.id)).map((x) => x.idea),
-        };
-    })();
+    /* Three, not four: a short list is something you read, a long one is
+       something you scroll past. */
+    const ideas = useMemo(() => generateDateIdeas(filters, seed, 3, state.couple.profile), [filters, seed, state.couple.profile]);
+    const shared = sharedIdeas(state)
+        .map((row) => ({ row, idea: DATE_IDEAS.find((i) => i.id === row.id) }))
+        .filter((x) => Boolean(x.idea));
+    const matched = ideaMatches(state)
+        .map((row) => ({ row, idea: DATE_IDEAS.find((i) => i.id === row.id) }))
+        .filter((x) => Boolean(x.idea));
     // Selecting the value that is already set clears it, so filters stay escapable.
     const set = (key, value) => setFilters((f) => ({ ...f, [key]: f[key] === value ? null : value }));
+    const nameOf = (id) => (id === me.id ? 'you' : partner.name);
     /** The signature action: think for a beat, then bring you to the answer. */
     const surpriseUs = () => {
         setLoading(true);
@@ -117,23 +131,22 @@ function DateIdeasTab({ cycleId }) {
             setSeed((n) => n + 7);
             setLoading(false);
             window.setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-        }, 1100);
+        }, 1000);
     };
-    const react = (f) => {
-        // "Done this before" hides what is on screen; the rest just re-weight.
-        if (f === 'done')
-            setSeen((prev) => [...new Set([...prev, ...ideas.map((i) => i.id)])]);
-        setFeedback((prev) => (prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]));
+    const generate = () => {
+        setSurprised(false);
         setSeed((n) => n + 1);
+        window.setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
     };
-    const clearAll = () => {
-        setFilters(EMPTY_FILTERS);
-        setFeedback([]);
-        setSeen([]);
-        if (hasCue)
-            setParams({ tier: 'day' }, { replace: true });
-    };
-    return (_jsxs(_Fragment, { children: [hasCue ? (_jsxs("p", { className: s.cueBanner, children: [_jsx("span", { "aria-hidden": true, children: "\u2728" }), _jsx("span", { children: "Set up from what you both wrote today." }), _jsx("button", { type: "button", className: s.cueClear, onClick: clearAll, children: "Clear" })] })) : null, _jsx("p", { className: s.helper, children: "Pick whatever matters. Leave the rest to us." }), _jsxs("div", { className: s.filters, children: [_jsxs("div", { className: s.filterGroup, children: [_jsx("p", { className: s.filterLabel, children: "When are we doing this?" }), _jsx(ChipRow, { children: DAYPART_OPTIONS.map((o) => (_jsx(Chip, { emoji: o.emoji, selected: filters.daypart === o.value, onClick: () => set('daypart', o.value), children: o.label }, o.value))) })] }), _jsxs("div", { className: s.filterGroup, children: [_jsx("p", { className: s.filterLabel, children: "How much time?" }), _jsx(ChipRow, { children: DURATION_OPTIONS.map((o) => (_jsx(Chip, { selected: filters.duration === o.value, onClick: () => set('duration', o.value), children: o.label }, o.value))) })] }), _jsxs("div", { className: s.filterGroup, children: [_jsx("p", { className: s.filterLabel, children: "Budget" }), _jsx(ChipRow, { children: BUDGET_OPTIONS.map((o) => (_jsx(Chip, { selected: filters.budget === o.value, onClick: () => set('budget', o.value), children: o.label }, o.value))) })] }), _jsxs("div", { className: s.filterGroup, children: [_jsx("p", { className: s.filterLabel, children: "What kind of mood?" }), _jsx(ChipRow, { children: VIBE_OPTIONS.map((o) => (_jsx(Chip, { emoji: o.emoji, selected: filters.vibe === o.value, onClick: () => set('vibe', o.value), children: o.label }, o.value))) })] }), _jsxs("div", { className: s.filterGroup, children: [_jsx("p", { className: s.filterLabel, children: "Where, and how much energy?" }), _jsxs(ChipRow, { children: [SETTING_OPTIONS.map((o) => (_jsx(Chip, { emoji: o.emoji, selected: filters.setting === o.value, onClick: () => set('setting', o.value), children: o.label }, o.value))), ENERGY_OPTIONS.map((o) => (_jsx(Chip, { emoji: o.emoji, selected: filters.energy === o.value, onClick: () => set('energy', o.value), children: o.label }, o.value)))] })] })] }), _jsxs("div", { className: s.surprise, children: [_jsx(Button, { variant: "accent", onClick: surpriseUs, children: "\u2728 Surprise us" }), _jsx(Button, { variant: "quiet", onClick: clearAll, children: "Clear" })] }), _jsx("div", { ref: resultsRef, className: s.resultsAnchor, children: loading ? (_jsxs("div", { className: s.loading, children: [_jsxs("span", { className: s.loadingDots, "aria-hidden": true, children: [_jsx("span", { className: s.loadingDot }), _jsx("span", { className: s.loadingDot }), _jsx("span", { className: s.loadingDot })] }), _jsx("p", { className: s.loadingText, children: "Finding something for you two\u2026" })] })) : (_jsxs(_Fragment, { children: [_jsxs("div", { className: s.resultHead, children: [_jsxs("p", { className: s.count, children: [ideas.length, " ideas for you"] }), _jsx("button", { type: "button", className: s.regen, onClick: () => setSeed((n) => n + 1), children: "Show me others" })] }), _jsx("div", { className: s.results, children: ideas.map((idea, i) => (_jsxs("div", { className: i === 0 && surprised ? s.topPick : undefined, children: [i === 0 && surprised ? _jsx("span", { className: s.topPickBadge, children: "Our pick" }) : null, _jsx("div", { className: i === 0 && surprised ? s.topPickRing : undefined, children: _jsx(IdeaCard, { idea: idea, index: i }) })] }, `${seed}-${idea.id}`))) }), _jsxs("div", { className: s.feedback, children: [_jsx("p", { className: s.feedbackLabel, children: "Not quite right?" }), _jsx("div", { className: s.feedbackRow, children: FEEDBACK_OPTIONS.map((o) => (_jsx(Chip, { selected: feedback.includes(o.value), onClick: () => react(o.value), children: o.label }, o.value))) })] })] })) }), savedGroups.shared.length || savedGroups.mine.length || savedGroups.surprises.length ? (_jsxs(Section, { children: [_jsx(SectionHeader, { title: "Saved ideas" }), _jsx("div", { className: s.savedTabs, children: SAVED_GROUPS.map((g) => (_jsxs(Chip, { selected: savedTab === g.key, onClick: () => setSavedTab(g.key), children: [g.label, " ", savedGroups[g.key].length] }, g.key))) }), _jsx("p", { className: s.savedNote, children: SAVED_GROUPS.find((g) => g.key === savedTab)?.note }), savedGroups[savedTab].length ? (_jsx("div", { className: s.results, children: savedGroups[savedTab].map((idea, i) => (_jsx(IdeaCard, { idea: idea, index: i, cycleId: cycleId }, idea.id))) })) : (_jsx("p", { className: s.savedEmpty, children: "Nothing in here yet." }))] })) : null] }));
+    const row = (label, options, current, onPick) => (_jsxs("div", { className: s.pickRow, children: [_jsx("span", { className: s.pickLabel, children: label }), _jsx("div", { className: s.pickChips, children: options.map((o) => (_jsx("button", { type: "button", className: [s.pick, current === o.value ? s.pickOn : ''].filter(Boolean).join(' '), "aria-pressed": current === o.value, onClick: () => onPick(o.value), children: o.label }, o.label))) })] }));
+    return (_jsxs(_Fragment, { children: [hasCue ? (_jsxs("p", { className: s.cueBanner, children: [_jsx("span", { "aria-hidden": true, children: "\u2728" }), _jsx("span", { children: "Set up from what you both wrote today." }), _jsx("button", { type: "button", className: s.cueClear, onClick: () => {
+                            setFilters(EMPTY_FILTERS);
+                            setParams({ tier: 'day' }, { replace: true });
+                        }, children: "Clear" })] })) : null, _jsxs("div", { className: s.gen, children: [_jsx("span", { className: s.genSky, "aria-hidden": true }), row('Time', WHEN, filters.daypart, (v) => set('daypart', v)), row('Setting', WHERE, filters.setting, (v) => set('setting', v)), row('Budget', SPEND, filters.budget, (v) => set('budget', v)), row('Energy', EFFORT, filters.energy, (v) => set('energy', v)), _jsxs("div", { className: s.genActions, children: [_jsx(Button, { variant: "accent", block: true, onClick: generate, children: "Find ideas" }), _jsx(Button, { variant: "quiet", block: true, onClick: surpriseUs, children: "Surprise us \uD83C\uDFB2" })] })] }), _jsx("div", { ref: resultsRef, className: s.resultsAnchor, children: loading ? (_jsxs("div", { className: s.loading, children: [_jsxs("span", { className: s.loadingDots, "aria-hidden": true, children: [_jsx("span", { className: s.loadingDot }), _jsx("span", { className: s.loadingDot }), _jsx("span", { className: s.loadingDot })] }), _jsx("p", { className: s.loadingText, children: "Finding something for you two\u2026" })] })) : (_jsxs(_Fragment, { children: [_jsxs("div", { className: s.resultHead, children: [_jsx("p", { className: s.count, children: surprised ? 'Our pick for you' : 'For you two' }), _jsx("button", { type: "button", className: s.regen, onClick: () => setSeed((n) => n + 1), children: "Show me others" })] }), _jsx("div", { className: s.results, children: ideas.map((idea, i) => (_jsx(IdeaCard, { idea: idea, index: i, cycleId: cycleId }, `${seed}-${idea.id}`))) })] })) }), matched.length ? (_jsxs(Section, { children: [_jsx(SectionHeader, { title: "Our matches", sub: "You both reached for these on your own." }), _jsx("div", { className: s.savedList, children: matched.map(({ idea }) => (_jsx(SavedRow, { idea: idea, note: "You both saved this \uD83D\uDC95", matched: true }, idea.id))) })] })) : null, _jsxs(Section, { children: [_jsx(SectionHeader, { title: "Saved together", sub: "Ideas either of you put on the list." }), shared.length ? (_jsx("div", { className: s.savedList, children: shared.map(({ idea, row: r }) => (_jsx(SavedRow, { idea: idea, note: `Added by ${r.sharedBy.map(nameOf).join(' and ')}` }, idea.id))) })) : (_jsx("p", { className: s.savedEmpty, children: "Start saving ideas you\u2019d love to do together." }))] })] }));
+}
+/** A saved idea, at list size: enough to recognise, one tap to open. */
+function SavedRow({ idea, note, matched, }) {
+    return (_jsxs(Link, { to: `/plan/new?idea=${idea.id}`, className: s.savedRow, children: [_jsx(Photo, { src: idea.image, seed: idea.id, ratio: "1 / 1", className: s.savedShot, alt: "" }), _jsxs("span", { className: s.savedMain, children: [_jsx("span", { className: s.savedTitle, children: idea.title }), _jsx("span", { className: [s.savedNote, matched ? s.savedNoteMatch : ''].filter(Boolean).join(' '), children: note })] }), _jsx("span", { className: s.savedChev, "aria-hidden": true, children: "\u203A" })] }));
 }
 /* ------------------------------ 7 weeks --------------------------------- */
 function MiniAdventuresTab({ cycleId }) {

@@ -271,3 +271,160 @@
   font-size: var(--t-small);
   color: var(--c-ink-4);
 }
+
+/* ---------- The generator, in one card ---------- */
+
+.gen {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: linear-gradient(162deg, var(--c-accent-wash) 0%, #fdf3ef 62%, #f7f0fb 100%);
+  border: 1px solid var(--c-accent-edge);
+}
+
+/* A breath of cosmos, no more: two soft blooms and no drawing, because this
+   card is a control panel and the sky belongs behind the countdown. */
+.genSky {
+  position: absolute;
+  inset: -30% -10% auto;
+  height: 200%;
+  z-index: -1;
+  background:
+    radial-gradient(46% 34% at 88% 14%, rgba(243, 169, 196, 0.4) 0%, rgba(243, 169, 196, 0) 70%),
+    radial-gradient(40% 30% at 8% 84%, rgba(195, 176, 232, 0.34) 0%, rgba(195, 176, 232, 0) 72%);
+}
+
+.pickRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+
+.pickRow + .pickRow {
+  margin-top: var(--s-3);
+}
+
+.pickLabel {
+  flex: none;
+  width: 52px;
+  padding-top: 8px;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-3);
+}
+
+/* Chips size to their words and wrap when they run out of room. Equal thirds
+   looked tidy until "Afternoon" came out as "Aft…", and scrolling hid whole
+   options off the right-hand edge — a filter you cannot see is not a filter. */
+.pickChips {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Equal widths across the row, so four options read as one control rather
+   than four buttons of assorted length. */
+.pick {
+  flex: none;
+  height: 32px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-full);
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.72);
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-ink-3);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    background-color var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease),
+    border-color var(--d-fast) var(--ease);
+}
+
+.pick:active {
+  transform: scale(0.97);
+}
+
+.pickOn {
+  background: var(--g-accent);
+  border-color: transparent;
+  color: var(--c-on-accent);
+  box-shadow: 0 4px 12px rgba(232, 94, 142, 0.26);
+}
+
+.genActions {
+  margin-top: var(--s-5);
+  display: grid;
+  gap: var(--s-2);
+}
+
+/* ---------- Saved and matched ---------- */
+
+.savedList {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.savedRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline-soft);
+  transition: transform var(--d-fast) var(--ease);
+}
+
+.savedRow:active {
+  transform: scale(0.99);
+}
+
+.savedShot {
+  flex: none;
+  width: 54px;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.savedMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.savedTitle {
+  display: block;
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.savedNote {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--t-small);
+  color: var(--c-ink-4);
+}
+
+.savedNoteMatch {
+  color: var(--c-accent-ink);
+  font-weight: 600;
+}
+
+.savedChev {
+  flex: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--c-ink-4);
+}

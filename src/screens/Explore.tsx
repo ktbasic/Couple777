@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Screen, ScreenHeader, Section } from '@/components/layout/Screen';
 import { Segmented } from '@/components/ui/Segmented';
 import { Chip, ChipRow } from '@/components/ui/Chip';
+import { Photo } from '@/components/ui/Photo';
 import { Button } from '@/components/ui/Button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -11,29 +12,23 @@ import { AdventureCard } from '@/features/AdventureCard';
 import { DestinationCard, MatchReveal } from '@/features/DestinationCard';
 import { DATE_IDEAS } from '@/data/dateIdeas';
 import {
-  BUDGET_OPTIONS,
-  DAYPART_OPTIONS,
   DISTANCE_OPTIONS,
-  DURATION_OPTIONS,
   EMPTY_FILTERS,
-  ENERGY_OPTIONS,
-  FEEDBACK_OPTIONS,
   MOOD_OPTIONS,
-  SETTING_OPTIONS,
-  VIBE_OPTIONS,
   generateAdventures,
   generateDateIdeas,
 } from '@/lib/generator';
 import { useStore } from '@/context/store';
 import { TIER_META } from '@/lib/dates';
-import { matches, newMatch } from '@/lib/selectors';
+import { ideaMatches, matches, newMatch, sharedIdeas } from '@/lib/selectors';
 import type {
   DateIdea,
   SavedIdea,
   AdventureMood,
   Daypart,
   Distance,
-  IdeaFeedback,
+  Energy,
+
   IdeaFilters,
   Setting,
   Vibe,
@@ -66,11 +61,15 @@ export default function ExploreScreen() {
     <Screen>
       <ScreenHeader
         eyebrow="Explore"
-        title={cycle ? `Ideas for your ${TIER_META[cycle.tier].cadence} moment` : 'What should we do?'}
+        title={
+          cycle
+            ? `Ideas for your ${TIER_META[cycle.tier].cadence} moment`
+            : 'Find your next little moment'
+        }
         sub={
           cycle
             ? TIER_META[cycle.tier].hint
-            : 'Answer as much or as little as you like. The more you say, the better the suggestions.'
+            : 'A few details, and Couple777 will suggest something that fits tonight.'
         }
       />
 
@@ -102,18 +101,41 @@ export default function ExploreScreen() {
   );
 }
 
-type SavedGroup = 'shared' | 'mine' | 'surprises';
-
-const SAVED_GROUPS: { key: SavedGroup; label: string; note: string }[] = [
-  { key: 'shared', label: 'Shared', note: 'You both saved these, so you both know.' },
-  { key: 'mine', label: 'Mine', note: 'Only you have saved these so far.' },
-  { key: 'surprises', label: 'Surprises', note: 'Kept out of matching. Your partner will not see these.' },
-];
-
 /* ------------------------------ 7 days ---------------------------------- */
 
+/*
+ * The four questions worth asking, in the order someone actually thinks them:
+ * when, where, how much. Everything else the generator knows how to guess.
+ */
+const WHEN: { label: string; value: Daypart }[] = [
+  { label: 'Morning', value: 'morning' },
+  { label: 'Afternoon', value: 'afternoon' },
+  { label: 'Evening', value: 'evening' },
+  { label: 'Night', value: 'late' },
+];
+
+const WHERE: { label: string; value: Setting }[] = [
+  { label: 'Indoor', value: 'home' },
+  { label: 'Outdoor', value: 'out' },
+];
+
+/* Shorter than the generator's own labels: in a row of four these have to fit
+   without being cut in half, and "Low energy" beside "Low" budget was saying
+   the word twice anyway. */
+const EFFORT: { label: string; value: Energy }[] = [
+  { label: 'Easy', value: 'low' },
+  { label: 'Some', value: 'medium' },
+  { label: 'Plenty', value: 'high' },
+];
+
+const SPEND: { label: string; value: number }[] = [
+  { label: 'Low', value: 30 },
+  { label: 'Medium', value: 60 },
+  { label: 'Special', value: 150 },
+];
+
 function DateIdeasTab({ cycleId }: { cycleId?: string }) {
-  const { state, me } = useStore();
+  const { state, me, partner } = useStore();
   const [params, setParams] = useSearchParams();
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -132,20 +154,17 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
   const hasCue = Boolean(cued.daypart || cued.setting || cued.vibe);
   const [filters, setFilters] = useState<IdeaFilters>(cued);
   const [seed, setSeed] = useState(1);
-  const [feedback, setFeedback] = useState<IdeaFeedback[]>([]);
-  const [seen, setSeen] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [surprised, setSurprised] = useState(false);
-  const [savedTab, setSavedTab] = useState<SavedGroup>('shared');
 
   useEffect(() => {
     if (hasCue) setFilters(cued);
   }, [cued, hasCue]);
 
   /*
-   * Home can ask for the surprise directly — "Get inspirations" should land on
-   * an answer, not on a screen with a button that produces one. The param is
-   * dropped straight away so a reload or a back-forward does not re-fire it.
+   * Home can ask for the surprise directly — an inspiration button should land
+   * on an answer, not on a screen with a button that produces one. The param
+   * is dropped straight away so a reload does not re-fire it.
    */
   useEffect(() => {
     if (!params.get('surprise')) return;
@@ -157,32 +176,26 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
+  /* Three, not four: a short list is something you read, a long one is
+     something you scroll past. */
   const ideas = useMemo(
-    () => generateDateIdeas(filters, seed, 4, state.couple.profile, feedback, seen),
-    [filters, seed, state.couple.profile, feedback, seen],
+    () => generateDateIdeas(filters, seed, 3, state.couple.profile),
+    [filters, seed, state.couple.profile],
   );
 
-  /*
-   * Saved ideas, in the three groups the app actually distinguishes between:
-   * both of you saved it, only you did, or you saved it as a surprise and it
-   * is deliberately out of matching.
-   */
-  const savedGroups = (() => {
-    const rows = state.savedIdeas
-      .map((row) => ({ row, idea: DATE_IDEAS.find((i) => i.id === row.id) }))
-      .filter((x): x is { row: SavedIdea; idea: DateIdea } => Boolean(x.idea));
-    return {
-      shared: rows.filter((x) => !x.row.surprise && x.row.savedBy.length === 2).map((x) => x.idea),
-      mine: rows
-        .filter((x) => !x.row.surprise && x.row.savedBy.length < 2 && x.row.savedBy.includes(me.id))
-        .map((x) => x.idea),
-      surprises: rows.filter((x) => x.row.surprise && x.row.savedBy.includes(me.id)).map((x) => x.idea),
-    };
-  })();
+  const shared = sharedIdeas(state)
+    .map((row) => ({ row, idea: DATE_IDEAS.find((i) => i.id === row.id) }))
+    .filter((x): x is { row: SavedIdea; idea: DateIdea } => Boolean(x.idea));
+
+  const matched = ideaMatches(state)
+    .map((row) => ({ row, idea: DATE_IDEAS.find((i) => i.id === row.id) }))
+    .filter((x): x is { row: SavedIdea; idea: DateIdea } => Boolean(x.idea));
 
   // Selecting the value that is already set clears it, so filters stay escapable.
   const set = <K extends keyof IdeaFilters>(key: K, value: IdeaFilters[K]) =>
     setFilters((f) => ({ ...f, [key]: f[key] === value ? null : value }));
+
+  const nameOf = (id: string) => (id === me.id ? 'you' : partner.name);
 
   /** The signature action: think for a beat, then bring you to the answer. */
   const surpriseUs = () => {
@@ -195,22 +208,41 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
         () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
         60,
       );
-    }, 1100);
+    }, 1000);
   };
 
-  const react = (f: IdeaFeedback) => {
-    // "Done this before" hides what is on screen; the rest just re-weight.
-    if (f === 'done') setSeen((prev) => [...new Set([...prev, ...ideas.map((i) => i.id)])]);
-    setFeedback((prev) => (prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]));
+  const generate = () => {
+    setSurprised(false);
     setSeed((n) => n + 1);
+    window.setTimeout(
+      () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      60,
+    );
   };
 
-  const clearAll = () => {
-    setFilters(EMPTY_FILTERS);
-    setFeedback([]);
-    setSeen([]);
-    if (hasCue) setParams({ tier: 'day' }, { replace: true });
-  };
+  const row = (
+    label: string,
+    options: { label: string; value: string | number }[],
+    current: string | number | null,
+    onPick: (v: never) => void,
+  ) => (
+    <div className={s.pickRow}>
+      <span className={s.pickLabel}>{label}</span>
+      <div className={s.pickChips}>
+        {options.map((o) => (
+          <button
+            key={o.label}
+            type="button"
+            className={[s.pick, current === o.value ? s.pickOn : ''].filter(Boolean).join(' ')}
+            aria-pressed={current === o.value}
+            onClick={() => onPick(o.value as never)}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -218,84 +250,36 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
         <p className={s.cueBanner}>
           <span aria-hidden>✨</span>
           <span>Set up from what you both wrote today.</span>
-          <button type="button" className={s.cueClear} onClick={clearAll}>
+          <button
+            type="button"
+            className={s.cueClear}
+            onClick={() => {
+              setFilters(EMPTY_FILTERS);
+              setParams({ tier: 'day' }, { replace: true });
+            }}
+          >
             Clear
           </button>
         </p>
       ) : null}
 
-      <p className={s.helper}>Pick whatever matters. Leave the rest to us.</p>
+      {/* The whole generator in one card: three questions and two buttons.
+          Nothing here is required, which is why none of it is a field. */}
+      <div className={s.gen}>
+        <span className={s.genSky} aria-hidden />
+        {row('Time', WHEN, filters.daypart, (v) => set('daypart', v))}
+        {row('Setting', WHERE, filters.setting, (v) => set('setting', v))}
+        {row('Budget', SPEND, filters.budget, (v) => set('budget', v))}
+        {row('Energy', EFFORT, filters.energy, (v) => set('energy', v))}
 
-      <div className={s.filters}>
-        <div className={s.filterGroup}>
-          <p className={s.filterLabel}>When are we doing this?</p>
-          <ChipRow>
-            {DAYPART_OPTIONS.map((o) => (
-              <Chip key={o.value} emoji={o.emoji} selected={filters.daypart === o.value} onClick={() => set('daypart', o.value)}>
-                {o.label}
-              </Chip>
-            ))}
-          </ChipRow>
+        <div className={s.genActions}>
+          <Button variant="accent" block onClick={generate}>
+            Find ideas
+          </Button>
+          <Button variant="quiet" block onClick={surpriseUs}>
+            Surprise us 🎲
+          </Button>
         </div>
-
-        <div className={s.filterGroup}>
-          <p className={s.filterLabel}>How much time?</p>
-          <ChipRow>
-            {DURATION_OPTIONS.map((o) => (
-              <Chip key={o.value} selected={filters.duration === o.value} onClick={() => set('duration', o.value)}>
-                {o.label}
-              </Chip>
-            ))}
-          </ChipRow>
-        </div>
-
-        <div className={s.filterGroup}>
-          <p className={s.filterLabel}>Budget</p>
-          <ChipRow>
-            {BUDGET_OPTIONS.map((o) => (
-              <Chip key={o.value} selected={filters.budget === o.value} onClick={() => set('budget', o.value)}>
-                {o.label}
-              </Chip>
-            ))}
-          </ChipRow>
-        </div>
-
-        <div className={s.filterGroup}>
-          <p className={s.filterLabel}>What kind of mood?</p>
-          <ChipRow>
-            {VIBE_OPTIONS.map((o) => (
-              <Chip key={o.value} emoji={o.emoji} selected={filters.vibe === o.value} onClick={() => set('vibe', o.value)}>
-                {o.label}
-              </Chip>
-            ))}
-          </ChipRow>
-        </div>
-
-        <div className={s.filterGroup}>
-          <p className={s.filterLabel}>Where, and how much energy?</p>
-          <ChipRow>
-            {SETTING_OPTIONS.map((o) => (
-              <Chip key={o.value} emoji={o.emoji} selected={filters.setting === o.value} onClick={() => set('setting', o.value)}>
-                {o.label}
-              </Chip>
-            ))}
-            {ENERGY_OPTIONS.map((o) => (
-              <Chip key={o.value} emoji={o.emoji} selected={filters.energy === o.value} onClick={() => set('energy', o.value)}>
-                {o.label}
-              </Chip>
-            ))}
-          </ChipRow>
-        </div>
-
-      </div>
-
-      <div className={s.surprise}>
-        <Button variant="accent" onClick={surpriseUs}>
-          ✨ Surprise us
-        </Button>
-        <Button variant="quiet" onClick={clearAll}>
-          Clear
-        </Button>
       </div>
 
       <div ref={resultsRef} className={s.resultsAnchor}>
@@ -311,7 +295,7 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
         ) : (
           <>
             <div className={s.resultHead}>
-              <p className={s.count}>{ideas.length} ideas for you</p>
+              <p className={s.count}>{surprised ? 'Our pick for you' : 'For you two'}</p>
               <button type="button" className={s.regen} onClick={() => setSeed((n) => n + 1)}>
                 Show me others
               </button>
@@ -319,59 +303,68 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
 
             <div className={s.results}>
               {ideas.map((idea, i) => (
-                <div
-                  key={`${seed}-${idea.id}`}
-                  className={i === 0 && surprised ? s.topPick : undefined}
-                >
-                  {i === 0 && surprised ? <span className={s.topPickBadge}>Our pick</span> : null}
-                  <div className={i === 0 && surprised ? s.topPickRing : undefined}>
-                    <IdeaCard idea={idea} index={i} />
-                  </div>
-                </div>
+                <IdeaCard key={`${seed}-${idea.id}`} idea={idea} index={i} cycleId={cycleId} />
               ))}
-            </div>
-
-            <div className={s.feedback}>
-              <p className={s.feedbackLabel}>Not quite right?</p>
-              <div className={s.feedbackRow}>
-                {FEEDBACK_OPTIONS.map((o) => (
-                  <Chip
-                    key={o.value}
-                    selected={feedback.includes(o.value)}
-                    onClick={() => react(o.value)}
-                  >
-                    {o.label}
-                  </Chip>
-                ))}
-              </div>
             </div>
           </>
         )}
       </div>
 
-      {savedGroups.shared.length || savedGroups.mine.length || savedGroups.surprises.length ? (
+      {/* Matches only exist here, and only once one has happened. */}
+      {matched.length ? (
         <Section>
-          <SectionHeader title="Saved ideas" />
-          <div className={s.savedTabs}>
-            {SAVED_GROUPS.map((g) => (
-              <Chip key={g.key} selected={savedTab === g.key} onClick={() => setSavedTab(g.key)}>
-                {g.label} {savedGroups[g.key].length}
-              </Chip>
+          <SectionHeader title="Our matches" sub="You both reached for these on your own." />
+          <div className={s.savedList}>
+            {matched.map(({ idea }) => (
+              <SavedRow key={idea.id} idea={idea} note="You both saved this 💕" matched />
             ))}
           </div>
-          <p className={s.savedNote}>{SAVED_GROUPS.find((g) => g.key === savedTab)?.note}</p>
-          {savedGroups[savedTab].length ? (
-            <div className={s.results}>
-              {savedGroups[savedTab].map((idea, i) => (
-                <IdeaCard key={idea.id} idea={idea} index={i} cycleId={cycleId} />
-              ))}
-            </div>
-          ) : (
-            <p className={s.savedEmpty}>Nothing in here yet.</p>
-          )}
         </Section>
       ) : null}
+
+      <Section>
+        <SectionHeader title="Saved together" sub="Ideas either of you put on the list." />
+        {shared.length ? (
+          <div className={s.savedList}>
+            {shared.map(({ idea, row: r }) => (
+              <SavedRow
+                key={idea.id}
+                idea={idea}
+                note={`Added by ${r.sharedBy.map(nameOf).join(' and ')}`}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className={s.savedEmpty}>Start saving ideas you&rsquo;d love to do together.</p>
+        )}
+      </Section>
     </>
+  );
+}
+
+/** A saved idea, at list size: enough to recognise, one tap to open. */
+function SavedRow({
+  idea,
+  note,
+  matched,
+}: {
+  idea: DateIdea;
+  note: string;
+  matched?: boolean;
+}) {
+  return (
+    <Link to={`/plan/new?idea=${idea.id}`} className={s.savedRow}>
+      <Photo src={idea.image} seed={idea.id} ratio="1 / 1" className={s.savedShot} alt="" />
+      <span className={s.savedMain}>
+        <span className={s.savedTitle}>{idea.title}</span>
+        <span className={[s.savedNote, matched ? s.savedNoteMatch : ''].filter(Boolean).join(' ')}>
+          {note}
+        </span>
+      </span>
+      <span className={s.savedChev} aria-hidden>
+        ›
+      </span>
+    </Link>
   );
 }
 

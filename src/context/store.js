@@ -241,26 +241,57 @@ function reducer(state, action) {
                 ...state,
                 notes: state.notes.map((n) => n.id === action.id && !n.readAt ? { ...n, readAt: new Date().toISOString() } : n),
             };
-        case 'toggleSavedIdea': {
-            const existing = state.savedIdeas.find((i) => i.id === action.id);
-            const mine = existing?.savedBy.includes(action.personId);
-            /* Unsaving removes you, not the row: your partner may have saved it too,
-               and their save is not yours to delete. */
-            const savedIdeas = existing
+        /* A heart, kept to yourself — unless it is the second one on this idea,
+           which is the only thing here that both of you did. */
+        case 'likeIdea': {
+            const rows = state.savedIdeas.some((i) => i.id === action.id)
                 ? state.savedIdeas
-                    .map((i) => i.id === action.id
-                    ? {
-                        ...i,
-                        savedBy: mine
-                            ? i.savedBy.filter((p) => p !== action.personId)
-                            : [...i.savedBy, action.personId],
-                        surprise: action.surprise ?? i.surprise,
-                    }
-                    : i)
-                    .filter((i) => i.savedBy.length)
-                : [...state.savedIdeas, { id: action.id, savedBy: [action.personId], surprise: action.surprise }];
-            return { ...state, savedIdeas };
+                : [...state.savedIdeas, { id: action.id, sharedBy: [], likedBy: [] }];
+            return {
+                ...state,
+                savedIdeas: rows
+                    .map((row) => {
+                    if (row.id !== action.id)
+                        return row;
+                    const mine = row.likedBy.includes(action.personId);
+                    const likedBy = mine
+                        ? row.likedBy.filter((p) => p !== action.personId)
+                        : [...row.likedBy, action.personId];
+                    const both = likedBy.includes(action.personId) && likedBy.includes(action.partnerId);
+                    return {
+                        ...row,
+                        likedBy,
+                        /* Once matched, it stays matched: un-hearting later does not
+                           un-happen the evening you both reached for the same thing. */
+                        matchedAt: row.matchedAt ?? (both ? new Date().toISOString() : undefined),
+                    };
+                })
+                    .filter((row) => row.sharedBy.length || row.likedBy.length || row.matchedAt),
+            };
         }
+        case 'shareIdea': {
+            const rows = state.savedIdeas.some((i) => i.id === action.id)
+                ? state.savedIdeas
+                : [...state.savedIdeas, { id: action.id, sharedBy: [], likedBy: [] }];
+            return {
+                ...state,
+                savedIdeas: rows
+                    .map((row) => row.id === action.id
+                    ? {
+                        ...row,
+                        sharedBy: row.sharedBy.includes(action.personId)
+                            ? row.sharedBy.filter((p) => p !== action.personId)
+                            : [...row.sharedBy, action.personId],
+                    }
+                    : row)
+                    .filter((row) => row.sharedBy.length || row.likedBy.length || row.matchedAt),
+            };
+        }
+        case 'markMatchesSeen':
+            return {
+                ...state,
+                savedIdeas: state.savedIdeas.map((row) => row.matchedAt ? { ...row, matchSeen: true } : row),
+            };
         case 'toggleDestination':
             return {
                 ...state,

@@ -363,17 +363,24 @@ export interface RoomSession {
 /* ---------------- Persisted app state ---------------- */
 
 /**
- * A saved idea, and who saved it.
+ * A saved idea, in the two different senses of "saved".
  *
- * The same shape as a saved destination, and for the same reason: saving is
- * private until you both do it, and "you both saved this" is the only way a
- * match can happen without either of you announcing anything. A surprise is
- * saved by one person on purpose and stays out of matching entirely.
+ * Adding something to the shared list is an act of telling: it shows up for
+ * both of you straight away, with whose idea it was. A heart is not — it is
+ * private, and stays private, until the other person happens to press the
+ * same one. That coincidence is the whole point: a match has to be something
+ * neither of you steered, or it is just agreeing with each other.
  */
 export interface SavedIdea {
   id: ID;
-  savedBy: ID[];
-  surprise?: boolean;
+  /** Put on the couple's shared list. Visible to both, attributed. */
+  sharedBy: ID[];
+  /** Personal hearts. Never shown to the other person on their own. */
+  likedBy: ID[];
+  /** Set the moment the second heart lands. */
+  matchedAt?: string;
+  /** Announced already, so it is not announced again. */
+  matchSeen?: boolean;
 }
 
 /* ------------------------------- Community ------------------------------- */

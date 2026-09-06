@@ -119,6 +119,25 @@ export function hasMatches(state: AppState) {
   return state.destinations.some((d) => d.savedBy.length === 2);
 }
 
+/* --------------------------- Ideas, saved and liked ----------------------- */
+
+/** On the couple's shared list, newest intent first. */
+export function sharedIdeas(state: AppState) {
+  return state.savedIdeas.filter((i) => i.sharedBy.length > 0);
+}
+
+/** Your own hearts. Nobody else's are ever in here. */
+export function likedIdeas(state: AppState, meId: ID) {
+  return state.savedIdeas.filter((i) => i.likedBy.includes(meId));
+}
+
+/** The coincidences: both of you hearted the same thing, independently. */
+export function ideaMatches(state: AppState) {
+  return [...state.savedIdeas]
+    .filter((i) => i.matchedAt)
+    .sort((a, b) => (b.matchedAt ?? '').localeCompare(a.matchedAt ?? ''));
+}
+
 /* --------------------------------- Daily --------------------------------- */
 
 export function dailyEntry(state: AppState, date = today()) {
@@ -180,6 +199,8 @@ export type NotificationKind =
   | 'capture-memory'
   /* Written by the other person on their own phone, so it cannot be derived. */
   | 'from-partner'
+  /* Both of you hearted the same idea without knowing. */
+  | 'idea-match'
   /* Today's question, when nobody has answered it yet — a nudge rather than
      news, so it waits until nothing about the two of you is waiting. */
   | 'daily-nudge'
@@ -215,6 +236,7 @@ export interface AppNotification {
  */
 const PRIORITY: Record<NotificationKind, number> = {
   'from-partner': 1,
+  'idea-match': 1,
   note: 1,
   'date-soon': 2,
   'ritual-due': 2,
@@ -252,6 +274,22 @@ export function notifications(state: AppState, meId: ID, partnerId: ID, now = to
       to: '/us/talk/daily',
       cta: status.answeredByMe ? undefined : 'Write my answer',
       at: Date.now(),
+    });
+  }
+
+  /* The one notification that is nobody's doing. Announced once, then it
+     lives in Explore where it can be found again. */
+  for (const row of state.savedIdeas) {
+    if (!row.matchedAt || row.matchSeen) continue;
+    items.push({
+      id: `match-${row.id}`,
+      kind: 'idea-match',
+      emoji: '💕',
+      title: 'You both saved this',
+      body: 'Neither of you knew. It is in Our matches.',
+      to: '/explore?tier=day',
+      cta: 'See our matches',
+      at: new Date(row.matchedAt).getTime(),
     });
   }
 
