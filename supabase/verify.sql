@@ -1,10 +1,10 @@
--- Did the migration land correctly?
+-- Did the migrations land correctly?
 --
 -- Paste this whole file into the Supabase SQL editor and run it. You want one
--- row back, reading: ok | ok | ok | ok.
+-- row back, every column reading: ok.
 --
 -- Anything that is not "ok" tells you exactly what to fix, and re-running
--- 0001_init.sql is safe — it is written to be run more than once.
+-- either migration is safe — both are written to be run more than once.
 
 with expected_tables(name) as (
   values ('profiles'), ('couples'), ('cycles'), ('plans'),
@@ -21,6 +21,25 @@ present as (
 missing as (select string_agg(name, ', ') m from present where not exists),
 unprotected as (select string_agg(name, ', ') m from present where exists and not rls_on),
 policy_count as (select count(*) n from pg_policies where schemaname = 'public'),
+-- 0002: private memories. The column is the visible half; the four policies
+-- are the half that actually keeps one.
+visibility_col as (
+  select count(*) n from information_schema.columns
+  where table_schema = 'public' and table_name = 'memories' and column_name = 'visibility'
+),
+memory_policies as (
+  select string_agg(name, ', ') m
+  from (values ('memories_select_member'), ('memories_insert_member'),
+               ('memories_update_member'), ('memories_delete_member')) as f(name)
+  where not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'memories' and policyname = f.name
+  )
+),
+old_memory_policy as (
+  select count(*) n from pg_policies
+  where schemaname = 'public' and tablename = 'memories' and policyname = 'memories_all_member'
+),
 fns as (
   select string_agg(name, ', ') m
   from (values ('is_couple_member'), ('join_couple_by_code'),
@@ -38,4 +57,13 @@ select
        then 'ok'
        else 'ONLY ' || (select n from policy_count) || ' POLICIES — expected 18 or more'
   end                                                                    as policies,
-  coalesce('MISSING FUNCTIONS: ' || (select m from fns), 'ok')           as functions;
+  coalesce('MISSING FUNCTIONS: ' || (select m from fns), 'ok')           as functions,
+  case when (select n from visibility_col) = 1 then 'ok'
+       else 'NO visibility COLUMN — run 0002_memory_visibility.sql'
+  end                                                                    as private_memories,
+  case when (select m from memory_policies) is not null
+         then 'MISSING: ' || (select m from memory_policies)
+       when (select n from old_memory_policy) > 0
+         then 'THE OLD memories_all_member POLICY IS STILL THERE — re-run 0002'
+       else 'ok'
+  end                                                                    as memory_policies;

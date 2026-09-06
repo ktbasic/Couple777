@@ -47,6 +47,13 @@ export interface Reading {
   nextSteps: ('reflect' | 'small_step' | 'talk_about' | 'idea')[];
 }
 
+/*
+ * Every field is a plain type, and "unknown" is an empty string rather than
+ * null. A nullable field wants either a union type or a null inside an enum,
+ * and both are the first things a strict schema validator refuses — which
+ * would fail every request, on a valid key, with nothing in the app to say so.
+ * The empty strings are turned back into nulls in `settle` below.
+ */
 const SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -73,12 +80,12 @@ const SCHEMA = {
     },
     title: { type: 'string', description: 'Four words or fewer, in the writer’s own words.' },
     date: {
-      type: ['string', 'null'],
-      description: 'YYYY-MM-DD, only when the note names a day. Otherwise null.',
+      type: 'string',
+      description: 'YYYY-MM-DD, only when the note names a day. Empty string otherwise.',
     },
     place: {
-      type: ['string', 'null'],
-      description: 'Short, e.g. "Home" or "The beach". Null when the note does not say.',
+      type: 'string',
+      description: 'Short, e.g. "Home" or "The beach". Empty string when the note does not say.',
     },
     feelings: {
       type: 'array',
@@ -87,8 +94,12 @@ const SCHEMA = {
       description: 'One or two words each, drawn from the note. May be difficult feelings.',
     },
     needsFollowUp: { type: 'boolean' },
-    nextQuestion: { type: ['string', 'null'] },
-    questionField: { type: ['string', 'null'], enum: ['date', 'place', 'feelings', 'context', null] },
+    nextQuestion: { type: 'string', description: 'Empty string when there is nothing to ask.' },
+    questionField: {
+      type: 'string',
+      enum: ['date', 'place', 'feelings', 'context', ''],
+      description: 'What the answer fills in. Empty string when there is no question.',
+    },
     quickReplies: { type: 'array', items: { type: 'string' }, maxItems: 6 },
     defaultVisibility: { type: 'string', enum: ['private', 'shared'] },
     offerNextSteps: { type: 'boolean' },
@@ -225,14 +236,20 @@ async function read(ask: Ask, apiKey: string): Promise<Reading> {
 export function settle(reading: Reading): Reading {
   const hard = reading.tone === 'difficult' || reading.type === 'conflict';
   const steps = (reading.nextSteps ?? []).filter((s) => !(hard && s === 'idea'));
+  // Empty string is how the schema says "nothing"; null is how the app does.
+  const orNull = (v: string | null | undefined) => (v && v.trim() ? v : null);
   return {
     ...reading,
+    date: orNull(reading.date),
+    place: orNull(reading.place),
+    nextQuestion: orNull(reading.nextQuestion),
+    questionField: (orNull(reading.questionField) as Reading['questionField']) ?? null,
     feelings: (reading.feelings ?? []).slice(0, 3),
     quickReplies: (reading.quickReplies ?? []).slice(0, 6),
     defaultVisibility: hard ? 'private' : reading.defaultVisibility,
     nextSteps: steps,
     offerNextSteps: Boolean(reading.offerNextSteps) && steps.length > 0,
-    needsFollowUp: Boolean(reading.needsFollowUp) && Boolean(reading.nextQuestion),
+    needsFollowUp: Boolean(reading.needsFollowUp) && Boolean(orNull(reading.nextQuestion)),
   };
 }
 
@@ -250,11 +267,32 @@ interface Res {
 export default async function handler(req: Req, res: Res) {
   const key = process.env.MEMORY_AI_API_KEY || process.env.ANTHROPIC_API_KEY;
 
-  /* A GET says only whether this is switched on — no key, no model call, and
-     nothing to leak. The app asks so it can tell someone which reader is
-     doing the reading. */
+  /*
+   * A GET reports whether this is switched on and whether the key actually
+   * authenticates. "Present" is not the same as "works" — a typo, a revoked
+   * key or an exhausted account all leave the app quietly falling back while
+   * something in Settings insists the model is reading. Listing models costs
+   * no tokens, so the check is free.
+   */
   if (req.method === 'GET') {
-    res.status(200).json({ configured: Boolean(key) });
+    if (!key) {
+      res.status(200).json({ configured: false, working: false });
+      return;
+    }
+    try {
+      await new Anthropic({ apiKey: key, maxRetries: 0 }).models.list({ limit: 1 });
+      res.status(200).json({ configured: true, working: true });
+    } catch (e) {
+      const reason =
+        e instanceof Anthropic.AuthenticationError
+          ? 'The key was refused. Check it was pasted whole.'
+          : e instanceof Anthropic.PermissionDeniedError
+            ? 'The key has no access. Check the workspace it belongs to.'
+            : e instanceof Anthropic.RateLimitError
+              ? 'Rate limited just now. It should work again shortly.'
+              : 'Could not reach the model just now.';
+      res.status(200).json({ configured: true, working: false, reason });
+    }
     return;
   }
 

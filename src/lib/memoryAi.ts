@@ -86,6 +86,7 @@ export async function readMemory(
 
     if (response.ok) {
       const reading = (await response.json()) as MemoryReading;
+      rememberSource('model');
       // Trust it, but not with the two rules that matter.
       return { reading: settle(reading), source: 'model' };
     }
@@ -93,22 +94,71 @@ export async function readMemory(
     /* No endpoint, no key, no network, or it took too long. The flow does not
        stop for any of those. */
   }
+  rememberSource('device');
+  // The status line is asked again next time it is shown, not cached from
+  // before this happened.
+  statusPromise = null;
   return { reading: localReading(note, answers, now), source: 'device' };
 }
 
 /**
- * Which reader is live. Asked once and remembered, because the answer is a
- * deployment setting rather than something that changes while someone is
- * looking at a screen.
+ * Which reader is live, and whether it is actually working.
+ *
+ * Three states, because two would lie. A key that is set but refused looks
+ * exactly like a key that works — right up until every note comes back read by
+ * the phone, with nothing anywhere saying why. So the endpoint is asked
+ * whether the key authenticates, and the last real read is remembered: if
+ * requests are failing, "off" is what this reports, whatever the settings say.
  */
-let readerPromise: Promise<ReadingSource> | null = null;
+export interface ReaderStatus {
+  source: ReadingSource;
+  configured: boolean;
+  /** Why the model is not reading, when it is configured but not working. */
+  reason?: string;
+}
 
-export function readerStatus(): Promise<ReadingSource> {
-  readerPromise ??= fetch(ENDPOINT, { method: 'GET' })
-    .then((r) => (r.ok ? (r.json() as Promise<{ configured?: boolean }>) : { configured: false }))
-    .then((body) => (body.configured ? 'model' : 'device'))
-    .catch(() => 'device' as const);
-  return readerPromise;
+const LAST_SOURCE_KEY = 'couple777:memory-reader';
+
+function rememberSource(source: ReadingSource) {
+  try {
+    window.localStorage.setItem(LAST_SOURCE_KEY, source);
+  } catch {
+    /* private mode — the status simply falls back to asking the endpoint */
+  }
+}
+
+function lastSource(): ReadingSource | null {
+  try {
+    const v = window.localStorage.getItem(LAST_SOURCE_KEY);
+    return v === 'model' || v === 'device' ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+let statusPromise: Promise<ReaderStatus> | null = null;
+
+export function readerStatus(): Promise<ReaderStatus> {
+  statusPromise ??= fetch(ENDPOINT, { method: 'GET' })
+    .then((r) =>
+      r.ok
+        ? (r.json() as Promise<{ configured?: boolean; working?: boolean; reason?: string }>)
+        : { configured: false, working: false },
+    )
+    .then((body): ReaderStatus => {
+      if (!body.configured) return { source: 'device', configured: false };
+      if (!body.working) {
+        return { source: 'device', configured: true, reason: body.reason };
+      }
+      // Configured and authenticating — but if the last actual read still came
+      // back from the phone, say so rather than claiming otherwise.
+      const last = lastSource();
+      return last === 'device'
+        ? { source: 'device', configured: true, reason: 'The last note was read on this phone.' }
+        : { source: 'model', configured: true };
+    })
+    .catch((): ReaderStatus => ({ source: 'device', configured: false }));
+  return statusPromise;
 }
 
 /* ----------------------------- The device read ---------------------------- */

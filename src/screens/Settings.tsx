@@ -6,7 +6,7 @@ import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
 import { useStore } from '@/context/store';
 import { useAuth } from '@/context/auth';
-import { readerStatus, type ReadingSource } from '@/lib/memoryAi';
+import { readerStatus, type ReaderStatus } from '@/lib/memoryAi';
 import s from './Settings.module.css';
 
 export default function SettingsScreen() {
@@ -14,7 +14,7 @@ export default function SettingsScreen() {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const [confirmReset, setConfirmReset] = useState(false);
-  const [reader, setReader] = useState<ReadingSource | null>(null);
+  const [reader, setReader] = useState<ReaderStatus | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -23,8 +23,6 @@ export default function SettingsScreen() {
       alive = false;
     };
   }, []);
-
-  const readerName = reader === 'model' ? 'Couple777 reads it' : 'Read on this phone';
 
   return (
     <>
@@ -114,11 +112,21 @@ export default function SettingsScreen() {
           <div className={s.rows}>
             <div className={s.row}>
               <div className={s.rowMain}>
-                <span className={s.rowLabel}>{readerName}</span>
+                <span className={s.rowLabel}>
+                  {reader?.source === 'model'
+                    ? 'Couple777 reads it'
+                    : reader?.configured
+                      ? 'Read on this phone, for now'
+                      : 'Read on this phone'}
+                </span>
                 <span className={s.rowValue}>
-                  {reader === 'device'
-                    ? 'Nothing you write is sent anywhere. It is read on this phone, which is quicker but blunter.'
-                    : 'Your note is read by Couple777 so the questions fit what you wrote.'}
+                  {reader?.source === 'model'
+                    ? 'Your note is read by Couple777 so the questions fit what you wrote.'
+                    : reader?.configured
+                      ? /* Configured but not answering: the one case worth
+                           spelling out, because everything looks fine. */
+                        `${reader.reason ?? 'The reader is set up but did not answer.'} Until it does, notes are read on this phone.`
+                      : 'Nothing you write is sent anywhere. It is read on this phone, which is quicker but blunter.'}
                 </span>
               </div>
             </div>

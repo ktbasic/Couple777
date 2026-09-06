@@ -50,6 +50,22 @@ check(
   !settle({ ...ROGUE, nextQuestion: null }).needsFollowUp,
 );
 
+console.log('\nThe wire shape, which uses empty strings for "nothing"');
+const blank = settle({
+  ...ROGUE,
+  tone: 'positive',
+  type: 'everyday_memory',
+  date: '',
+  place: '',
+  needsFollowUp: true,
+  nextQuestion: '',
+  questionField: '' as Reading['questionField'],
+});
+check('an empty date comes back as null', blank.date === null);
+check('an empty place comes back as null', blank.place === null);
+check('an empty question is no question', blank.nextQuestion === null && !blank.needsFollowUp);
+check('and an empty field name is none', blank.questionField === null);
+
 console.log('\nA happy memory keeps what it was given');
 const happy = settle({
   ...ROGUE,
@@ -90,9 +106,10 @@ delete process.env.ANTHROPIC_API_KEY;
 {
   const { res, out } = spy();
   await handler({ method: 'GET' }, res);
+  const body = out.body as { configured: boolean; working: boolean };
   check(
     'a GET says it is off, without spending a call',
-    out.code === 200 && (out.body as { configured: boolean }).configured === false,
+    out.code === 200 && body.configured === false && body.working === false,
     JSON.stringify(out.body),
   );
 }
@@ -104,11 +121,15 @@ delete process.env.ANTHROPIC_API_KEY;
 
 process.env.MEMORY_AI_API_KEY = 'sk-ant-deliberately-invalid';
 {
+  // A key that is present but refused must not report itself as working: that
+  // is the state where everything looks fine and nothing is being read.
   const { res, out } = spy();
   await handler({ method: 'GET' }, res);
+  const body = out.body as { configured: boolean; working: boolean; reason?: string };
   check(
-    'and with a key, that it is on',
-    out.code === 200 && (out.body as { configured: boolean }).configured === true,
+    'a key that is set but refused says so',
+    out.code === 200 && body.configured === true && body.working === false && Boolean(body.reason),
+    JSON.stringify(out.body),
   );
 }
 {

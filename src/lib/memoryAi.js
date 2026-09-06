@@ -26,6 +26,7 @@ export async function readMemory(note, answers = [], now = today()) {
         }).finally(() => window.clearTimeout(timer));
         if (response.ok) {
             const reading = (await response.json());
+            rememberSource('model');
             // Trust it, but not with the two rules that matter.
             return { reading: settle(reading), source: 'model' };
         }
@@ -34,20 +35,51 @@ export async function readMemory(note, answers = [], now = today()) {
         /* No endpoint, no key, no network, or it took too long. The flow does not
            stop for any of those. */
     }
+    rememberSource('device');
+    // The status line is asked again next time it is shown, not cached from
+    // before this happened.
+    statusPromise = null;
     return { reading: localReading(note, answers, now), source: 'device' };
 }
-/**
- * Which reader is live. Asked once and remembered, because the answer is a
- * deployment setting rather than something that changes while someone is
- * looking at a screen.
- */
-let readerPromise = null;
+const LAST_SOURCE_KEY = 'couple777:memory-reader';
+function rememberSource(source) {
+    try {
+        window.localStorage.setItem(LAST_SOURCE_KEY, source);
+    }
+    catch {
+        /* private mode — the status simply falls back to asking the endpoint */
+    }
+}
+function lastSource() {
+    try {
+        const v = window.localStorage.getItem(LAST_SOURCE_KEY);
+        return v === 'model' || v === 'device' ? v : null;
+    }
+    catch {
+        return null;
+    }
+}
+let statusPromise = null;
 export function readerStatus() {
-    readerPromise ??= fetch(ENDPOINT, { method: 'GET' })
-        .then((r) => (r.ok ? r.json() : { configured: false }))
-        .then((body) => (body.configured ? 'model' : 'device'))
-        .catch(() => 'device');
-    return readerPromise;
+    statusPromise ??= fetch(ENDPOINT, { method: 'GET' })
+        .then((r) => r.ok
+        ? r.json()
+        : { configured: false, working: false })
+        .then((body) => {
+        if (!body.configured)
+            return { source: 'device', configured: false };
+        if (!body.working) {
+            return { source: 'device', configured: true, reason: body.reason };
+        }
+        // Configured and authenticating — but if the last actual read still came
+        // back from the phone, say so rather than claiming otherwise.
+        const last = lastSource();
+        return last === 'device'
+            ? { source: 'device', configured: true, reason: 'The last note was read on this phone.' }
+            : { source: 'model', configured: true };
+    })
+        .catch(() => ({ source: 'device', configured: false }));
+    return statusPromise;
 }
 /* ----------------------------- The device read ---------------------------- */
 const QUESTION = {
