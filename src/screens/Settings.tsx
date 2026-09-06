@@ -7,6 +7,14 @@ import { Button } from '@/components/ui/Button';
 import { useStore } from '@/context/store';
 import { useAuth } from '@/context/auth';
 import { readerStatus, type ReaderStatus } from '@/lib/memoryAi';
+
+/**
+ * Which commit this is. Vercel sets VERCEL_GIT_COMMIT_SHA on every build; a
+ * local one says "dev". It is here because "the app is not doing what you
+ * just changed" and "the app is not running what you just changed" look
+ * identical from the outside, and one line ends the argument.
+ */
+const BUILD = __BUILD__;
 import s from './Settings.module.css';
 
 export default function SettingsScreen() {
@@ -80,6 +88,47 @@ export default function SettingsScreen() {
           </div>
         </section>
 
+        {/*
+          Where a memory is read, in plain words. Without a key the app falls
+          back to reading notes on the phone, which is quieter and coarser —
+          and if nobody says so, the only symptom is that a hard evening gets
+          the same warm answer as a good one, with no way to tell why.
+        */}
+        <section className={s.group}>
+          <p className={s.groupLabel}>Reading your memories</p>
+          <div className={s.rows}>
+            <div className={s.row}>
+              <div className={s.rowMain}>
+                <p className={s.rowTitle}>
+                  {reader?.source === 'model'
+                    ? 'Couple777 reads it'
+                    : reader?.configured
+                      ? 'Read on this phone, for now'
+                      : 'Read on this phone'}
+                </p>
+                <p className={s.rowBody}>
+                  {reader?.source === 'model'
+                    ? 'Your note is read by Couple777 so the questions fit what you wrote.'
+                    : reader?.configured
+                      ? /* Configured but not answering: the one case worth
+                           spelling out, because everything else looks fine. */
+                        `${reader.reason ?? 'The reader is set up but did not answer.'} Until it does, notes are read on this phone.`
+                      : 'Nothing you write is sent anywhere. It is read on this phone, which is quicker but blunter.'}
+                </p>
+              </div>
+            </div>
+            <div className={s.row}>
+              <div className={s.rowMain}>
+                <p className={s.rowTitle}>This build</p>
+                <p className={s.rowBody}>
+                  <code>{BUILD}</code> — quote this if something here does not match what you
+                  expect.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className={s.group}>
           <p className={s.groupLabel}>What stays private</p>
           <div className={s.privacy}>
@@ -98,38 +147,6 @@ export default function SettingsScreen() {
                 </span>
               </p>
             ))}
-          </div>
-        </section>
-
-        {/*
-          Where a memory is read, in plain words. Without a key the app falls
-          back to reading notes on the phone, which is quieter and coarser —
-          and if nobody says so, the only symptom is that a hard evening gets
-          the same warm answer as a good one, with no way to tell why.
-        */}
-        <section className={s.group}>
-          <p className={s.groupLabel}>Reading your memories</p>
-          <div className={s.rows}>
-            <div className={s.row}>
-              <div className={s.rowMain}>
-                <span className={s.rowLabel}>
-                  {reader?.source === 'model'
-                    ? 'Couple777 reads it'
-                    : reader?.configured
-                      ? 'Read on this phone, for now'
-                      : 'Read on this phone'}
-                </span>
-                <span className={s.rowValue}>
-                  {reader?.source === 'model'
-                    ? 'Your note is read by Couple777 so the questions fit what you wrote.'
-                    : reader?.configured
-                      ? /* Configured but not answering: the one case worth
-                           spelling out, because everything looks fine. */
-                        `${reader.reason ?? 'The reader is set up but did not answer.'} Until it does, notes are read on this phone.`
-                      : 'Nothing you write is sent anywhere. It is read on this phone, which is quicker but blunter.'}
-                </span>
-              </div>
-            </div>
           </div>
         </section>
 

@@ -11,7 +11,12 @@ import { fileURLToPath, URL } from 'node:url';
  */
 export default defineConfig(() => {
   const staticBuild = process.env.VITE_ROUTER === 'hash';
+  /* Seven characters of the commit being built, or "dev" locally. Shown in
+     Settings so a stale deployment identifies itself. */
+  const build = (process.env.VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7) || 'dev';
+
   return {
+    define: { __BUILD__: JSON.stringify(build) },
     plugins: [react()],
     esbuild: staticBuild ? { charset: 'ascii' as const } : undefined,
     build: staticBuild ? { cssTarget: 'chrome80' } : undefined,

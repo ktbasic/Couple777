@@ -20,3 +20,4 @@ src/**/*.test.js
 # stale one of these silently becomes what the app ships — and `npm run build`
 # does not regenerate them. The .tsx files are the source; nothing else.
 src/**/*.js
+vite.config.js
