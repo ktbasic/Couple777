@@ -180,21 +180,7 @@ export default function HomeScreen() {
             </ButtonLink>
           </div>
         </Section>
-      ) : (
-        /* The hero already says "Find an idea", so this is the smaller, lazier
-           version of the same offer: no filters, no browsing, just take one. */
-        <Section>
-          <div className={s.spark}>
-            <div className={s.sparkMain}>
-              <p className={s.sparkTitle}>Need a little spark? 🪄</p>
-              <p className={s.sparkBody}>Let Couple777 pick something for you.</p>
-            </div>
-            <ButtonLink to="/explore?surprise=1" variant="secondary" size="sm">
-              🎲 Get inspirations
-            </ButtonLink>
-          </div>
-        </Section>
-      )}
+      ) : null}
 
       {highlight ? (
         /* One thread, not a feed. Home's job is to say the community is alive
