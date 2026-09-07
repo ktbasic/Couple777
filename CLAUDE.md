@@ -127,7 +127,7 @@ be recommended instead of trusting a list the browser sent. Nothing in
 
 The endpoint requires a signed-in Supabase user before it calls Anthropic —
 it spends money, and an unauthenticated one is a bill with a public URL. It
-uses the anon key, never the service-role key. Persistent per-user quotas are
+uses `SUPABASE_PUBLISHABLE_KEY`, never the service-role key. Persistent per-user quotas are
 deliberately not built yet; they belong before public beta.
 
 One request per ask returns the whole ranked list and the screen pages through

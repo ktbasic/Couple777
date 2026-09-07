@@ -382,14 +382,14 @@ export function settle(
  * Supabase rather than trusted from the body, because a user id in a request
  * is a claim and a signed token is not.
  *
- * The anon key is used, never a service-role key: this only needs to know that
- * a token is real, and a key that bypasses RLS has no business in a function
- * that reads no rows.
+ * The publishable key is used, never a service-role key: this only needs to
+ * know that a token is real, and a key that bypasses RLS has no business in a
+ * function that reads no rows.
  */
 async function callerId(req: VercelRequest): Promise<string | null> {
   const url = process.env.SUPABASE_URL;
-  const anon = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !anon) return null;
+  const publishable = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !publishable) return null;
 
   const header = req.headers.authorization;
   const token = header?.startsWith('Bearer ') ? header.slice(7).trim() : '';
@@ -397,7 +397,7 @@ async function callerId(req: VercelRequest): Promise<string | null> {
 
   try {
     const r = await fetch(`${url.replace(/\/$/, '')}/auth/v1/user`, {
-      headers: { Authorization: `Bearer ${token}`, apikey: anon },
+      headers: { Authorization: `Bearer ${token}`, apikey: publishable },
     });
     if (!r.ok) return null;
     const user = (await r.json()) as { id?: string };
@@ -425,7 +425,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
     res.status(200).json({
       configured: Boolean(key),
-      auth: Boolean(process.env.SUPABASE_URL && (process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY)),
+      auth: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_PUBLISHABLE_KEY),
       corpus: DATE_IDEAS.length,
       model: MODEL,
     });

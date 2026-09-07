@@ -172,11 +172,21 @@ it.
 | `VITE_PUBLIC_APP_URL` | The address you deploy to | Only when deployed |
 | `MEMORY_AI_API_KEY` | An Anthropic API key, for reading memories | Optional |
 | `MEMORY_AI_MODEL` | Which model reads them | Optional |
+| `SUPABASE_URL` | The same Project URL again, without the `VITE_` | For date ideas |
+| `SUPABASE_PUBLISHABLE_KEY` | The same publishable key again, without the `VITE_` | For date ideas |
 
 The first four are `VITE_`-prefixed, which means they are compiled into the
-bundle and are public. The last two are not, and must never be: they are read
-by the serverless function in `api/`, on the server. Set them in Vercel under
+bundle and are public. The rest are not, and must never be: they are read by
+the serverless functions in `api/`, on the server. Set them in Vercel under
 Project Settings → Environment Variables, not in `.env.local`.
+
+The last two are the same two public values as the first two, under names
+without the prefix — `api/recommend-ideas.ts` checks that whoever is asking for
+date ideas is signed in, and a `VITE_` variable does not exist on the server.
+Only the publishable name is read there: the browser accepts either name
+because a project may show it either way, but this variable is the endpoint's
+own and is set once. Without them the endpoint refuses every request, which is
+the safe way round — the app then ranks ideas on the device.
 
 Without `MEMORY_AI_API_KEY` the memory flow reads notes on the device instead —
 coarser, but it works, and it holds the same rules. See "Reading memories"
