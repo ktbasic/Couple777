@@ -1,4 +1,4 @@
-import type { BaseIdea } from './ideaTypes';
+import type { BaseIdea } from './ideaTypes.js';
 
 /**
  * The generator's corpus. Every idea carries a `why` — the emotional reason

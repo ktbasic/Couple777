@@ -26,6 +26,9 @@ import {
 } from '../shared/ideaRank';
 import type { Daypart, IdeaFilters, Setting, Vibe } from '../shared/ideaTypes';
 
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+
 let failures = 0;
 const check = (what: string, ok: boolean, detail = '') => {
   console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${what}${detail ? ' — ' + detail : ''}`);
@@ -331,6 +334,54 @@ group('Running out is not the same as failing');
   const rs = localRecommendations(F(), everything, 5);
   check('when everything has been seen, the list is empty rather than repeated', rs.length === 0);
   check('and diversify copes with nothing to diversify', diversify([], 5).length === 0);
+}
+
+/* --------------------------- Will it even load? --------------------------- */
+
+group('The endpoint can actually be imported where it runs');
+{
+  /*
+   * This one is not about recommendations at all. It caught a production
+   * outage: the function deployed cleanly and then died on every request with
+   * ERR_MODULE_NOT_FOUND.
+   *
+   * Vercel's Node builder compiles each traced .ts to .js at the same relative
+   * path, and rewrites an import specifier only when it already ends in .ts or
+   * .tsx. An extensionless relative specifier is passed through untouched —
+   * and package.json says "type": "module", so Node resolves it strictly, with
+   * no extension guessing. `from '../shared/dateIdeas'` therefore becomes a
+   * request for a file called exactly `dateIdeas`, which does not exist.
+   *
+   * Nothing catches this before deployment: tsc resolves it, esbuild bundles
+   * it, Vite serves it, and every test here passes, because none of them are
+   * Node resolving loose ESM files on a disk. So the shape of the specifier is
+   * checked directly instead.
+   *
+   * Type-only imports are erased and cannot fail at runtime, but they are held
+   * to the same rule: the day one becomes a value import is not the day to
+   * rediscover this.
+   */
+  const shipped = ['api', 'shared'];
+  const bad: string[] = [];
+
+  for (const dir of shipped) {
+    for (const name of readdirSync(join(process.cwd(), dir))) {
+      if (!name.endsWith('.ts') || name.endsWith('.d.ts')) continue;
+      const source = readFileSync(join(process.cwd(), dir, name), 'utf8');
+      for (const m of source.matchAll(/from\s+'(\.[^']*)'/g)) {
+        const specifier = m[1];
+        if (!/\.(js|mjs|cjs|json)$/.test(specifier)) {
+          bad.push(`${dir}/${name}: ${specifier}`);
+        }
+      }
+    }
+  }
+
+  check(
+    'every relative import that ships carries a .js extension',
+    bad.length === 0,
+    bad.join('; '),
+  );
 }
 
 console.log(failures ? `\nIdeas: ${failures} failed` : '\nIdeas: all passed');

@@ -91,6 +91,24 @@ session here can talk to a real project — credentials will not change that.
 Verify what can be verified locally (typecheck, build, the RLS suite), and ask
 the user to run `docs/TWO_PHONE_TEST.md` and report where it breaks.
 
+## A relative import in `api/` or `shared/` needs its `.js`
+
+`import { DATE_IDEAS } from '../shared/dateIdeas'` deploys perfectly and then
+crashes on every request with `ERR_MODULE_NOT_FOUND`.
+
+Vercel's Node builder compiles each traced `.ts` to `.js` at the same relative
+path, and rewrites an import specifier **only when it already ends in `.ts` or
+`.tsx`**. An extensionless one is passed through untouched, and `package.json`
+says `"type": "module"`, so Node resolves it strictly with no extension
+guessing: it looks for a file called exactly `dateIdeas` and gives up.
+
+So write `'../shared/dateIdeas.js'` — the `.ts` file is what TypeScript,
+esbuild and Vite all resolve, and `.js` is what exists at runtime.
+
+Nothing local catches this: tsc resolves it, esbuild bundles it, Vite serves
+it, and every test passes, because none of them are Node resolving loose ESM
+files on a disk. `npm run test:ideas` checks the specifiers directly instead.
+
 ## vercel.json takes no comments
 
 It is schema-validated on every deployment, and an unknown key — including a

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
-import { DATE_IDEAS } from '../shared/dateIdeas';
+import { DATE_IDEAS } from '../shared/dateIdeas.js';
 import {
   diversify,
   emptyContext,
@@ -9,8 +9,8 @@ import {
   type Candidate,
   type CoupleContext,
   type Recommendation,
-} from '../shared/ideaRank';
-import type { BaseIdea, IdeaFilters } from '../shared/ideaTypes';
+} from '../shared/ideaRank.js';
+import type { BaseIdea, IdeaFilters } from '../shared/ideaTypes.js';
 
 /**
  * Ranking date ideas for one couple, on a server, so the key stays on a server.

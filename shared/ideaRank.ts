@@ -1,5 +1,5 @@
-import { DATE_IDEAS } from './dateIdeas';
-import type { BaseIdea, IdeaCategory, IdeaFilters, Vibe } from './ideaTypes';
+import { DATE_IDEAS } from './dateIdeas.js';
+import type { BaseIdea, IdeaCategory, IdeaFilters, Vibe } from './ideaTypes.js';
 
 /**
  * Which ideas a couple may be shown, and in what order.
