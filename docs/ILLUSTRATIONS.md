@@ -33,7 +33,7 @@ win.
 | | |
 | --- | --- |
 | Palette | The app's own: rose `#E4598A`, deep rose `#C93A6F`, peach `#F79C7B`, soft peach `#FBD0B9`, lavender `#9A72C0`, pale lavender `#DBD1EF`, washes `#FDEDF2` / `#FCF0EC` / `#F5EFFA`. Warm neutrals for skin and wood. No blues, no greens outside a muted sage for foliage. |
-| Characters | Rounded, warm, modern. Simplified faces — a suggestion of features, not portraits. Varied skin tones and hair across the set; do not draw the same couple 65 times. No visible brand or logos. |
+| Characters | Rounded, warm, modern. Simplified faces — a suggestion of features, not portraits. **The same two people every time**, him in lavender, her in pink: the references established it and it is what makes nine unrelated scenes read as one app rather than nine stock illustrations. No visible brand or logos. |
 | Line | Little or none. Shape-led with soft edges; where there is a line it is the same weight throughout the set. |
 | Depth | Soft light and gentle gradients, painted rather than flat: a lamp that glows, a window that is brighter than the wall, air between foreground and background. Never a hard drop shadow. |
 | Detail | Furnish the scene. The room has a plant, a mug, a picture on the wall; the ridge has a thermos and a pack. This is what a symbol does not have, and it is most of why these read as somewhere real. |
@@ -61,7 +61,7 @@ at 2× has not been drawn for this card.
 | Format | `.webp` |
 | Size | 1200×900, 4:3 — the same shape the card shows, so nothing is cropped |
 | Background | Filled, not transparent. A wash from the palette. |
-| Weight | Under 60KB each. Sixty-five of these ship in one bundle. |
+| Weight | Under 60KB each, enforced when the file is made. They are lazy-loaded per card rather than bundled, so this is a per-card cost, not a startup one — but sixty-five of them is still half a phone's patience if each is a megabyte. |
 | Filename | Exactly the `file` column below. Lowercase, no spaces. |
 
 ## The two kinds of scene
@@ -157,7 +157,7 @@ Getting these wrong — drawing them as one room — makes them meaningless.
 
 ## What is drawn, and in what
 
-Ten, in two tiers. Both render identically — `IdeaIllustration` takes
+Fifteen, in two tiers. Both render identically — `IdeaIllustration` takes
 `.webp`, `.png` and `.svg` — but only one of them is the house style.
 
 **Painted (`.webp`). The style. Match these.**
@@ -168,6 +168,11 @@ Ten, in two tiers. Both render identically — `IdeaIllustration` takes
 | `pottery.webp` | creative / playful | Be beginners at something |
 | `sunrise.webp` | outdoor, romantic | Get up for the sunrise |
 | `cinemahome.webp` | cozy indoor | Home cinema, properly |
+| `nightgame.webp` | game, late | One long game, properly |
+| `slowpark.webp` | outdoor, unhurried | An afternoon on the same blanket |
+| `slowcoffee.webp` | conversation, morning | Coffee before the phones |
+| `bike.webp` | active, out | Ride out to lunch |
+| `pressplay.webp` | long distance, `SPLIT` | Press play at the same second |
 
 **Vector (`.svg`). The floor, for scenarios with no painting yet.**
 
@@ -188,7 +193,7 @@ painting replaces one the moment there is one: `pasta` and `pottery` were
 both SVG and are not any more, and the generator now skips them by name so a
 rerun cannot put the old file back.
 
-The other 55 fall back to the category drawing until their file exists, so
+The other 50 fall back to the category drawing until their file exists, so
 the app is usable throughout and they can land in any order.
 
 ---
