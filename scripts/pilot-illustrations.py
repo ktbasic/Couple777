@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
-"""The eight pilot illustrations, and the source they are generated from.
+"""The vector pilot illustrations, and the source they are generated from.
 
     python3 scripts/pilot-illustrations.py     # writes src/assets/idea-illustrations/*.svg
 
-One generator rather than eight hand-written files, because the thing a viewer
-notices first is not any single drawing — it is whether the eight look like one
-set. Sharing `head`, `torso` and one palette makes that true by construction
-instead of by care.
+One generator rather than several hand-written files, because the thing a
+viewer notices first is not any single drawing — it is whether they look like
+one set. Sharing `head`, `torso` and one palette makes that true by
+construction instead of by care.
 
-The .svg files it writes are the assets; this is what edits them. Change a
-figure here and all eight stay in step. If the remaining 57 come from an image
-tool instead, that is fine — `IdeaIllustration` takes .webp, .png and .svg, and
-nothing about these eight has to match how the rest are made beyond the brief
-in docs/ILLUSTRATIONS.md.
+These are the floor, not the target. The house style is the painted look now
+shipping as .webp — `pasta`, `pottery`, `sunrise`, `cinemahome` — and where a
+painted scene exists it wins; `pasta` and `pottery` started here and were
+replaced, which is the expected direction of travel. What is left is the six
+scenarios that have no painting yet, kept because a drawn scene of the right
+evening still beats a category symbol.
+
+`SKIP` names the ids that have graduated. Leaving their scenes in the file
+rather than deleting them keeps the set drawable if a painting is ever pulled.
 
 Run from the repository root.
 """
@@ -270,8 +274,14 @@ scenes['videocook'] = svg(
     + f'<rect x="119" width="2" height="{H}" fill="{ROSE_SOFT}" opacity="0.5"/>'
 )
 
+# Painted over. Writing these would put a .svg next to the .webp and leave
+# which one the card shows down to glob order.
+SKIP = {'pasta', 'pottery'}
+
 os.makedirs(OUT, exist_ok=True)
-for name, data in scenes.items():
+written = [n for n in scenes if n not in SKIP]
+for name in written:
     with open(os.path.join(OUT, f'{name}.svg'), 'w') as f:
-        f.write(data)
-print(f'{len(scenes)} scenes written:', ', '.join(sorted(scenes)))
+        f.write(scenes[name])
+print(f'{len(written)} scenes written:', ', '.join(sorted(written)),
+      '\n  skipped (painted):', ', '.join(sorted(SKIP)))

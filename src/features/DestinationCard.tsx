@@ -19,25 +19,39 @@ export function DestinationCard({ destination }: { destination: Destination }) {
 
   return (
     <article className={s.card}>
-      <Photo src={destination.image} seed={destination.id} className={s.img} alt="" />
-      <span className={s.scrim} aria-hidden />
-
-      {isMatch ? <span className={s.match}>✦ Match</span> : null}
-
-      <HeartToggle
-        saved={savedByMe}
-        label={savedByMe ? 'Remove from your list' : 'Add to your list, privately'}
-        onToggle={() => {
-          dispatch({ type: 'toggleDestination', id: destination.id, personId: me.id });
-          if (!savedByMe) {
-            toast.show({ emoji: '🤫', message: `${destination.name} added, privately` });
-          }
-        }}
+      <Photo
+        src={destination.image}
+        seed={destination.id}
+        ratio="3 / 4"
+        className={s.shot}
+        alt=""
       />
 
-      <div className={s.body}>
-        <h3 className={s.name}>{destination.name}</h3>
-        <p className={s.country}>{destination.country}</p>
+      <div className={s.main}>
+        <div className={s.head}>
+          <div className={s.names}>
+            <h3 className={s.name}>{destination.name}</h3>
+            <p className={s.country}>{destination.country}</p>
+          </div>
+          <HeartToggle
+            className={s.heart}
+            saved={savedByMe}
+            label={savedByMe ? 'Remove from your list' : 'Add to your list, privately'}
+            onToggle={() => {
+              dispatch({ type: 'toggleDestination', id: destination.id, personId: me.id });
+              if (!savedByMe) {
+                toast.show({ emoji: '🤫', message: `${destination.name} added, privately` });
+              }
+            }}
+          />
+        </div>
+
+        <p className={s.blurb}>{destination.blurb}</p>
+
+        <div className={s.facts}>
+          <span className={s.fact}>☀️ {destination.bestTime}</span>
+          {isMatch ? <span className={s.match}>✦ Match</span> : null}
+        </div>
       </div>
     </article>
   );
