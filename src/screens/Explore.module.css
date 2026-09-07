@@ -470,30 +470,60 @@
 
 /* ---------- Paging through one ranking ---------- */
 
-.moreRow {
+/*
+ * Two arrows and a count, centred under the cards.
+ *
+ * Quiet on purpose: it is a way back to something you have already seen, not
+ * an action the screen is asking for. The primary button is still the one at
+ * the top of the generator.
+ */
+.pager {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: var(--s-3);
   margin-top: var(--s-4);
 }
 
-.moreBtn {
-  padding: 10px var(--s-5);
+.pageStep {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
   border-radius: var(--r-full);
   border: 1px solid var(--c-accent-edge);
   background: var(--c-surface);
   color: var(--c-accent-ink);
-  font-size: var(--t-small);
-  font-weight: 600;
   cursor: pointer;
+  transition: transform var(--d-fast) var(--ease), opacity var(--d-fast) var(--ease);
 }
 
-.moreBtn:active {
-  transform: translateY(1px);
+.pageStep:active:not(:disabled) {
+  transform: scale(0.94);
 }
 
-/* Running out is a real answer and gets said plainly, rather than the button
-   quietly starting the same five again. */
-.moreEnd,
+/* Dimmed rather than hidden: an arrow that vanishes at the end moves the one
+   next to it, and a control that moves under your thumb is worse than one
+   that is plainly unavailable. */
+.pageStep:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.pageCount {
+  min-width: 56px;
+  text-align: center;
+  font-size: var(--t-small);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-2);
+}
+
+.pageOf {
+  font-weight: 500;
+  color: var(--c-ink-4);
+}
+
 .noneFound {
   margin: 0;
   padding: 0 var(--s-4);

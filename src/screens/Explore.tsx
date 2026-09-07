@@ -157,6 +157,22 @@ const VIBES: { label: string; value: Vibe }[] = [
   { label: 'Adventurous', value: 'adventurous' },
 ];
 
+/** A plain chevron, drawn so it inherits the button's colour and dims with it. */
+function Chevron({ dir }: { dir: 'left' | 'right' }) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden focusable="false">
+      <path
+        d={dir === 'left' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /**
  * A circling arrow: the one shape that reads as "again" without a word next to
  * it. Drawn rather than an emoji so it inherits the button's colour and sits
@@ -257,23 +273,47 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
   const context = useMemo(() => contextFromState(state, me.id), [state, me.id]);
 
   const PER_PAGE = 5;
-  const showing = result ? result.items.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE) : [];
-  const more = result ? (page + 1) * PER_PAGE < result.items.length : false;
+  const pages = result ? Math.max(1, Math.ceil(result.items.length / PER_PAGE)) : 1;
+  /* Clamped rather than trusted: a page number left over from a longer list
+     would otherwise slice past the end and render an empty results block with
+     a pager under it, which looks like a bug and is one. */
+  const at = Math.min(page, pages - 1);
+  const showing = result ? result.items.slice(at * PER_PAGE, at * PER_PAGE + PER_PAGE) : [];
 
-  /** Everything on screen already, so a second page is a second page. */
+  /** Bring the results area into view once the thing to look at is in it. */
+  const revealResults = (block: ScrollLogicalPosition) =>
+    window.setTimeout(
+      () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block }),
+      60,
+    );
+
   const ask = async (next: IdeaFilters, keepShown: string[] = []) => {
     setLoading(true);
     setPage(0);
+    /*
+     * Scroll now, not when the answer arrives.
+     *
+     * The wait is the part that needed showing: pressing the button used to
+     * leave you looking at the filters you had just finished with, with the
+     * only sign that anything was happening somewhere below the fold. Centred
+     * rather than pinned to the top, so the card you pressed stays half in
+     * view — it is a wait, not a new screen.
+     */
+    revealResults('center');
+
     try {
       const got = await recommendIdeas(next, { ...context, shown: keepShown }, PER_PAGE);
       setResult(got);
       setSource(got.source);
     } finally {
       setLoading(false);
-      window.setTimeout(
-        () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-        60,
-      );
+      /*
+       * No second scroll when the answer lands. The cards render exactly where
+       * the loader was, so there is almost nothing to gain — and the wait is
+       * long enough that someone may well have scrolled off to look at their
+       * saved list, and being dragged back from that is worse than the hundred
+       * pixels it would have straightened.
+       */
     }
   };
 
@@ -339,13 +379,17 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
     await ask(next);
   };
 
-  /** More of the same list, not a different answer to the same question. */
-  const showMore = () => {
-    setPage((n) => n + 1);
-    window.setTimeout(
-      () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-      60,
-    );
+  /**
+   * Move through the one list, forwards and back.
+   *
+   * It was a "More ideas" button under the last card, which only went one way:
+   * to see page one again you had to scroll up, change something and ask
+   * again, which threw the answer away and bought a new model call. Pages are
+   * a place you can return to.
+   */
+  const goToPage = (n: number) => {
+    setPage(n);
+    revealResults('start');
   };
 
   const row = (
@@ -480,22 +524,41 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
                 </div>
 
                 {/*
-                  Paging, not re-asking. When the list runs out it says so
-                  rather than quietly starting again — being shown the same
-                  five a second time is how an app admits it has nothing left
-                  without saying it.
+                  Paging, not re-asking — and both ways.
+
+                  One list was fetched; this walks it. Nothing here asks the
+                  model again, so going back to page one costs nothing and
+                  loses nothing. The pager only appears when there is more than
+                  one page, and it sits inside the results block so the
+                  sections below it are untouched.
                 */}
-                <div className={s.moreRow}>
-                  {more ? (
-                    <button type="button" className={s.moreBtn} onClick={showMore}>
-                      More ideas
+                {pages > 1 ? (
+                  <nav className={s.pager} aria-label="Idea pages">
+                    <button
+                      type="button"
+                      className={s.pageStep}
+                      onClick={() => goToPage(at - 1)}
+                      disabled={at === 0}
+                      aria-label="Previous ideas"
+                    >
+                      <Chevron dir="left" />
                     </button>
-                  ) : (
-                    <p className={s.moreEnd}>
-                      That’s everything that fits. Change a filter to see something else.
-                    </p>
-                  )}
-                </div>
+
+                    <span className={s.pageCount} aria-live="polite">
+                      {at + 1} <span className={s.pageOf}>of</span> {pages}
+                    </span>
+
+                    <button
+                      type="button"
+                      className={s.pageStep}
+                      onClick={() => goToPage(at + 1)}
+                      disabled={at + 1 >= pages}
+                      aria-label="Next ideas"
+                    >
+                      <Chevron dir="right" />
+                    </button>
+                  </nav>
+                ) : null}
               </>
             ) : (
               /* Nothing eligible at all — almost always a budget of zero
