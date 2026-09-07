@@ -197,6 +197,31 @@ Add ideas by running `npm run coverage` first and writing against what it
 says. Both couples-together and couples-apart currently sit at zero uncovered
 combinations; keep them there.
 
+## Planning something, and telling them
+
+`PlanEdit` ends in two buttons rather than a toggle and one. **Save & invite
+partner** writes the plan and a notification naming it; **Save as a surprise
+🎁** writes the same plan with `surprise: true` and a notification that names
+nothing — no title, no place, no date, and deliberately **no `plan_id`**,
+because there is no plan the partner may open.
+
+That last part is not politeness, it is `plans_select_member` in
+`0001_init.sql`: a surprise row is invisible to the partner until the day it
+happens or its author reveals it. The notification is the only thing that
+reaches them, so it must carry nothing — `npm run test:rls` reads the source
+of that branch and fails if it ever mentions the title, place, note, link,
+date or cost.
+
+Realtime watches `notifications` as well as `plans`. It has to: a surprise
+plan never appears in the partner's `plans` subscription at all, because RLS
+hides the row, so the notification is the only event they can receive.
+
+`src/lib/deviceNotify.ts` raises a system notification when the partner's app
+is open and permission was already granted. That is the honest subset —
+reaching a closed app needs a service worker, VAPID keys, a subscriptions
+table and something server-side to send them, none of which exists. Nothing
+asks for permission yet, on purpose.
+
 ## Reading a memory
 
 The capture flow asks one open question and then two or three short ones,

@@ -87,3 +87,142 @@
   margin-top: 6px;
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------- Compact pickers: date, time, a place ---------- */
+
+/*
+ * A field with its meaning on the left.
+ *
+ * The plain text inputs were the same tall box whatever they held, so "Sep 10"
+ * and a restaurant name and an empty time all looked equally like work to do.
+ * An icon says which is which before the label is read, and the row is short
+ * enough that three of them stack without turning the screen into a form.
+ */
+.compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-hairline);
+  background: var(--c-surface);
+  transition: border-color var(--d-fast) var(--ease);
+}
+
+.compact:focus-within {
+  border-color: var(--c-accent-edge);
+}
+
+.compactIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--c-accent-ink);
+  opacity: 0.85;
+}
+
+.compactBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6px 0;
+}
+
+.compactLabel {
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+}
+
+/*
+ * The native control, stripped back to text.
+ *
+ * A date input keeps its own picker — which is the whole point on a phone,
+ * where the platform's wheel beats anything we would build — but loses the
+ * chrome that made it look like a different species from the field above it.
+ */
+.compactControl {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+  min-height: 22px;
+}
+
+.compactControl:focus {
+  outline: none;
+}
+
+.compactControl::placeholder {
+  font-weight: 500;
+  color: var(--c-ink-4);
+}
+
+/* Safari renders an empty date/time as a greyed mm/dd/yyyy; this keeps an
+   unset one reading as the invitation it is rather than as a broken value. */
+.compactControl::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+.compactControl::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  width: 0;
+  margin: 0;
+}
+
+/* Two of them side by side, which is how a date and a time are read. */
+.compactPair {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: var(--s-2);
+}
+
+/*
+ * A native picker wearing our typography.
+ *
+ * The input keeps every bit of its behaviour — it is still the thing that is
+ * tapped and still opens the platform's own wheel — and only stops drawing
+ * itself, so a date reads the same on every phone instead of in whatever
+ * order the browser's locale prefers.
+ */
+.compactStack {
+  position: relative;
+  display: block;
+  min-height: 22px;
+}
+
+.compactShown {
+  display: block;
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compactShownEmpty {
+  font-weight: 500;
+  color: var(--c-ink-4);
+}
+
+.compactHidden {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Transparent, not hidden: `display: none` would take the picker with it. */
+  color: transparent;
+  opacity: 0;
+}

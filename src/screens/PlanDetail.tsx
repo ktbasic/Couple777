@@ -201,14 +201,23 @@ export default function PlanDetailScreen() {
             <div className={s.revealMain}>
               <p className={s.revealTitle}>🎁 Hidden from {partner.name}</p>
               <p className={s.revealBody}>
-                They can see something is planned and when. Reveal it whenever you like.
+                They know a 777 moment is planned. Nothing else, until you say so.
               </p>
             </div>
             <Button
               variant="secondary"
               size="sm"
               onClick={() => {
-                dispatch({ type: 'upsertPlan', plan: { ...plan, surprise: false } });
+                /* Revealing is the moment they find out what it is, so it is
+                   the moment worth telling them about — the same message they
+                   would have had if it was never a surprise. Until now the
+                   plan row itself was invisible to them, so nothing about it
+                   could have reached them by any other route. */
+                dispatch({
+                  type: 'upsertPlan',
+                  plan: { ...plan, surprise: false },
+                  announce: 'invite',
+                });
                 toast.show({ emoji: '🎉', message: `${partner.name} can see it now` });
               }}
             >

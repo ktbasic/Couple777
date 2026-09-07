@@ -5,6 +5,7 @@
  * below is a promise the app makes to its users, so each one is checked
  * against the database rather than against the UI that happens to hide it.
  */
+import { readFile } from 'node:fs/promises';
 import { freshDb, signUp, as, asAnon, check, denied, report } from './harness.mjs';
 
 // A thrown Postgres error carries the whole WASM bundle in its stack, which
@@ -240,6 +241,34 @@ await asAnon(db, async () => {
       (await db.query(`select * from public.${t} limit 1`)).rows.length === 0);
   }
 });
+
+/*
+ * The surprise promise has two halves and only one of them is a policy.
+ *
+ * The database hides the plan row. But the app also writes a notification to
+ * the partner saying a surprise exists — and a notification is a row they are
+ * *allowed* to read. If that row ever carried the title, the place or a link
+ * to the plan, the policy above would still pass and the secret would still be
+ * out, through the one door left open on purpose.
+ *
+ * So this reads the source. Unusual for a database suite, and it belongs here
+ * rather than anywhere else: it is the same promise, checked on the other side
+ * of the wall.
+ */
+console.log('\nA surprise announcement carries nothing it should not');
+{
+  const src = await readFile(new URL('../../src/context/store.tsx', import.meta.url), 'utf8');
+  const at = src.indexOf("if (action.announce === 'surprise') {");
+  const branch = src.slice(at, src.indexOf('} else {', at));
+  check('the surprise branch was found', at > 0 && branch.length > 0 && branch.length < 900);
+  for (const leak of ['plan.title', 'plan.place', 'plan.note', 'plan.link', 'plan.date', 'plan.cost']) {
+    check(`it does not mention ${leak}`, !branch.includes(leak));
+  }
+  check(
+    'and it points at no plan, because there is none they may open',
+    /plan_id:\s*null/.test(branch),
+  );
+}
 
 console.log('\nNo table left open');
 const open = await db.query(`

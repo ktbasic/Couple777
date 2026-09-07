@@ -72,6 +72,29 @@
   border-color: var(--c-accent-edge);
 }
 
+/*
+ * The second of two real choices.
+ *
+ * `secondary` is a card-coloured button for something incidental; this is for
+ * an action that matters as much as the one above it and differs in kind
+ * rather than in weight — saving quietly instead of announcing. So it keeps
+ * the accent, and gives up only the fill.
+ */
+.outline {
+  background: var(--c-surface);
+  color: var(--c-accent-ink);
+  border: 1px solid var(--c-accent);
+  font-weight: 700;
+}
+
+.outline:hover {
+  background: var(--c-accent-wash);
+}
+
+.outline:disabled {
+  border-color: var(--c-accent-edge);
+}
+
 .quiet {
   background: var(--c-surface-2);
   color: var(--c-ink-2);

@@ -23,7 +23,8 @@ import type {
 } from '@/lib/types';
 import { completeCycle } from '@/lib/cycles';
 import { buildSeedState } from '@/data/seed';
-import { today } from '@/lib/dates';
+import { formatShort, today } from '@/lib/dates';
+import { announceOnThisDevice } from '@/lib/deviceNotify';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/auth';
 import * as repo from '@/lib/db/repo';
@@ -95,7 +96,18 @@ type Action =
   | { type: 'renamePerson'; personId: ID; name: string }
   | { type: 'markNotificationsRead'; ids: ID[] }
   | { type: 'setNotifications'; enabled: boolean }
-  | { type: 'upsertPlan'; plan: Plan }
+  /*
+   * `announce` tells the other person, and it rides on the save rather than
+   * being its own action for two reasons that both bite:
+   *
+   * `persist` receives the state from the render that dispatched, so a second
+   * action fired in the same tick cannot find a plan the first one just
+   * added — the notification would silently never be sent. And both writes
+   * would be in flight at once, so a notification carrying `plan_id` could
+   * reach the table before the plan row it points at, and fail its foreign
+   * key. One action, in order: write the plan, then tell them.
+   */
+  | { type: 'upsertPlan'; plan: Plan; announce?: 'invite' | 'surprise' }
   | { type: 'removePlan'; id: ID }
   | { type: 'completeCycle'; cycleId: ID }
   | { type: 'sendInvite'; planId: ID; message?: string }
@@ -600,6 +612,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         { event: '*', schema: 'public', table: 'couples', filter: `id=eq.${coupleId}` },
         () => void load(userId),
       )
+      /*
+       * The one that was missing, and the reason "they were told immediately"
+       * was not true: plans were watched but notifications were not, so being
+       * told your partner had planned something waited for the next navigation
+       * or refresh. A surprise made it worse — the plan row is hidden from the
+       * partner by RLS, so the plans subscription never fires for them at all
+       * and the notification was the only thing that could ever arrive.
+       */
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          void load(userId);
+          announceOnThisDevice(payload.new as { title?: string; body?: string | null });
+        },
+      )
       .subscribe();
     return () => {
       void db.removeChannel(channel);
@@ -715,6 +748,51 @@ async function persist(action: Action, ctx: PersistContext): Promise<boolean> {
         },
         known ? action.plan.id : undefined,
       );
+
+      /*
+       * What the other person finds out — after the row exists, never before.
+       *
+       * Two shapes, and the difference is the whole feature. An invited plan
+       * names itself and links to itself. A surprise names nothing and links
+       * nowhere: no title, no place, no date, and deliberately **no plan_id**,
+       * because there is no plan they are allowed to open. RLS hides a future
+       * surprise row from them entirely, so a link would point at a plan that,
+       * as far as the database is concerned, does not exist for them.
+       *
+       * The secrecy is not this copy being coy. It is `plans_select_member` in
+       * 0001_init.sql, which withholds the row until the day it happens or its
+       * author reveals it. This notification cannot leak what it never carries.
+       */
+      if (action.announce) {
+        const plan = action.plan;
+        const from = me?.name ?? 'Your partner';
+        /* Someone can plan a first date before their partner has taken the
+           second seat. That plan still saves; there is simply nobody to tell. */
+        if (!partner || !space.couple.partnerJoined) return true;
+
+        if (action.announce === 'surprise') {
+          await repo.notify({
+            couple_id: coupleId,
+            user_id: partner.id,
+            kind: 'plan_invite',
+            title: `${from} planned a surprise for your next date`,
+            body: 'The details are staying secret for now. 🤫',
+            plan_id: null,
+          });
+        } else {
+          await repo.notify({
+            couple_id: coupleId,
+            user_id: partner.id,
+            kind: 'plan_invite',
+            title: `${from} planned your next date 💗`,
+            /* "Sep 10 · Dinner at the place on the corner". The short date —
+               formatPlanDate carries its own separator, so it would read as
+               three things joined by the same mark. */
+            body: [formatShort(plan.date), plan.title].filter(Boolean).join(' · '),
+            plan_id: plan.id,
+          });
+        }
+      }
       return true;
     }
 

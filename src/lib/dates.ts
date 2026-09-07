@@ -59,6 +59,26 @@ export function formatPlanDate(iso: ISODate): string {
   return `${DAYS[d.getDay()]} · ${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
 }
 
+/**
+ * "Sep 10, 2026" — a date on a form, spelled the same on every phone.
+ *
+ * A native date input renders in the browser's locale, so the same plan reads
+ * 09/14/2026 on one device and 14/09/2026 on another. The year is included
+ * because this one is a field being filled in, where "Sep 10" leaves a real
+ * question open.
+ */
+export function formatWithYear(iso: ISODate): string {
+  const d = fromISODate(iso);
+  return `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+/** "19:00" from a native time value, and nothing when it has none. */
+export function formatClock(value: string): string {
+  const [h, m] = value.split(':');
+  if (!h || !m) return '';
+  return `${h.padStart(2, '0')}:${m.slice(0, 2)}`;
+}
+
 /** "Sep 5" */
 export function formatShort(iso: ISODate): string {
   const d = fromISODate(iso);

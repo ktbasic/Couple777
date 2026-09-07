@@ -2,21 +2,27 @@ import { useState } from 'react';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { BackBar, Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
-import { Input, Textarea } from '@/components/ui/Field';
+import { CompactField, CompactPair, Input, Textarea } from '@/components/ui/Field';
+import { CalendarMark, ClockMark, LinkMark, PlaceMark } from '@/components/ui/FieldIcons';
 import { useToast } from '@/components/ui/Toast';
 import { useStore } from '@/context/store';
 import { DATE_IDEAS } from '@/data/dateIdeas';
 import { ADVENTURE_IDEAS } from '@/data/adventures';
-import { TIER_META, addDays, today } from '@/lib/dates';
-import { CYCLE_NOUN } from '@/lib/cycles';
+import { TIER_META, addDays, formatClock, formatWithYear, today } from '@/lib/dates';
 import { uid } from '@/lib/id';
 import type { Plan, RitualTier } from '@/lib/types';
 import s from './PlanEdit.module.css';
 
-const EMOJI: Record<RitualTier, string[]> = {
-  day: ['🍷', '🍝', '🎬', '🌙', '☕', '🎨', '🕯️', '🎧', '🥐', '💬'],
-  week: ['🏔️', '🏞️', '♨️', '🎄', '🚆', '🥾', '🍇', '🏛️', '🎢', '🧳'],
-  month: ['✈️', '🗼', '🏝️', '🏜️', '🌋', '🎌', '🚗', '🧭', '🌌', '⛩️'],
+/*
+ * A plan still carries an emoji — it is what Home and the timeline show — but
+ * nobody is asked to pick one any more. Choosing a pictogram was the longest
+ * row on the screen and the least of what makes a plan, so it comes from
+ * whatever the plan was started from, or from the rhythm it belongs to.
+ */
+const DEFAULT_EMOJI: Record<RitualTier, string> = {
+  day: '🍷',
+  week: '🏔️',
+  month: '✈️',
 };
 
 export default function PlanEditScreen() {
@@ -53,9 +59,7 @@ export default function PlanEditScreen() {
       sourceDestination?.name ??
       '',
   );
-  const [emoji, setEmoji] = useState(
-    existing?.emoji ?? sourceIdea?.emoji ?? sourceAdventure?.emoji ?? EMOJI[tier][0],
-  );
+  const emoji = existing?.emoji ?? sourceIdea?.emoji ?? sourceAdventure?.emoji ?? DEFAULT_EMOJI[tier];
   const [date, setDate] = useState(
     existing?.date ?? (cycle.dueDate < today() ? addDays(today(), 3) : cycle.dueDate),
   );
@@ -77,9 +81,18 @@ export default function PlanEditScreen() {
   const [link, setLink] = useState(existing?.link ?? '');
   const [transport, setTransport] = useState(existing?.trip?.transport ?? '');
   const [reserved, setReserved] = useState(existing?.reserved ?? false);
-  const [surprise, setSurprise] = useState(existing?.surprise ?? params.get('surprise') === '1');
+  const [saving, setSaving] = useState(false);
 
-  const save = () => {
+  /*
+   * Whether it is a surprise is decided by which button is pressed, not by a
+   * switch further up the screen. The toggle and the two buttons said the same
+   * thing twice, and a toggle can be left in a state you have forgotten about
+   * while a button is a sentence you finish: save and tell them, or save and
+   * do not.
+   */
+  const save = (asSurprise: boolean) => {
+    if (saving) return;
+    setSaving(true);
     const plan: Plan = {
       id: existing?.id ?? uid('pl'),
       cycleId: cycle.id,
@@ -89,7 +102,7 @@ export default function PlanEditScreen() {
       time: time.trim() || undefined,
       endDate: existing?.endDate,
       createdBy: existing?.createdBy ?? me.id,
-      surprise,
+      surprise: asSurprise,
       place: place.trim() || undefined,
       note: note.trim() || undefined,
       link: link.trim() || undefined,
@@ -113,10 +126,15 @@ export default function PlanEditScreen() {
         : undefined,
     };
 
-    dispatch({ type: 'upsertPlan', plan });
+    /* Telling them rides on the save and happens after it, so nobody is ever
+       told about a plan that failed to write. */
+    dispatch({ type: 'upsertPlan', plan, announce: asSurprise ? 'surprise' : 'invite' });
+
     toast.show({
-      emoji: surprise ? '🤫' : '✓',
-      message: surprise ? `Hidden from ${partner.name} until the day` : "That's your plan",
+      emoji: asSurprise ? '🎁' : '💌',
+      message: asSurprise
+        ? `${partner.name} knows something is planned, not what`
+        : `${partner.name} has been told`,
     });
     navigate(`/plan/${plan.id}`, { replace: true });
   };
@@ -137,9 +155,8 @@ export default function PlanEditScreen() {
             Your {meta.cadence} moment
           </p>
           <h1 className={s.title}>
-            {existing ? 'Change the plan' : `What shall we do for this ${CYCLE_NOUN[tier]}?`}
+            {existing ? 'Change the plan' : 'Already have something in mind?'}
           </h1>
-          <p className={s.sub}>{meta.hint}</p>
 
           {sourceIdea || sourceAdventure || sourceDestination ? (
             <p className={s.fromIdea}>
@@ -153,79 +170,91 @@ export default function PlanEditScreen() {
           ) : null}
         </header>
 
+        {/*
+          Only the title is needed. Nothing else says "optional", because
+          labelling six things optional is a longer way of saying one thing is
+          not — and an empty field already looks like a field you may leave.
+        */}
         <div className={s.form}>
           <Input
-            label="What are you doing?"
+            label="Plan title"
             placeholder={tier === 'day' ? 'Dinner at the place on the corner' : 'Somewhere new'}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
 
-          <div>
-            <p className={s.label}>Pick something to remember it by</p>
-            <div className={`${s.emojiRow} no-scrollbar`}>
-              {EMOJI[tier].map((e) => (
-                <button
-                  key={e}
-                  type="button"
-                  aria-label={`Use ${e}`}
-                  aria-pressed={emoji === e}
-                  className={[s.emoji, emoji === e ? s.emojiOn : ''].filter(Boolean).join(' ')}
-                  onClick={() => setEmoji(e)}
-                >
-                  {e}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className={s.pair}>
-            <Input label="When" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            <Input label="Time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-          </div>
-
-          <Input
-            label={tier === 'day' ? 'Where' : 'Destination'}
-            placeholder="Optional"
-            value={place}
-            onChange={(e) => setPlace(e.target.value)}
-          />
-
-          {rich ? (
-            <Input
-              label="Getting there"
-              placeholder="Train from Munich, about 2 hours"
-              value={transport}
-              onChange={(e) => setTransport(e.target.value)}
-            />
-          ) : null}
-
-          <Input
-            label={tier === 'month' ? 'Rough budget' : 'Rough cost'}
-            placeholder="Optional"
-            value={cost}
-            onChange={(e) => setCost(e.target.value)}
-          />
-
-          <Input
-            label="Link"
-            placeholder="Restaurant page, listing, tickets…"
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-            hint="Optional. Anything you want to find again quickly."
-          />
-
           <Textarea
-            label="Anything worth noting"
-            placeholder="Bookings, times, who is driving…"
+            label="Details"
+            placeholder="A few details to remember or share..."
+            rows={3}
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
 
+          <CompactPair>
+            <CompactField
+              label="Date"
+              icon={<CalendarMark />}
+              type="date"
+              value={date}
+              display={date ? formatWithYear(date) : ''}
+              placeholder="Pick a date"
+              onChange={(e) => setDate(e.target.value)}
+            />
+            <CompactField
+              label="Time"
+              icon={<ClockMark />}
+              type="time"
+              value={time}
+              display={time ? formatClock(time) : ''}
+              placeholder="Add time"
+              onChange={(e) => setTime(e.target.value)}
+            />
+          </CompactPair>
+
+          <CompactField
+            label={tier === 'day' ? 'Where' : 'Destination'}
+            icon={<PlaceMark />}
+            placeholder="Add a place"
+            value={place}
+            onChange={(e) => setPlace(e.target.value)}
+          />
+
+          <CompactField
+            label="Link"
+            icon={<LinkMark />}
+            type="url"
+            inputMode="url"
+            placeholder="Restaurant page, listing, tickets..."
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+          />
+
+          {/*
+            A trip still needs the two things a trip needs. They are not on the
+            7-day screen, where they were two more boxes on the way to a
+            Tuesday evening.
+          */}
+          {rich ? (
+            <>
+              <Input
+                label="Getting there"
+                placeholder="Train from Munich, about 2 hours"
+                value={transport}
+                onChange={(e) => setTransport(e.target.value)}
+              />
+              <Input
+                label={tier === 'month' ? 'Rough budget' : 'Rough cost'}
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+              />
+            </>
+          ) : null}
+
           <label className={s.toggle}>
             <div className={s.toggleMain}>
               <p className={s.toggleTitle}>Already reserved</p>
-              <p className={s.toggleBody}>Marks it as booked so neither of you wonders.</p>
+              <p className={s.toggleBody}>Mark it as booked.</p>
             </div>
             <input
               type="checkbox"
@@ -235,28 +264,30 @@ export default function PlanEditScreen() {
             />
             <span className={[s.switch, reserved ? s.switchOn : ''].filter(Boolean).join(' ')} aria-hidden />
           </label>
-
-          <label className={s.toggle}>
-            <div className={s.toggleMain}>
-              <p className={s.toggleTitle}>Keep it a surprise</p>
-              <p className={s.toggleBody}>
-                {partner.name} will see that something is planned, but not what it is.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={surprise}
-              onChange={(e) => setSurprise(e.target.checked)}
-              style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
-            />
-            <span className={[s.switch, surprise ? s.switchOn : ''].filter(Boolean).join(' ')} aria-hidden />
-          </label>
         </div>
 
+        {/*
+          Two endings, and the difference between them is what the other person
+          finds out. Both save the same plan to the same place; one tells them
+          what it is and one tells them only that there is one.
+        */}
         <div className={s.actions}>
-          <Button variant="accent" size="lg" block onClick={save}>
-            {existing ? 'Save changes' : 'Save plan'}
+          <Button
+            variant="accent"
+            size="lg"
+            block
+            disabled={saving}
+            onClick={() => save(false)}
+          >
+            {existing ? 'Save changes' : 'Save & invite partner'}
           </Button>
+
+          {existing ? null : (
+            <Button variant="outline" size="lg" block disabled={saving} onClick={() => save(true)}>
+              Save as a surprise 🎁
+            </Button>
+          )}
+
           {existing ? (
             <button type="button" className={s.delete} onClick={remove}>
               Remove this plan

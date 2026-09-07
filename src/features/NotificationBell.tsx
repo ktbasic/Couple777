@@ -37,6 +37,10 @@ export function NotificationBell() {
     title: n.title,
     body: n.body ?? '',
     to: n.plan_id ? `/plan/${n.plan_id}` : '/',
+    /* Only when there is one to see. A surprise carries no plan_id, because
+       there is no plan the partner is allowed to open yet — offering "See
+       plan" there would be an invitation to a locked door. */
+    cta: n.plan_id ? 'See plan' : undefined,
     at: new Date(n.created_at).getTime(),
     read: Boolean(n.read_at) || state.readNotificationIds.includes(n.id),
   }));

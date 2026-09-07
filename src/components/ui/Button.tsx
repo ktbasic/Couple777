@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import s from './Button.module.css';
 
-type Variant = 'primary' | 'accent' | 'secondary' | 'quiet' | 'ghost';
+type Variant = 'primary' | 'accent' | 'secondary' | 'outline' | 'quiet' | 'ghost';
 type Size = 'sm' | 'md' | 'lg';
 
 interface Common {
