@@ -148,6 +148,22 @@ it spends money, and an unauthenticated one is a bill with a public URL. It
 uses `SUPABASE_PUBLISHABLE_KEY`, never the service-role key. Persistent per-user quotas are
 deliberately not built yet; they belong before public beta.
 
+It runs on `claude-sonnet-5` (`RECOMMEND_AI_MODEL`), not the memory reader's
+model. Everything that needs judgement is already decided in code by the time
+the model is called, so the job is ordering twenty vetted ideas and writing a
+sentence for each — and on a screen someone is waiting at, answering sooner is
+worth more than answering deeper. Haiku is not a drop-in: it rejects
+`output_config.effort`, which this request sends.
+
+Three timeouts, in this order and never any other: the phone gives up at 30s,
+the SDK at 45s, the platform at 60s. The phone must be first so it can fall
+back; the request must outlive it so it still finishes and still logs how long
+it took; the platform must never be the one to kill it, because that looks
+exactly like the model failing and explains nothing. `npm run test:ideas`
+checks the ladder. Every answer logs one greppable line —
+`[recommend-ideas] ok model=… auth=…ms model_call=…ms total=…ms` — and returns
+the same numbers, which `?debug=1` shows.
+
 One request per ask returns the whole ranked list and the screen pages through
 it. Model output is **not** deterministic and nothing claims it is —
 eligibility, tiering and the device fallback are; the model's ordering is

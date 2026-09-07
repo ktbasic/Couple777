@@ -17,7 +17,13 @@ import {
   MOOD_OPTIONS,
   generateAdventures,
 } from '@/lib/generator';
-import { recommendIdeas, fallbackReason, type RecommendationSource, type Recommendations } from '@/lib/ideaAi';
+import {
+  recommendIdeas,
+  fallbackReason,
+  lastLatency,
+  type RecommendationSource,
+  type Recommendations,
+} from '@/lib/ideaAi';
 import { contextFromState } from '@/lib/ideaContext';
 import { useStore } from '@/context/store';
 import { TIER_META } from '@/lib/dates';
@@ -168,6 +174,41 @@ function RefreshMark() {
       />
       <path d="M20 3.5V9h-5.5" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  );
+}
+
+/**
+ * What the screen says while it waits.
+ *
+ * One line held for the whole wait is fine for one second and wrong for
+ * fifteen: a message that has not changed reads as a message that is stuck.
+ * These move, slowly, and each one is true of what is actually happening at
+ * that moment rather than invented progress — nothing here is a fake
+ * percentage. The last one is the honest one, and it is the last because by
+ * then the phone is about to stop waiting anyway.
+ */
+const WAITING: { after: number; line: string }[] = [
+  { after: 0, line: 'Finding something for you two…' },
+  { after: 4_000, line: 'Reading what you both like…' },
+  { after: 10_000, line: 'Narrowing it down…' },
+  { after: 18_000, line: 'Nearly there — this one is taking a moment.' },
+];
+
+function WaitingLine() {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const started = Date.now();
+    const id = window.setInterval(() => setElapsed(Date.now() - started), 500);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const line = [...WAITING].reverse().find((w) => elapsed >= w.after)?.line ?? WAITING[0].line;
+
+  return (
+    <p className={s.loadingText} aria-live="polite">
+      {line}
+    </p>
   );
 }
 
@@ -415,7 +456,7 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
               <span className={s.loadingDot} />
               <span className={s.loadingDot} />
             </span>
-            <p className={s.loadingText}>Finding something for you two…</p>
+            <WaitingLine />
           </div>
         ) : result ? (
           <>
@@ -525,9 +566,18 @@ const RANKER_LABEL: Record<RecommendationSource, string> = {
 
 function RankerBadge({ source }: { source: RecommendationSource }) {
   const why = source === 'device' ? fallbackReason() : null;
+  const t = lastLatency();
   return (
     <p className={[s.rankBadge, source === 'model' ? s.rankBadgeModel : s.rankBadgeLocal].join(' ')}>
       <span>{RANKER_LABEL[source]}</span>
+      {/* Where the time went, so "it feels slow" becomes a number worth acting
+          on — and so the model call can be told apart from the auth check. */}
+      {t ? (
+        <span className={s.rankBadgeWhy}>
+          {Math.round(t.totalMs / 100) / 10}s total · model {Math.round(t.modelMs / 100) / 10}s ·
+          auth {t.authMs}ms{t.outputTokens ? ` · ${t.outputTokens} tokens out` : ''}
+        </span>
+      ) : null}
       {why ? <span className={s.rankBadgeWhy}>why: {why}</span> : null}
     </p>
   );

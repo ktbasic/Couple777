@@ -27,15 +27,42 @@ import type { IdeaFilters } from '@shared/ideaTypes';
 
 export type RecommendationSource = 'model' | 'device' | 'rules';
 
+/** Where the time went, when the endpoint answered. Milliseconds. */
+export interface Timings {
+  authMs: number;
+  modelMs: number;
+  totalMs: number;
+  outputTokens?: number;
+}
+
 export interface Recommendations {
   source: RecommendationSource;
   items: Recommendation[];
   /** True when the corpus is out of things to offer, not when a call failed. */
   exhausted: boolean;
+  timings?: Timings;
+}
+
+/** The last answer's timings, shown only in debug. */
+let lastTimings: Timings | null = null;
+export function lastLatency(): Timings | null {
+  return lastTimings;
 }
 
 const ENDPOINT = '/api/recommend-ideas';
-const TIMEOUT_MS = 15_000;
+/*
+ * Thirty seconds, up from fifteen — because fifteen was cutting off a request
+ * that was on its way. The first live deployment fell back on every ask with
+ * "AbortError: Fetch is aborted": the endpoint was working, the model was
+ * answering, and the phone had already stopped listening.
+ *
+ * It sits inside two larger ceilings on purpose. The SDK gives the model 45s
+ * and the platform allows 60, so when the phone does give up the request still
+ * finishes and still writes down how long it took. The alternative — the
+ * server being killed at the same moment — logs nothing, and a fallback with
+ * no reason attached is how the last three days went.
+ */
+const TIMEOUT_MS = 30_000;
 
 /** Why the phone did the ranking. Shown only in debug. */
 let lastFallbackReason: string | null = null;
@@ -71,19 +98,24 @@ export async function recommendIdeas(
         source?: RecommendationSource;
         recommendations?: Recommendation[];
         exhausted?: boolean;
+        timings?: Timings;
       };
       lastFallbackReason = null;
+      lastTimings = body.timings ?? null;
       return {
         source: body.source === 'model' ? 'model' : 'rules',
         items: body.recommendations ?? [],
         exhausted: Boolean(body.exhausted),
+        timings: body.timings,
       };
     }
 
     const body = (await response.json().catch(() => ({}))) as {
       error?: string;
       upstream?: { status?: number; type?: string; message?: string };
+      timings?: Timings;
     };
+    lastTimings = body.timings ?? null;
     const up = body.upstream;
     lastFallbackReason = [
       `${response.status} ${body.error ?? response.statusText}`,
@@ -93,7 +125,13 @@ export async function recommendIdeas(
       .filter(Boolean)
       .join(' ');
   } catch (e) {
-    lastFallbackReason = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+    lastTimings = null;
+    lastFallbackReason =
+      e instanceof Error && e.name === 'AbortError'
+        ? `gave up waiting after ${TIMEOUT_MS / 1000}s`
+        : e instanceof Error
+          ? `${e.name}: ${e.message}`
+          : String(e);
   }
 
   console.warn(`[couple777] ideas ranked on this device — ${lastFallbackReason}`);

@@ -384,5 +384,45 @@ group('The endpoint can actually be imported where it runs');
   );
 }
 
+group('The three timeouts fire in a useful order');
+{
+  /*
+   * Client < SDK < platform, and never any other way round.
+   *
+   * Getting this backwards is what produced "AbortError: Fetch is aborted" on
+   * every ask in production: the phone gave up at 15s while the model was
+   * still answering. The order matters beyond that one bug — when the phone
+   * does give up, the request has to survive long enough to finish and write
+   * down how long it took, and the platform must never be the thing that
+   * kills it, because a platform kill looks exactly like the model failing
+   * and explains nothing.
+   */
+  const read = (file: string) => readFileSync(join(process.cwd(), file), 'utf8');
+  const num = (source: string, re: RegExp): number => {
+    const m = source.match(re);
+    return m ? Number(m[1].replace(/_/g, '')) : NaN;
+  };
+
+  const client = read('src/lib/ideaAi.ts');
+  const server = read('api/recommend-ideas.ts');
+
+  const clientMs = num(client, /const TIMEOUT_MS = ([\d_]+);/);
+  const sdkMs = num(server, /timeout: ([\d_]+),\s*maxRetries/);
+  const platformS = num(server, /maxDuration: (\d+)/);
+
+  check('the phone gives up first', clientMs < sdkMs, `${clientMs}ms < ${sdkMs}ms`);
+  check(
+    'with real headroom, not a rounding error',
+    sdkMs - clientMs >= 10_000,
+    `${(sdkMs - clientMs) / 1000}s of headroom`,
+  );
+  check(
+    'and the platform outlasts the request it is running',
+    platformS * 1000 > sdkMs,
+    `${platformS}s > ${sdkMs / 1000}s`,
+  );
+  check('the client waits at least 30s', clientMs >= 30_000, `${clientMs / 1000}s`);
+}
+
 console.log(failures ? `\nIdeas: ${failures} failed` : '\nIdeas: all passed');
 process.exit(failures ? 1 : 0);

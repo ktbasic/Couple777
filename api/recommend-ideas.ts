@@ -151,7 +151,22 @@ page through them. Best first.`;
 
 /* --------------------------------- Calling -------------------------------- */
 
-const MODEL = process.env.MEMORY_AI_MODEL || 'claude-opus-5';
+/*
+ * Its own variable, not the memory reader's.
+ *
+ * Reading a memory is a judgement call about someone's evening and is worth a
+ * heavy model. Ranking is not: eligibility, tiering, the diversity rule and
+ * every guardrail are already decided in code before the model sees anything,
+ * so what is left is ordering at most twenty already-vetted ideas and writing
+ * a sentence for each. Sonnet does that well and answers sooner, and sooner
+ * is the whole point on a screen someone is waiting at.
+ *
+ * Not Haiku, for one concrete reason rather than taste: Haiku 4.5 rejects
+ * `output_config.effort`, which this request sends, so it is not a drop-in.
+ * Moving to it would mean dropping effort as well, and that is a change worth
+ * measuring rather than smuggling into a latency fix.
+ */
+const MODEL = process.env.RECOMMEND_AI_MODEL || 'claude-sonnet-5';
 
 /** Thinking spends from the same budget, so a tight ceiling returns nothing. */
 const MAX_TOKENS = 6000;
@@ -258,14 +273,33 @@ export function parsePicks(text: string, how: string): Pick[] {
   return parsed.picks;
 }
 
+export interface Timings {
+  /** Verifying the caller's Supabase token. */
+  authMs: number;
+  /** The Anthropic request, wall clock, retries included. */
+  modelMs: number;
+  /** Everything, from entering the handler to answering. */
+  totalMs: number;
+  /** What the model actually charged us for, when it says. */
+  outputTokens?: number;
+}
+
 async function rank(
   f: IdeaFilters,
   ctx: CoupleContext,
   candidates: Candidate[],
   count: number,
   apiKey: string,
-): Promise<Pick[]> {
-  const client = new Anthropic({ apiKey, timeout: 40_000, maxRetries: 1 });
+): Promise<{ picks: Pick[]; outputTokens?: number }> {
+  /*
+   * Comfortably above the browser's own 30s ceiling and comfortably below
+   * maxDuration, so the three timeouts fire in the only order that is any use:
+   * the phone gives up first and falls back, this request still finishes and
+   * still writes down how long it took, and the platform never kills us
+   * mid-call — which looks identical to the model failing and explains
+   * nothing.
+   */
+  const client = new Anthropic({ apiKey, timeout: 45_000, maxRetries: 1 });
 
   let response: Anthropic.Message;
   let how = 'structured output';
@@ -284,7 +318,7 @@ async function rank(
       `${how}: empty response (stop_reason=${response.stop_reason}, output_tokens=${response.usage?.output_tokens})`,
     );
   }
-  return parsePicks(text, how);
+  return { picks: parsePicks(text, how), outputTokens: response.usage?.output_tokens };
 }
 
 /* -------------------------------- Guarding -------------------------------- */
@@ -417,6 +451,7 @@ const asArray = (v: unknown, max: number): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, max) : [];
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const startedAt = Date.now();
   const key = process.env.MEMORY_AI_API_KEY || process.env.ANTHROPIC_API_KEY;
 
   /* Whether this is switched on, and whether the pieces it needs are here.
@@ -437,7 +472,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  const authStartedAt = Date.now();
   const user = await callerId(req);
+  const authMs = Date.now() - authStartedAt;
   if (!user) {
     res.status(401).json({ error: 'sign_in_required' });
     return;
@@ -488,19 +525,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  const modelStartedAt = Date.now();
   try {
-    const picks = await rank(filters, ctx, candidates, count, key);
+    const { picks, outputTokens } = await rank(filters, ctx, candidates, count, key);
+    const modelMs = Date.now() - modelStartedAt;
+    const timings: Timings = {
+      authMs,
+      modelMs,
+      totalMs: Date.now() - startedAt,
+      outputTokens,
+    };
+    /*
+     * One greppable line per request. "It felt slow" is not something anyone
+     * can act on; "model=claude-sonnet-5 model=8420ms auth=180ms" says whether
+     * to change the model, the timeout, or neither.
+     */
+    console.log(
+      `[recommend-ideas] ok model=${MODEL} auth=${authMs}ms model_call=${modelMs}ms total=${timings.totalMs}ms candidates=${candidates.length} out_tokens=${outputTokens ?? '-'}`,
+    );
     res.status(200).json({
       source: 'model',
       recommendations: settle(picks, candidates, count),
       exhausted: candidates.length <= count,
+      timings,
     });
   } catch (e) {
+    const modelMs = Date.now() - modelStartedAt;
     const upstream = describe(e);
     console.error(
-      `[recommend-ideas] FAILED model=${MODEL} ${upstream.status ?? '-'} ${upstream.type ?? ''} ${upstream.message}`,
+      `[recommend-ideas] FAILED model=${MODEL} auth=${authMs}ms model_call=${modelMs}ms total=${Date.now() - startedAt}ms ${upstream.status ?? '-'} ${upstream.type ?? ''} ${upstream.message}`,
     );
-    res.status(upstream.status === 429 ? 429 : 502).json({ error: 'ai_unavailable', upstream });
+    res.status(upstream.status === 429 ? 429 : 502).json({
+      error: 'ai_unavailable',
+      upstream,
+      timings: { authMs, modelMs, totalMs: Date.now() - startedAt },
+    });
   }
 }
 
