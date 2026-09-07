@@ -6,6 +6,8 @@ import {
   emptyContext,
   localRecommendations,
   rankCandidates,
+  tagsFor,
+  MAX_PER_CATEGORY,
   type Candidate,
   type CoupleContext,
   type Recommendation,
@@ -56,28 +58,13 @@ const SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['id', 'title', 'description', 'tags', 'reason'],
+        required: ['id', 'reason'],
         properties: {
           id: { type: 'string', description: 'Must be one of the ids given. Never anything else.' },
-          title: {
-            type: 'string',
-            description:
-              "The idea's own title, or a warmer wording of the same activity. Never a different activity.",
-          },
-          description: {
-            type: 'string',
-            description: 'One or two short sentences describing what they would actually do.',
-          },
-          tags: {
-            type: 'array',
-            items: { type: 'string' },
-            maxItems: 3,
-            description: 'Two or three short words. Where, what kind, what it costs.',
-          },
           reason: {
             type: 'string',
             description:
-              'One sentence on why this suits this couple, grounded only in what you were told.',
+              'At most 100 characters. One short sentence on why this suits this couple. Never repeat the title.',
           },
         },
       },
@@ -87,9 +74,6 @@ const SCHEMA = {
 
 interface Pick {
   id: string;
-  title: string;
-  description: string;
-  tags: string[];
   reason: string;
 }
 
@@ -97,9 +81,12 @@ interface Pick {
 
 const SYSTEM = `You choose which date ideas to show a couple, from a list you are given.
 
-You are ranking and wording. You are not inventing. Every id you return must be
-one of the ids in the list; an id that is not in the list is a failure, not a
-suggestion, and it will be discarded.
+You are ordering them and writing one short line for each. You are not writing
+the cards — the app already owns every idea's title, description, pictures and
+tags, and will use its own. Do not restate them.
+
+Every id you return must be one of the ids in the list. An id that is not in
+the list is a failure, not a suggestion, and it will be discarded.
 
 WHAT THE TIERS MEAN
 
@@ -114,11 +101,7 @@ chose those filters and a worse match is not a better idea. Your judgement is
 for ordering *within* a tier, and for choosing which near misses are worth
 showing when there are not enough exact matches.
 
-When you include a near miss, say what it gives up, plainly, in its reason.
-"A morning option was thin, so this is an evening one" is honest. Pretending it
-matches is not.
-
-WHAT MAKES A GOOD FIVE
+WHAT MAKES A GOOD ORDER
 
 - Variety. Five suggestions that are all cooking is a worse answer than four
   plus something different, even if the fifth scored well. Vary what they would
@@ -130,21 +113,26 @@ WHAT MAKES A GOOD FIVE
   Never invent a shared history. If you have little to go on, write a reason
   about the idea rather than about them.
 
-WORDING
+THE REASON
 
-- title: their idea's title, or a warmer wording of the same activity. You may
-  make "Cook one dish from scratch" sound like an evening. You may not turn it
-  into a restaurant.
-- description: one or two short sentences, concrete, about what they would do.
-- tags: two or three short words — where it happens, what kind of thing it is,
-  what it costs.
-- reason: one sentence, specific, no flattery, no exclamation marks.
+One short sentence. At most 100 characters — this is a caption, not a
+paragraph, and anything longer is cut off.
+
+- Say why it suits *these two*, not what the idea is. The card already says
+  what it is, directly above your line.
+- Never repeat or paraphrase the title.
+- No flattery, no exclamation marks, no marketing.
+- A near miss does not need to apologise: the card already says what it gives
+  up, in the couple's own words. Use the line to say why it is still worth it.
+
+Good: "You both said you want more adventure, and this one starts early."
+Bad:  "Watch the sun come up together — a beautiful romantic morning!"
 
 TONE
 
-Warm, plain and unhurried. Not a marketer. No pressure about romance, no
-assumptions about who lives with whom, who is married, or who has children.
-Two people trying to spend an evening together well.
+Warm, plain and unhurried. No pressure about romance, no assumptions about who
+lives with whom, who is married, or who has children. Two people trying to
+spend an evening together well.
 
 Return every candidate you were given, in your preferred order, so the app can
 page through them. Best first.`;
@@ -169,7 +157,19 @@ page through them. Best first.`;
 const MODEL = process.env.RECOMMEND_AI_MODEL || 'claude-sonnet-5';
 
 /** Thinking spends from the same budget, so a tight ceiling returns nothing. */
-const MAX_TOKENS = 6000;
+/*
+ * Sized for what is now asked for, with room for thinking on top.
+ *
+ * Twenty ids and twenty one-line reasons is roughly 700 tokens; the previous
+ * 6000 was sized for twenty rewritten cards, which is what made a request take
+ * twenty seconds. Note this ceiling is not itself the saving — a ceiling costs
+ * nothing when unused, and the latency came from the tokens actually written.
+ * It is here so a runaway answer fails fast rather than expensively, and it is
+ * kept well clear of the floor because thinking spends from the same budget:
+ * too tight and the turn ends before any text is written, which arrives as a
+ * perfectly successful response with nothing in it.
+ */
+const MAX_TOKENS = 2500;
 
 function textOf(response: Anthropic.Message): string {
   return response.content
@@ -323,7 +323,12 @@ async function rank(
 
 /* -------------------------------- Guarding -------------------------------- */
 
-const CAP = { title: 80, description: 300, reason: 220, tag: 24 };
+/*
+ * The reason is a caption under a card, not a paragraph. The prompt asks for
+ * 100 characters; this is the enforcement, with a little slack so a sentence
+ * that runs slightly long is kept whole rather than cut mid-word.
+ */
+const CAP = { reason: 120 };
 
 const trim = (v: unknown, max: number): string =>
   typeof v === 'string' ? v.trim().slice(0, max) : '';
@@ -361,19 +366,27 @@ export function settle(
   for (const candidate of candidates) {
     if (seen.has(candidate.idea.id)) continue;
     seen.add(candidate.idea.id);
-    kept.push({ pick: { id: candidate.idea.id, title: '', description: '', tags: [], reason: '' }, candidate });
+    kept.push({ pick: { id: candidate.idea.id, reason: '' }, candidate });
   }
 
   // Tier order is not the model's to decide.
   kept.sort((a, b) => a.candidate.tier - b.candidate.tier);
 
+  /*
+   * The card is built here, from the corpus, not from what the model wrote.
+   *
+   * Title, description and tags are things the app already owns and has always
+   * owned. Asking the model to write them again cost roughly three quarters of
+   * the output tokens on every request, and bought nothing but the risk that
+   * "Cook one dish from scratch" came back describing a restaurant. The only
+   * words that are the model's are the one-line reason, which is the only part
+   * that depends on knowing this particular couple.
+   */
   const merged: Recommendation[] = kept.map(({ pick, candidate }) => ({
     id: candidate.idea.id,
-    title: trim(pick.title, CAP.title) || candidate.idea.title,
-    description: trim(pick.description, CAP.description) || candidate.idea.description,
-    tags: Array.isArray(pick.tags)
-      ? pick.tags.map((t) => trim(t, CAP.tag)).filter(Boolean).slice(0, 3)
-      : [],
+    title: candidate.idea.title,
+    description: candidate.idea.description,
+    tags: tagsFor(candidate.idea),
     reason: trim(pick.reason, CAP.reason),
     tier: candidate.tier,
     missed: candidate.missed.map((m) => m.label),
@@ -445,7 +458,42 @@ async function callerId(req: VercelRequest): Promise<string | null> {
 
 export const config = { maxDuration: 60 };
 
-const LIMITS = { candidates: 20, count: 5, ids: 40 };
+/*
+ * `candidates` is the usual size of the list handed to the model, not a hard
+ * cap — `enoughToChooseFrom` widens it toward `maxCandidates` when twelve do
+ * not carry enough different kinds of evening to fill five slots under the
+ * diversity rule.
+ */
+const LIMITS = { candidates: 12, maxCandidates: 20, count: 5, ids: 40 };
+
+/**
+ * How many candidates the model is given.
+ *
+ * Twelve, usually. Sending twenty was sending eight ideas that would never be
+ * shown — the screen pages five at a time and rarely gets past the second
+ * page — and every one of them cost a line of output.
+ *
+ * It widens for one reason, and it is the diversity rule rather than a hunch:
+ * no more than two results may share a category, so filling five slots needs
+ * at least three different kinds of evening available. When the first twelve
+ * do not carry three, the list grows until they do — because running out of
+ * variety at slot four is a worse outcome than a slightly longer answer.
+ */
+export function enoughToChooseFrom(
+  f: IdeaFilters,
+  ctx: CoupleContext,
+  count: number,
+  pool?: BaseIdea[],
+): Candidate[] {
+  const narrow = rankCandidates(f, ctx, { limit: LIMITS.candidates, pool });
+  const needed = Math.ceil(count / MAX_PER_CATEGORY);
+  const kinds = new Set(narrow.map((c) => c.idea.category));
+  if (kinds.size >= needed) return narrow;
+
+  const wide = rankCandidates(f, ctx, { limit: LIMITS.maxCandidates, pool });
+  /* Only worth the extra tokens if the wider list actually adds a kind. */
+  return new Set(wide.map((c) => c.idea.category)).size > kinds.size ? wide : narrow;
+}
 
 const asArray = (v: unknown, max: number): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, max) : [];
@@ -512,7 +560,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   /* The server decides what is even a candidate. This is the line the model
      never gets to cross, and the reason the browser sends filters instead of
      ideas. */
-  const candidates = rankCandidates(filters, ctx, { limit: LIMITS.candidates });
+  const candidates = enoughToChooseFrom(filters, ctx, count);
 
   if (!candidates.length) {
     res.status(200).json({ source: 'rules', recommendations: [], exhausted: true });

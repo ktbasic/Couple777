@@ -13,7 +13,7 @@
  * Lives here rather than beside the endpoint because Vercel turns every file
  * under api/ into a public serverless function.
  */
-import { settle, parsePicks } from '../api/recommend-ideas';
+import { settle, parsePicks, enoughToChooseFrom } from '../api/recommend-ideas';
 import { DATE_IDEAS } from '../shared/dateIdeas';
 import {
   diversify,
@@ -267,16 +267,33 @@ group('What the model returns is checked, not trusted');
   const candidates = rankCandidates(f, emptyContext(), { limit: 20 });
   const legit = candidates[0].idea.id;
 
+  const overlong = 'x'.repeat(600);
   const rogue = [
-    { id: 'i-does-not-exist', title: 'Invented', description: 'x', tags: ['a'], reason: 'r' },
-    { id: legit, title: 'Real', description: 'd', tags: ['a', 'b', 'c', 'd', 'e'], reason: 'r' },
-    { id: legit, title: 'Same one twice', description: 'd', tags: [], reason: 'r' },
+    { id: 'i-does-not-exist', reason: 'invented' },
+    { id: legit, reason: overlong },
+    { id: legit, reason: 'the same one twice' },
   ];
   const out = settle(rogue, candidates, 5);
 
   check('an id that was never offered is discarded', !out.some((r) => r.id === 'i-does-not-exist'));
   check('a duplicate appears once', out.filter((r) => r.id === legit).length === 1);
-  check('tags are capped at three', out.every((r) => r.tags.length <= 3));
+  check(
+    'a runaway reason is cut to caption length',
+    (out.find((r) => r.id === legit)?.reason.length ?? 0) <= 120,
+  );
+  /*
+   * The card is the app's, not the model's. It only writes the reason now —
+   * asking it to rewrite titles and descriptions it was reading off a list
+   * was three quarters of the output tokens and bought nothing.
+   */
+  check(
+    'the title comes from the corpus, never from the model',
+    out.every((r) => byId.get(r.id)!.title === r.title),
+  );
+  check(
+    'and so do the description and tags',
+    out.every((r) => r.description === byId.get(r.id)!.description && r.tags.length === 3),
+  );
   check('a short answer is topped up from our own ranking', out.length >= 5, `${out.length}`);
   check(
     'every id returned was a candidate',
@@ -290,23 +307,18 @@ group('What the model returns is checked, not trusted');
   // A model that ranked purely on taste, ignoring the tiers entirely.
   const thin = F({ daypart: 'morning', budget: 0, vibe: 'relaxing' });
   const thinCandidates = rankCandidates(thin, emptyContext(), { limit: 20 });
-  const reversed = [...thinCandidates].reverse().map((c) => ({
-    id: c.idea.id, title: '', description: '', tags: [], reason: '',
-  }));
+  const reversed = [...thinCandidates].reverse().map((c) => ({ id: c.idea.id, reason: '' }));
   const fixed = settle(reversed, thinCandidates, 5);
   let inverted = false;
   for (let i = 1; i < fixed.length; i++) if (fixed[i].tier < fixed[i - 1].tier) inverted = true;
   check('a model that ignored the tiers is re-sorted back into them', !inverted);
 
-  check(
-    'an empty title falls back to the idea’s own',
-    fixed[0].title === byId.get(fixed[0].id)!.title,
-  );
+  check('a card with no reason is still a whole card', Boolean(fixed[0].title && fixed[0].description));
 }
 
 group('Parsing what came back');
 {
-  const wrapped = '```json\n{"picks":[{"id":"i-pasta","title":"t","description":"d","tags":[],"reason":"r"}]}\n```';
+  const wrapped = '```json\n{"picks":[{"id":"i-pasta","reason":"r"}]}\n```';
   check('a fenced answer parses', parsePicks(wrapped, 'test')[0].id === 'i-pasta');
   check('prose around the object parses', parsePicks('Sure!\n{"picks":[]}\nhope that helps', 'test').length === 0);
   let threw = false;
@@ -382,6 +394,48 @@ group('The endpoint can actually be imported where it runs');
     bad.length === 0,
     bad.join('; '),
   );
+}
+
+group('How much the model is asked to look at');
+{
+  /*
+   * Twelve, not twenty. The screen pages five at a time and rarely reaches
+   * the third page, so the other eight were ideas nobody would see, each
+   * costing a line of output — which is what made a request take twenty
+   * seconds.
+   */
+  let widest = 0;
+  let thinnest = Infinity;
+  for (const f of everyCombination()) {
+    const n = enoughToChooseFrom(f, emptyContext(), 5).length;
+    widest = Math.max(widest, n);
+    thinnest = Math.min(thinnest, n);
+  }
+  check('normally twelve at most', widest <= 12, `widest was ${widest}`);
+  check('and never fewer than the five being shown', thinnest >= 5, `thinnest was ${thinnest}`);
+
+  /*
+   * It widens for exactly one reason, and it has to actually work: the
+   * diversity rule allows two per category, so five slots need three kinds
+   * of evening. A pool that cannot offer three in its first twelve should
+   * make the list grow rather than run out of variety at slot four.
+   */
+  const base = DATE_IDEAS.find((i) => i.mode !== 'remote' && i.cost === 0)!;
+  /* Ids are the final tie-break, so numbering them fixes the order: the first
+     twelve are all one kind, and the third kind only appears past that. */
+  const lopsided = Array.from({ length: 20 }, (_, n) => ({
+    ...base,
+    id: `z-${String(n).padStart(2, '0')}`,
+    category: n < 12 ? ('outdoors' as const) : n < 16 ? ('food' as const) : ('game' as const),
+  }));
+  const widened = enoughToChooseFrom(F(), emptyContext(), 5, lopsided);
+  const kinds = new Set(widened.map((c) => c.idea.category));
+  check(
+    'a lopsided pool makes it reach further for a third kind',
+    widened.length > 12 && kinds.size >= 3,
+    `${widened.length} candidates, ${kinds.size} kinds`,
+  );
+  check('but never past twenty', widened.length <= 20, `${widened.length}`);
 }
 
 group('The three timeouts fire in a useful order');

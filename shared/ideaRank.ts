@@ -393,7 +393,12 @@ export function localRecommendations(
   }));
 }
 
-function tagsFor(idea: BaseIdea): string[] {
+/**
+ * The two or three words under a card. Exported because the endpoint needs the
+ * same ones: the model no longer writes tags, and the two paths must not
+ * produce differently-shaped cards.
+ */
+export function tagsFor(idea: BaseIdea): string[] {
   const where = idea.setting === 'home' ? 'Indoor' : 'Outdoor';
   const price = idea.cost === 0 ? 'Free' : `€${idea.cost}`;
   return [where, VIBE_WORD[idea.vibes[0]] ?? 'Something else', price];

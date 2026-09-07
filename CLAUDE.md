@@ -148,6 +148,14 @@ it spends money, and an unauthenticated one is a bill with a public URL. It
 uses `SUPABASE_PUBLISHABLE_KEY`, never the service-role key. Persistent per-user quotas are
 deliberately not built yet; they belong before public beta.
 
+The model's job is deliberately small: order the candidates and write one line
+of at most 100 characters for each. Title, description, tags and pictures come
+from the corpus, which the app has always owned — having the model rewrite them
+was roughly three quarters of the output tokens on every request and bought
+nothing. Twelve candidates are sent, not twenty; it widens toward twenty only
+when twelve do not carry the three different categories that filling five
+slots needs under the diversity rule.
+
 It runs on `claude-sonnet-5` (`RECOMMEND_AI_MODEL`), not the memory reader's
 model. Everything that needs judgement is already decided in code by the time
 the model is called, so the job is ordering twenty vetted ideas and writing a
