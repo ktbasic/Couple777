@@ -73,6 +73,14 @@ export function apart(proximity: CoupleContext['proximity']): boolean {
 export function isEligible(idea: BaseIdea, f: IdeaFilters, ctx: CoupleContext): boolean {
   if (f.budget != null && idea.cost > f.budget) return false;
   if (apart(ctx.proximity) && idea.mode === 'in_person') return false;
+  /*
+   * And the mirror of it. "Coffee at the same time, two cities" is a good
+   * answer to living apart and a strange thing to say to two people in the
+   * same kitchen — the distance is the whole premise, so without it the idea
+   * is not merely less appealing, it does not make sense. Ideas that work
+   * either way are marked `either` and are unaffected.
+   */
+  if (ctx.proximity === 'together' && idea.mode === 'remote') return false;
   return true;
 }
 
@@ -236,7 +244,7 @@ export function rankCandidates(
   ctx: CoupleContext,
   { limit = 20, pool = DATE_IDEAS }: RankOptions = {},
 ): Candidate[] {
-  return pool
+  return oneOfEachFamily(pool, ctx)
     .filter((idea) => isEligible(idea, f, ctx))
     // Already on screen in this run. Excluded rather than demoted: paging
     // through a ranking should not show page one again on page two.
@@ -250,6 +258,39 @@ export function rankCandidates(
         a.tier - b.tier || b.score - a.score || a.idea.id.localeCompare(b.idea.id),
     )
     .slice(0, limit);
+}
+
+/**
+ * One idea per family.
+ *
+ * Some ideas are the same evening in two forms — cooking one recipe at one
+ * table, and cooking the same recipe in two kitchens on a video call. Offering
+ * both is offering the same thing twice and making the couple work out which
+ * one is for them. So the family picks its own representative, by the only
+ * fact that decides it: whether the two of them will be in the same room.
+ *
+ * Ideas with no familyId are not in a family and always pass through.
+ */
+function oneOfEachFamily(pool: BaseIdea[], ctx: CoupleContext): BaseIdea[] {
+  const wantRemote = apart(ctx.proximity) || ctx.proximity === 'different-cities';
+
+  /** How well a form of the idea suits how these two actually meet. */
+  const fits = (idea: BaseIdea): number => {
+    if (idea.mode === 'either') return 1;
+    if (wantRemote) return idea.mode === 'remote' ? 2 : 0;
+    return idea.mode === 'in_person' ? 2 : 0;
+  };
+
+  const best = new Map<string, BaseIdea>();
+  for (const idea of pool) {
+    if (!idea.familyId) continue;
+    const held = best.get(idea.familyId);
+    // Ties go to whichever came first in the corpus, so this is deterministic.
+    if (!held || fits(idea) > fits(held)) best.set(idea.familyId, idea);
+  }
+
+  const chosen = new Set([...best.values()].map((i) => i.id));
+  return pool.filter((idea) => !idea.familyId || chosen.has(idea.id));
 }
 
 /* -------------------------------- Diversity ------------------------------- */

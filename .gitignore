@@ -21,3 +21,6 @@ src/**/*.test.js
 # does not regenerate them. The .tsx files are the source; nothing else.
 src/**/*.js
 vite.config.js
+
+# Playwright runs during development can write here when a path is unset.
+undefined/

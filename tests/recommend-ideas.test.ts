@@ -18,6 +18,7 @@ import { DATE_IDEAS } from '../shared/dateIdeas';
 import {
   diversify,
   emptyContext,
+  isEligible,
   localRecommendations,
   rankCandidates,
   MAX_PER_CATEGORY,
@@ -77,19 +78,51 @@ group('Two people in different places');
   }
   check('long distance is never offered an in-person idea', leaked === null, leaked ?? '');
 
-  // Different cities is a preference, not a wall: people an hour apart do meet.
+  /*
+   * Different cities is a preference, not a wall: people an hour apart do see
+   * each other, and deleting every in-person idea would delete most of the app
+   * for them. So the promise is eligibility — they can still be offered — and
+   * that they surface as soon as the couple asks for something shaped like
+   * being in a room together.
+   */
   const nearish: CoupleContext = { ...emptyContext(), proximity: 'different-cities' };
-  const got = rankCandidates(F(), nearish);
   check(
-    'different cities still sees in-person ideas',
-    got.some((c) => c.idea.mode === 'in_person'),
+    'different cities keeps in-person ideas eligible',
+    DATE_IDEAS.filter((i) => i.mode === 'in_person').every((i) => isEligible(i, F(), nearish)),
   );
-  const first = got[0];
+  const outdoors = rankCandidates(F({ setting: 'out', vibe: 'adventurous' }), nearish);
   check(
-    'but something they can do apart ranks above one they cannot, all else equal',
+    'and they are actually offered when the couple asks for one',
+    outdoors.some((c) => c.idea.mode === 'in_person'),
+  );
+  const first = rankCandidates(F(), nearish)[0];
+  check(
+    'but something they can do apart leads, all else equal',
     first.idea.mode !== 'in_person',
     first.idea.title,
   );
+
+  // And the mirror: distance is the premise of a remote idea, so without it
+  // the idea does not make sense rather than merely appealing less.
+  let odd: string | null = null;
+  for (const f of everyCombination()) {
+    for (const r of localRecommendations(f, emptyContext(), 5)) {
+      if (byId.get(r.id)!.mode === 'remote') odd = byId.get(r.id)!.title;
+    }
+  }
+  check('two people in the same kitchen are never told to get on a call', odd === null, odd ?? '');
+
+  // One evening, one form of it.
+  let twice: string | null = null;
+  for (const ctx of [emptyContext(), nearish, apart]) {
+    for (const f of everyCombination()) {
+      const families = rankCandidates(f, ctx, { limit: 100 })
+        .map((c) => c.idea.familyId)
+        .filter(Boolean);
+      if (new Set(families).size !== families.length) twice = `${ctx.proximity}: ${families.join(',')}`;
+    }
+  }
+  check('never both forms of the same idea at once', twice === null, twice ?? '');
 }
 
 /* --------------------------------- Tiers ---------------------------------- */
@@ -110,8 +143,15 @@ group('An exact match is never displaced by a near one');
   check('a well-served request is all exact matches', rs.every((r) => r.tier === 0));
   check('and says so rather than apologising', rs[0].reason.includes('everything you asked for'));
 
-  const thin = F({ daypart: 'morning', budget: 0, vibe: 'relaxing' });
-  const alts = localRecommendations(thin, emptyContext(), 5);
+  /*
+   * A request the corpus cannot answer exactly. It has to be built rather than
+   * found: the corpus now covers all 192 combinations for couples in the same
+   * place and for couples apart, which is the point of the coverage script —
+   * so the near-miss path needs a pool small enough to run out.
+   */
+  const thin = F({ daypart: 'morning', setting: 'out', budget: 0, vibe: 'adventurous' });
+  const scarce = DATE_IDEAS.filter((i) => i.setting === 'home' && i.cost === 0).slice(0, 8);
+  const alts = localRecommendations(thin, emptyContext(), 5, scarce);
   check('a thin request still returns five', alts.length === 5, `${alts.length}`);
   /*
    * The compromise is carried by `missed`, which is what the card turns into
