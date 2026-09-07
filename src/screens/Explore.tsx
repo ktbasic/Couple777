@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Screen, ScreenHeader, Section } from '@/components/layout/Screen';
 import { Segmented } from '@/components/ui/Segmented';
 import { Chip, ChipRow } from '@/components/ui/Chip';
-import { Photo } from '@/components/ui/Photo';
+import { IdeaArt } from '@/components/ui/IdeaArt';
 import { Button } from '@/components/ui/Button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -595,7 +595,7 @@ function SavedRow({
 }) {
   return (
     <Link to={`/plan/new?idea=${idea.id}`} className={s.savedRow}>
-      <Photo src={idea.image} seed={idea.id} ratio="1 / 1" className={s.savedShot} alt="" />
+      <IdeaArt category={idea.category} seed={idea.id} ratio="1 / 1" className={s.savedShot} />
       <span className={s.savedMain}>
         <span className={s.savedTitle}>{idea.title}</span>
         <span className={[s.savedNote, matched ? s.savedNoteMatch : ''].filter(Boolean).join(' ')}>

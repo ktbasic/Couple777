@@ -1,0 +1,19 @@
+/* The picture on a date idea. Drawn rather than fetched — see IdeaArt.tsx. */
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  /*
+   * No border-radius of its own on purpose. Every place this is used already
+   * rounds and clips its own container — the card's photo button at --r-md,
+   * a saved row at --r-sm — and a radius here would be a second opinion that
+   * wins or loses depending on stylesheet order.
+   */
+  background: var(--c-accent-wash);
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

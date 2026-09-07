@@ -43,6 +43,7 @@ someone reclassify an activity into a different cycle.
 | App state — reducer, hydrated from Supabase, writes through | `src/context/store.tsx` |
 | Design tokens | `src/styles/tokens.css` |
 | Logo and app icon | `src/components/ui/Logo777.tsx` |
+| Date-idea illustrations | `src/components/ui/IdeaArt.tsx` |
 
 `AppState` is the read model every screen speaks. Supabase is mapped *into* it
 rather than replacing it, so screens keep using `useStore()`. A `Person.id` is
@@ -176,6 +177,14 @@ One request per ask returns the whole ranked list and the screen pages through
 it. Model output is **not** deterministic and nothing claims it is —
 eligibility, tiering and the device fallback are; the model's ordering is
 stable within one response, which is why paging never re-asks.
+
+Date ideas are **drawn, not photographed**. `IdeaArt` renders one inline SVG
+per `category` — the same field the diversity rule counts — so a new idea gets
+a picture the moment it gets a category, with no asset to find, crop or host
+and no request to fail. There is no state in which a date idea shows something
+unrelated, because there is no state in which it shows a photograph. Nearby and
+Big Trips keep `picsum` placeholders on purpose: those are real places, and a
+real place wants a picture of itself.
 
 Add ideas by running `npm run coverage` first and writing against what it
 says. Both couples-together and couples-apart currently sit at zero uncovered
