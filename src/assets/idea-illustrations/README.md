@@ -8,7 +8,7 @@ and the scene to draw.
 
 - **Format** `.webp` preferred, `.png` and `.svg` also picked up.
 - **Size** 1200×900 (4:3) — the shape the card shows, so nothing is cropped.
-  It renders at 132×99, so the scene has to read there: two figures, one clear
+  It renders at 104×78, so the scene has to read there: two figures, one clear
   object, one suggested place, not a busy street.
 - **The four `.webp` are the style.** Match new work to those, not to a
   description of them.

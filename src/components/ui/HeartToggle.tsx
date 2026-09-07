@@ -8,13 +8,10 @@ export function HeartToggle({
   saved,
   onToggle,
   label,
-  className,
 }: {
   saved: boolean;
   onToggle: () => void;
   label: string;
-  /** For callers that place it in flow rather than over a photograph. */
-  className?: string;
 }) {
   return (
     <button
@@ -22,7 +19,7 @@ export function HeartToggle({
       aria-pressed={saved}
       aria-label={label}
       onClick={onToggle}
-      className={[s.button, saved ? s.on : '', className ?? ''].filter(Boolean).join(' ')}
+      className={[s.button, saved ? s.on : ''].filter(Boolean).join(' ')}
     >
       <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden>
         <path

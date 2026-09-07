@@ -22,21 +22,27 @@
 }
 
 /*
- * 132 wide, 4:3 — a scene, not a symbol.
+ * 104 wide, 4:3 — a scene, not a symbol, and a thumbnail rather than a panel.
  *
  * It was a 92px square, which was the right frame for a pictogram and the
  * wrong one for two people in a room: at that size the room went first and
  * what was left was a symbol again. Landscape gives the pair somewhere to
- * stand and costs the text about forty pixels, which is a wrap on a long
- * title and nothing on most of them.
+ * stand. It briefly went to 132 and came back: at that width the picture
+ * starts behaving like half the card rather than the thing beside the title,
+ * and the text pays for it on every row.
  *
- * It stops at 132 rather than growing with the card. Wider starts eating the
- * description, and a scene that needs more than this to read needs redrawing
- * rather than more room.
+ * Fixed, not grown from the card. One left edge and one text column down the
+ * whole list is most of what makes a list scannable, and a scene that cannot
+ * read at 104 needs redrawing rather than more room.
+ *
+ * Still 4:3, which is the one place this departs from the reference. The
+ * illustrations are drawn and exported 4:3; a portrait crop would take the
+ * sun out of `sunrise` and the screen out of `cinemahome`, so the shape is
+ * the art's, and only the size is the reference's.
  */
 .shot {
   flex: none;
-  width: 132px;
+  width: 104px;
   border-radius: var(--r-md);
   overflow: hidden;
   background: none;
@@ -61,10 +67,9 @@
   padding: 0 var(--s-2) 2px 0;
 }
 
-/* The gap can afford to be tighter now the picture carries more of the row. */
 @media (max-width: 360px) {
   .shot {
-    width: 112px;
+    width: 92px;
   }
 }
 

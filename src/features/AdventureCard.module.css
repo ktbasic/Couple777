@@ -1,137 +1,77 @@
-/*
- * A compact row, not a poster.
- *
- * This was a 16:9 hero above a five-part body, which meant roughly one and a
- * half results per screen: to compare two you had to remember the first one.
- * A list of somewhere-to-go is read by scanning, and scanning needs the next
- * option already on screen, so the picture became a fixed thumbnail and the
- * body lost the parts that were not doing scanning work.
- */
 .card {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s-3);
-  padding: var(--s-3);
   border-radius: var(--r-lg);
   border: 1px solid var(--c-hairline-soft);
   background: var(--c-surface);
   box-shadow: var(--e-1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: rise var(--d-slow) var(--ease) both;
 }
 
-/*
- * 104 wide and 3:4, fixed. Portrait rather than the 4:3 the Dates tab uses,
- * because these are photographs of real places standing beside four lines of
- * text — a landscape crop of a valley next to that leaves the left column
- * half empty, and a tall crop of it does not.
- *
- * Fixed, so a row of results has one left edge and one right edge for the
- * text. Sizing it to the content is what makes a list look ragged.
- */
-.shot {
-  flex: none;
-  width: 104px;
-  border-radius: var(--r-md);
-  overflow: hidden;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  transition: transform var(--d-fast) var(--ease);
-}
-
-.shot:active {
-  transform: scale(0.97);
-}
-
-.img {
-  display: block;
-  width: 100%;
-}
-
-.main {
+.body {
+  padding: var(--s-5);
   flex: 1;
-  min-width: 0;
-  padding: 1px var(--s-1) 0 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .place {
   font-size: var(--t-micro);
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--c-week-ink);
 }
 
 .title {
-  margin-top: 3px;
+  margin-top: 6px;
   font-family: var(--f-display);
-  font-size: var(--t-title);
+  font-size: var(--t-display-m);
   font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
   color: var(--c-ink);
   text-wrap: pretty;
 }
 
-/*
- * Two lines. The full description is on the plan screen, which is where
- * someone reads rather than scans — here a third line pushes the next result
- * off the bottom, which costs more than the sentence gains.
- */
 .desc {
-  margin-top: 4px;
+  margin-top: var(--s-3);
+  font-size: var(--t-body);
+  line-height: 1.55;
+  color: var(--c-ink-2);
+  text-wrap: pretty;
+}
+
+.why {
+  margin-top: var(--s-3);
   font-size: var(--t-small);
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--c-ink-3);
   text-wrap: pretty;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .facts {
-  margin-top: var(--s-3);
+  margin-top: var(--s-4);
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
+  gap: var(--s-2);
 }
 
 .fact {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 9px;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
   border-radius: var(--r-full);
   background: var(--c-week-wash);
   color: var(--c-week-ink);
-  font-size: var(--t-micro);
-  font-weight: 600;
+  font-size: var(--t-small);
+  font-weight: 500;
   white-space: nowrap;
 }
 
-/* Text rather than a block button: a full-width button per row is most of
-   why the old card was tall, and the picture and title already navigate. */
-.go {
-  margin-top: var(--s-3);
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: var(--t-small);
-  font-weight: 600;
-  color: var(--c-accent-ink);
-  cursor: pointer;
-}
-
-@media (max-width: 360px) {
-  .shot {
-    width: 92px;
-  }
+.actions {
+  margin-top: var(--s-5);
 }

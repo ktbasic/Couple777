@@ -63,12 +63,9 @@
   color: var(--c-accent-ink);
 }
 
-/* Big trips. A single column now the cards are rows — two columns of a row
-   card is a table, and `minmax(0, 1fr)` because plain `1fr` is min-width:auto
-   and a long place name would push the page sideways. */
 .grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: var(--s-3);
 }
 

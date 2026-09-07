@@ -40,17 +40,19 @@ win.
 | Mood | Warm, unhurried, a little tender. Not cute, not corporate, no exclamation-mark energy. |
 | Composition | Generous negative space. One clear focal object per scene. |
 
-### Read it at 132 × 99
+### Read it at 104 × 78
 
-The card shows the illustration as a **132px-wide, 4:3 thumbnail** on the
+The card shows the illustration as a **104px-wide, 4:3 thumbnail** on the
 left, with the text beside it. It was a 92px square, which was the right
 frame for a symbol and the wrong one for two people in a room — at that size
 the room went first and what was left was a symbol again.
 
-132 × 99 is enough for a scene and is still small. So: **two figures, one
-clear object, one suggested place.** No crowds, no fine detail, no text in
-the artwork. Check every one at that size before calling it done — if you
-cannot tell it from its neighbour at 132px, it has not worked.
+104 × 78 is enough for a scene and is barely more than that. So: **two
+figures, one clear object, one suggested place.** No crowds, no fine detail,
+no text in the artwork. Check every one at that size before calling it done —
+if you cannot tell it from its neighbour at 104px, it has not worked. This is
+the size that decides whether an illustration works; a scene that only reads
+at 2× has not been drawn for this card.
 
 ## Export
 
@@ -193,15 +195,19 @@ the app is usable throughout and they can land in any order.
 
 ## Settled: the card layout
 
-A 132-wide 4:3 thumbnail on the left, text on the right. Not a hero image
-across the top of the card: that is what the style would prefer, but it makes
-every card taller and fewer fit on a screen, and Explore is a list people
-scan. The landscape thumbnail is the compromise that buys a scene without
-buying a longer page — it costs the text about forty pixels, which is one
-extra wrap on a long title and nothing on most of them.
+A **104-wide 4:3 thumbnail** on the left, text on the right, fixed at that
+width down the whole list. Not a hero image across the top of the card: that
+is what the style would prefer, but it makes every card taller and fewer fit
+on a screen, and Explore is a list people scan.
 
-Nearby and Big Trips are rows too, but **104 wide and 3:4**. Different
-because the content is: those are photographs of real places, and a
-landscape crop of a valley beside four lines of text leaves the left column
-half empty where a tall one does not. Neither tab is ever on screen with
-this one, so the two shapes never sit side by side.
+104 rather than the 132 this briefly used. At 132 the picture starts reading
+as half the card instead of the thing beside the title, and every row pays
+for it in wrapped text. The size comes from an experience-listing reference;
+the 4:3 does not — that is the shape the illustrations are drawn and exported
+in, and a portrait crop would take the sun out of `sunrise` and the screen
+out of `cinemahome`.
+
+**Nearby and Big Trips are not this.** They keep the hero image and the photo
+tile respectively. They were briefly rows on the same 104 thumbnail and it
+was the wrong trade there: those cards are about a real place, and a place
+sold at thumbnail size stops being somewhere you want to go.
