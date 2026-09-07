@@ -76,8 +76,20 @@ export interface BaseIdea {
    * one couple gets one of them, chosen by whether they are in the same city.
    */
   familyId?: string;
-  /** Feeds the placeholder photography. The URL is built in the browser. */
-  imageSeed: string;
+  /**
+   * Its own illustration — a drawn scene of this activity, not a symbol for
+   * the kind of thing it is.
+   *
+   * The file is `src/assets/idea-illustrations/<illustrationId>.webp`. The id
+   * is the idea's own id without the `i-` prefix, so it is unique by
+   * construction and survives a retitling.
+   *
+   * `category` is deliberately not what picks the picture. It did, once, and
+   * the result was that every one of the eight outdoors ideas showed the same
+   * hills: a set of symbols for *kinds* of evening, when what a card needs is
+   * a picture of the evening itself.
+   */
+  illustrationId: string;
 }
 
 /**

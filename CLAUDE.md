@@ -43,7 +43,7 @@ someone reclassify an activity into a different cycle.
 | App state — reducer, hydrated from Supabase, writes through | `src/context/store.tsx` |
 | Design tokens | `src/styles/tokens.css` |
 | Logo and app icon | `src/components/ui/Logo777.tsx` |
-| Date-idea illustrations | `src/components/ui/IdeaArt.tsx` |
+| Date-idea illustrations | `src/components/ui/IdeaIllustration.tsx`, brief in `docs/ILLUSTRATIONS.md` |
 
 `AppState` is the read model every screen speaks. Supabase is mapped *into* it
 rather than replacing it, so screens keep using `useStore()`. A `Person.id` is
@@ -178,13 +178,20 @@ it. Model output is **not** deterministic and nothing claims it is —
 eligibility, tiering and the device fallback are; the model's ordering is
 stable within one response, which is why paging never re-asks.
 
-Date ideas are **drawn, not photographed**. `IdeaArt` renders one inline SVG
-per `category` — the same field the diversity rule counts — so a new idea gets
-a picture the moment it gets a category, with no asset to find, crop or host
-and no request to fail. There is no state in which a date idea shows something
-unrelated, because there is no state in which it shows a photograph. Nearby and
-Big Trips keep `picsum` placeholders on purpose: those are real places, and a
-real place wants a picture of itself.
+Date ideas are **drawn, not photographed**, and each has **its own** scene.
+Every idea carries an `illustrationId` (its id without the `i-` prefix) and
+`IdeaIllustration` resolves `src/assets/idea-illustrations/<id>.webp` through
+`import.meta.glob`, so the set of drawn assets is known at build time: an idea
+whose illustration does not exist yet falls back to `IdeaArt` — the category
+drawing — instead of firing a 404 per card. Drop a file in, rebuild, done.
+
+`category` is only the fallback. It used to choose the picture, and the result
+was all eight outdoors ideas showing the same hills: a symbol for a *kind* of
+evening where the card wants a picture of the evening. `docs/ILLUSTRATIONS.md`
+is the brief for all 65, and `npm run test:ideas` reports how many are drawn.
+
+Nearby and Big Trips keep `picsum` placeholders on purpose: those are real
+places, and a real place wants a picture of itself.
 
 Add ideas by running `npm run coverage` first and writing against what it
 says. Both couples-together and couples-apart currently sit at zero uncovered

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { IdeaArt } from '@/components/ui/IdeaArt';
+import { IdeaIllustration } from '@/components/ui/IdeaIllustration';
 import { useStore } from '@/context/store';
 import { useToast } from '@/components/ui/Toast';
 import type { DateIdea } from '@/lib/types';
@@ -107,7 +107,13 @@ export function IdeaCard({
         onClick={() => navigate(`/plan/new?idea=${idea.id}${cycleId ? `&cycle=${cycleId}` : ''}`)}
         aria-label={`Plan ${idea.title}`}
       >
-        <IdeaArt category={idea.category} seed={idea.id} ratio="1 / 1" className={s.img} />
+        <IdeaIllustration
+          illustrationId={idea.illustrationId}
+          category={idea.category}
+          seed={idea.id}
+          ratio="1 / 1"
+          className={s.img}
+        />
       </button>
 
       <div className={s.main}>

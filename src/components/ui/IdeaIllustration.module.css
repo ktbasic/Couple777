@@ -1,0 +1,16 @@
+/* One idea's own scene. See IdeaIllustration.tsx. */
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  /* No radius of its own: every caller already rounds and clips its container,
+     and a second opinion here wins or loses on stylesheet order. */
+  background: var(--c-accent-wash);
+}
+
+.img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

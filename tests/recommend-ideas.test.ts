@@ -438,6 +438,40 @@ group('How much the model is asked to look at');
   check('but never past twenty', widened.length <= 20, `${widened.length}`);
 }
 
+group('Every idea has its own picture to point at');
+{
+  /*
+   * The illustration is per idea, not per category. Category picked it once,
+   * and the result was all eight outdoors ideas showing the same hills — a
+   * set of symbols for kinds of evening, where a card wants a picture of the
+   * evening itself.
+   */
+  const ids = DATE_IDEAS.map((i) => i.illustrationId);
+  check('every idea names one', ids.every(Boolean), `${ids.filter(Boolean).length}/${ids.length}`);
+  check('and no two share it', new Set(ids).size === ids.length);
+  check(
+    'the filename follows from the id, so a retitling cannot orphan an asset',
+    DATE_IDEAS.every((i) => i.illustrationId === i.id.replace(/^i-/, '')),
+  );
+
+  /*
+   * Assets are matched by filename at build time, so a typo does not fail —
+   * it silently falls back to the category drawing and looks like the asset
+   * was never made. This is what notices.
+   */
+  const dir = join(process.cwd(), 'src/assets/idea-illustrations');
+  const drawn = readdirSync(dir)
+    .filter((f) => /\.(webp|png|svg)$/i.test(f))
+    .map((f) => f.replace(/\.[^.]+$/, ''));
+  const known = new Set(ids);
+  const orphans = drawn.filter((d) => !known.has(d));
+  check('no asset belongs to an idea that does not exist', orphans.length === 0, orphans.join(', '));
+
+  console.log(
+    `       ${drawn.length} of ${ids.length} drawn — the rest fall back to the category art`,
+  );
+}
+
 group('The three timeouts fire in a useful order');
 {
   /*

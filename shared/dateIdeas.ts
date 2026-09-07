@@ -30,7 +30,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     category: 'food',
     mode: 'in_person',
     familyId: 'cook',
-    imageSeed: 'pasta',
+    illustrationId: 'pasta',
   },
   {
     id: 'i-listening',
@@ -50,7 +50,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'conversation',
     mode: 'either',
-    imageSeed: 'records',
+    illustrationId: 'listening',
   },
   {
     id: 'i-nightwalk',
@@ -70,7 +70,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'nightwalk',
+    illustrationId: 'nightwalk',
   },
   {
     id: 'i-market',
@@ -90,7 +90,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'brunch'],
     category: 'food',
     mode: 'in_person',
-    imageSeed: 'market',
+    illustrationId: 'market',
   },
   {
     id: 'i-gallery',
@@ -110,7 +110,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon'],
     category: 'culture',
     mode: 'in_person',
-    imageSeed: 'gallery',
+    illustrationId: 'gallery',
   },
   {
     id: 'i-bath',
@@ -129,7 +129,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'wellness',
     mode: 'in_person',
-    imageSeed: 'candles',
+    illustrationId: 'bath',
   },
   {
     id: 'i-bookshop',
@@ -149,7 +149,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon'],
     category: 'culture',
     mode: 'in_person',
-    imageSeed: 'bookshop',
+    illustrationId: 'bookshop',
   },
   {
     id: 'i-sunrise',
@@ -168,7 +168,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'sunrise',
+    illustrationId: 'sunrise',
   },
   {
     id: 'i-oldphotos',
@@ -188,7 +188,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'conversation',
     mode: 'either',
-    imageSeed: 'oldphotos',
+    illustrationId: 'oldphotos',
   },
   {
     id: 'i-newbar',
@@ -207,7 +207,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'food',
     mode: 'in_person',
-    imageSeed: 'bar',
+    illustrationId: 'newbar',
   },
   {
     id: 'i-cinemahome',
@@ -228,7 +228,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     category: 'culture',
     mode: 'either',
     familyId: 'film',
-    imageSeed: 'cinema',
+    illustrationId: 'cinemahome',
   },
   {
     id: 'i-pottery',
@@ -247,7 +247,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'creative',
     mode: 'in_person',
-    imageSeed: 'pottery',
+    illustrationId: 'pottery',
   },
   {
     id: 'i-picnic',
@@ -266,7 +266,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'food',
     mode: 'in_person',
-    imageSeed: 'picnic',
+    illustrationId: 'picnic',
   },
   {
     id: 'i-questions',
@@ -286,7 +286,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'conversation',
     mode: 'either',
-    imageSeed: 'questions',
+    illustrationId: 'questions',
   },
   {
     id: 'i-swim',
@@ -305,7 +305,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'afternoon'],
     category: 'wellness',
     mode: 'in_person',
-    imageSeed: 'coldswim',
+    illustrationId: 'swim',
   },
   {
     id: 'i-bike',
@@ -324,7 +324,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['brunch', 'afternoon', 'wholeday'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'bikeride',
+    illustrationId: 'bike',
   },
   {
     id: 'i-letters',
@@ -344,7 +344,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening'],
     category: 'conversation',
     mode: 'either',
-    imageSeed: 'letters',
+    illustrationId: 'letters',
   },
   {
     id: 'i-newdistrict',
@@ -364,7 +364,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'wholeday'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'district',
+    illustrationId: 'newdistrict',
   },
   {
     id: 'i-breakfastbed',
@@ -383,7 +383,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'brunch'],
     category: 'wellness',
     mode: 'in_person',
-    imageSeed: 'slowmorning',
+    illustrationId: 'breakfastbed',
   },
   {
     id: 'i-stargaze',
@@ -402,7 +402,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'stars',
+    illustrationId: 'stargaze',
   },
   {
     id: 'i-projectnight',
@@ -422,7 +422,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'creative',
     mode: 'in_person',
-    imageSeed: 'project',
+    illustrationId: 'projectnight',
   },
   {
     id: 'i-tasting',
@@ -443,7 +443,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     category: 'game',
     mode: 'in_person',
     familyId: 'tasting',
-    imageSeed: 'tasting',
+    illustrationId: 'tasting',
   },
   {
     id: 'i-hike',
@@ -462,7 +462,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'wholeday'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'hike',
+    illustrationId: 'hike',
   },
   {
     id: 'i-plans',
@@ -482,7 +482,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'creative',
     mode: 'either',
-    imageSeed: 'planning',
+    illustrationId: 'plans',
   },
 
   /* ------------------------------------------------------------------ *
@@ -514,7 +514,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'brunch'],
     category: 'wellness',
     mode: 'either',
-    imageSeed: 'slowcoffee',
+    illustrationId: 'slowcoffee',
   },
   {
     id: 'i-extrahour',
@@ -533,7 +533,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning'],
     category: 'wellness',
     mode: 'in_person',
-    imageSeed: 'extrahour',
+    illustrationId: 'extrahour',
   },
   {
     id: 'i-kitchenradio',
@@ -553,7 +553,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning'],
     category: 'game',
     mode: 'in_person',
-    imageSeed: 'kitchenradio',
+    illustrationId: 'kitchenradio',
   },
   {
     id: 'i-swaproutine',
@@ -573,7 +573,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning'],
     category: 'game',
     mode: 'in_person',
-    imageSeed: 'swaproutine',
+    illustrationId: 'swaproutine',
   },
   {
     id: 'i-firstlight',
@@ -592,7 +592,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'firstlight',
+    illustrationId: 'firstlight',
   },
   {
     id: 'i-greenbefore',
@@ -612,7 +612,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'greenbefore',
+    illustrationId: 'greenbefore',
   },
   {
     id: 'i-rearrange',
@@ -632,7 +632,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'creative',
     mode: 'in_person',
-    imageSeed: 'rearrange',
+    illustrationId: 'rearrange',
   },
   {
     id: 'i-onehourskill',
@@ -652,7 +652,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'creative',
     mode: 'either',
-    imageSeed: 'onehourskill',
+    illustrationId: 'onehourskill',
   },
   {
     id: 'i-twentywords',
@@ -672,7 +672,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening', 'late'],
     category: 'game',
     mode: 'either',
-    imageSeed: 'twentywords',
+    illustrationId: 'twentywords',
   },
   {
     id: 'i-samesofa',
@@ -691,7 +691,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'culture',
     mode: 'in_person',
-    imageSeed: 'samesofa',
+    illustrationId: 'samesofa',
   },
   {
     id: 'i-benchlives',
@@ -711,7 +711,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'conversation',
     mode: 'in_person',
-    imageSeed: 'benchlives',
+    illustrationId: 'benchlives',
   },
   {
     id: 'i-midnightfridge',
@@ -730,7 +730,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['late'],
     category: 'food',
     mode: 'in_person',
-    imageSeed: 'midnightfridge',
+    illustrationId: 'midnightfridge',
   },
   {
     id: 'i-tripplaylist',
@@ -750,7 +750,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'creative',
     mode: 'either',
-    imageSeed: 'tripplaylist',
+    illustrationId: 'tripplaylist',
   },
   {
     id: 'i-nightgame',
@@ -770,7 +770,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'game',
     mode: 'in_person',
-    imageSeed: 'nightgame',
+    illustrationId: 'nightgame',
   },
 
   /* The expensive end. Nothing here cost more than €60 before, so "Up to €80"
@@ -794,7 +794,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening'],
     category: 'food',
     mode: 'in_person',
-    imageSeed: 'tastingmenu',
+    illustrationId: 'tastingmenu',
   },
   {
     id: 'i-whoeverisplaying',
@@ -814,7 +814,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'culture',
     mode: 'in_person',
-    imageSeed: 'whoeverisplaying',
+    illustrationId: 'whoeverisplaying',
   },
   {
     id: 'i-decidenothing',
@@ -834,7 +834,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'wholeday'],
     category: 'wellness',
     mode: 'in_person',
-    imageSeed: 'decidenothing',
+    illustrationId: 'decidenothing',
   },
   {
     id: 'i-firsttrain',
@@ -854,7 +854,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'wholeday'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'firsttrain',
+    illustrationId: 'firsttrain',
   },
 
   /* Two kitchens, two sofas, two cities. Eighteen of the first twenty-four
@@ -882,7 +882,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     category: 'food',
     mode: 'remote',
     familyId: 'cook',
-    imageSeed: 'videocook',
+    illustrationId: 'videocook',
   },
   {
     id: 'i-pressplay',
@@ -903,7 +903,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     category: 'culture',
     mode: 'remote',
     familyId: 'film',
-    imageSeed: 'pressplay',
+    illustrationId: 'pressplay',
   },
   {
     id: 'i-twotables',
@@ -924,7 +924,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     category: 'game',
     mode: 'remote',
     familyId: 'tasting',
-    imageSeed: 'twotables',
+    illustrationId: 'twotables',
   },
   {
     id: 'i-walkandtalk',
@@ -944,7 +944,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'afternoon', 'evening'],
     category: 'outdoors',
     mode: 'remote',
-    imageSeed: 'walkandtalk',
+    illustrationId: 'walkandtalk',
   },
   {
     id: 'i-samechapter',
@@ -964,7 +964,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'culture',
     mode: 'remote',
-    imageSeed: 'samechapter',
+    illustrationId: 'samechapter',
   },
   {
     id: 'i-twomuseums',
@@ -984,7 +984,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon'],
     category: 'culture',
     mode: 'remote',
-    imageSeed: 'twomuseums',
+    illustrationId: 'twomuseums',
   },
   {
     id: 'i-morningapart',
@@ -1004,7 +1004,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'brunch'],
     category: 'wellness',
     mode: 'remote',
-    imageSeed: 'morningapart',
+    illustrationId: 'morningapart',
   },
   {
     id: 'i-buildit',
@@ -1024,7 +1024,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'creative',
     mode: 'remote',
-    imageSeed: 'buildit',
+    illustrationId: 'buildit',
   },
 
   /* Second tranche, aimed at what the first one left: free outdoor evenings
@@ -1049,7 +1049,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'getlost',
+    illustrationId: 'getlost',
   },
   {
     id: 'i-highestpoint',
@@ -1069,7 +1069,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'outdoors',
     mode: 'in_person',
-    imageSeed: 'highestpoint',
+    illustrationId: 'highestpoint',
   },
   {
     id: 'i-emptyswings',
@@ -1088,7 +1088,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'game',
     mode: 'in_person',
-    imageSeed: 'emptyswings',
+    illustrationId: 'emptyswings',
   },
   {
     id: 'i-guessbreakfast',
@@ -1108,7 +1108,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'brunch'],
     category: 'game',
     mode: 'remote',
-    imageSeed: 'guessbreakfast',
+    illustrationId: 'guessbreakfast',
   },
   {
     id: 'i-samesky',
@@ -1128,7 +1128,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'outdoors',
     mode: 'remote',
-    imageSeed: 'samesky',
+    illustrationId: 'samesky',
   },
   {
     id: 'i-latequiz',
@@ -1148,7 +1148,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'game',
     mode: 'remote',
-    imageSeed: 'latequiz',
+    illustrationId: 'latequiz',
   },
   {
     id: 'i-streetview',
@@ -1168,7 +1168,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening', 'late'],
     category: 'conversation',
     mode: 'remote',
-    imageSeed: 'streetview',
+    illustrationId: 'streetview',
   },
   {
     id: 'i-marketapart',
@@ -1188,7 +1188,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'brunch', 'afternoon'],
     category: 'food',
     mode: 'remote',
-    imageSeed: 'marketapart',
+    illustrationId: 'marketapart',
   },
 
   /* Third tranche, all remote, all aimed at what living apart still could not
@@ -1214,7 +1214,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning'],
     category: 'wellness',
     mode: 'remote',
-    imageSeed: 'coldstart',
+    illustrationId: 'coldstart',
   },
   {
     id: 'i-dawnrace',
@@ -1234,7 +1234,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'brunch'],
     category: 'outdoors',
     mode: 'remote',
-    imageSeed: 'dawnrace',
+    illustrationId: 'dawnrace',
   },
   {
     id: 'i-quietcall',
@@ -1254,7 +1254,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening'],
     category: 'conversation',
     mode: 'remote',
-    imageSeed: 'quietcall',
+    illustrationId: 'quietcall',
   },
   {
     id: 'i-tenblocks',
@@ -1274,7 +1274,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['morning', 'afternoon', 'evening'],
     category: 'outdoors',
     mode: 'remote',
-    imageSeed: 'tenblocks',
+    illustrationId: 'tenblocks',
   },
   {
     id: 'i-slowsunday',
@@ -1294,7 +1294,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'evening', 'late'],
     category: 'culture',
     mode: 'remote',
-    imageSeed: 'slowsunday',
+    illustrationId: 'slowsunday',
   },
 
   {
@@ -1315,7 +1315,7 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['evening', 'late'],
     category: 'game',
     mode: 'remote',
-    imageSeed: 'nighthunt',
+    illustrationId: 'nighthunt',
   },
 
   {
@@ -1336,6 +1336,6 @@ export const DATE_IDEAS: BaseIdea[] = [
     dayparts: ['afternoon', 'brunch'],
     category: 'wellness',
     mode: 'in_person',
-    imageSeed: 'slowpark',
+    illustrationId: 'slowpark',
   },
 ];
