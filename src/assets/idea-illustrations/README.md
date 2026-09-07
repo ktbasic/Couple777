@@ -7,8 +7,12 @@ One drawn scene per date idea. The filename is the idea's `illustrationId`
 and the scene to draw.
 
 - **Format** `.webp` preferred, `.png` and `.svg` also picked up.
-- **Size** 1200×900 (4:3). Rendered small, so the scene has to read at 92px
-  wide — two figures and one clear object, not a busy street.
+- **Size** 1200×900 (4:3) — the shape the card shows, so nothing is cropped.
+  It renders at 132×99, so the scene has to read there: two figures, one clear
+  object, one suggested place, not a busy street.
+- **The eight that exist** are `.svg`, hand-authored by
+  `scripts/pilot-illustrations.py`. Run that to regenerate them; it is their
+  source. The other 57 need not be made the same way.
 - **Adding one** drop the file in and rebuild. Nothing else to wire: the
   manifest is built by `import.meta.glob`, so a file that is here is used and
   an idea with no file falls back on its own.

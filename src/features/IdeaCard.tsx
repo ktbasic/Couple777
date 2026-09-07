@@ -111,7 +111,7 @@ export function IdeaCard({
           illustrationId={idea.illustrationId}
           category={idea.category}
           seed={idea.id}
-          ratio="1 / 1"
+          ratio="4 / 3"
           className={s.img}
         />
       </button>

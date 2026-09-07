@@ -1,7 +1,7 @@
 .card {
   display: flex;
   align-items: flex-start;
-  gap: var(--s-4);
+  gap: var(--s-3);
   padding: var(--s-3);
   border-radius: var(--r-lg);
   background: var(--c-surface);
@@ -21,9 +21,22 @@
   }
 }
 
+/*
+ * 132 wide, 4:3 — a scene, not a symbol.
+ *
+ * It was a 92px square, which was the right frame for a pictogram and the
+ * wrong one for two people in a room: at that size the room went first and
+ * what was left was a symbol again. Landscape gives the pair somewhere to
+ * stand and costs the text about forty pixels, which is a wrap on a long
+ * title and nothing on most of them.
+ *
+ * It stops at 132 rather than growing with the card. Wider starts eating the
+ * description, and a scene that needs more than this to read needs redrawing
+ * rather than more room.
+ */
 .shot {
   flex: none;
-  width: 92px;
+  width: 132px;
   border-radius: var(--r-md);
   overflow: hidden;
   background: none;
@@ -45,7 +58,14 @@
 .main {
   flex: 1;
   min-width: 0;
-  padding: 2px var(--s-2) 2px 0;
+  padding: 0 var(--s-2) 2px 0;
+}
+
+/* The gap can afford to be tighter now the picture carries more of the row. */
+@media (max-width: 360px) {
+  .shot {
+    width: 112px;
+  }
 }
 
 .head {

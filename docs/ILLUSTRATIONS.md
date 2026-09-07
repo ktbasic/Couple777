@@ -34,26 +34,24 @@ not a symbol. Two figures, always — this is an app about two people.
 | Mood | Warm, unhurried, a little tender. Not cute, not corporate, no exclamation-mark energy. |
 | Composition | Generous negative space. One clear focal object per scene. |
 
-### Read it at 92px
+### Read it at 132 × 99
 
-This is the constraint that will decide whether the set works. On the card
-the illustration is a **92px square thumbnail**. A busy street scene becomes
-mush at that size.
+The card shows the illustration as a **132px-wide, 4:3 thumbnail** on the
+left, with the text beside it. It was a 92px square, which was the right
+frame for a symbol and the wrong one for two people in a room — at that size
+the room went first and what was left was a symbol again.
 
-So: **two figures and one clear object.** No crowds, no fine detail, no
-text in the artwork. Check every one at 92px before calling it done — if
-you cannot tell it from its neighbour at that size, it has not worked.
-
-*(If the set turns out to deserve more room than a 92px square, the card
-layout is worth revisiting — see the note at the end.)*
+132 × 99 is enough for a scene and is still small. So: **two figures, one
+clear object, one suggested place.** No crowds, no fine detail, no text in
+the artwork. Check every one at that size before calling it done — if you
+cannot tell it from its neighbour at 132px, it has not worked.
 
 ## Export
 
 | | |
 | --- | --- |
 | Format | `.webp` (`.png` and `.svg` also picked up) |
-| Size | 1200×900, 4:3 |
-| Crop | The card shows a **centre square**. Keep both figures inside the middle 900×900 or they will be cropped. |
+| Size | 1200×900, 4:3 — the same shape the card shows, so nothing is cropped |
 | Background | Filled, not transparent. A wash from the palette. |
 | Weight | Under 60KB each. Sixty-five of these ship in one bundle. |
 | Filename | Exactly the `file` column below. Lowercase, no spaces. |
@@ -149,23 +147,33 @@ Getting these wrong — drawing them as one room — makes them meaningless.
 
 ---
 
-## One thing to decide
+## The eight pilots
 
-The card shows this art as a **92px square** beside the text. That was the
-right size for a symbol and it is a tight fit for a scene with two people
-and a room in it.
+Eight are drawn, one per scenario, to prove the direction before the other
+57 are made. They are SVG rather than webp — hand-authored rather than
+generated — and the loader takes either.
 
-Two ways to go, and it is worth choosing before 65 illustrations are made
-rather than after:
+| file | scenario | idea |
+| --- | --- | --- |
+| `bath.svg` | cozy indoor | Slow evening in |
+| `pasta.svg` | cooking | Cook one dish from scratch |
+| `pottery.svg` | creative / playful | Be beginners at something |
+| `hike.svg` | outdoor | A hill with a view at the top |
+| `stargaze.svg` | romantic | Drive out of the light |
+| `firsttrain.svg` | adventurous | First train, no return booked |
+| `questions.svg` | conversation | Twenty questions you have never asked |
+| `videocook.svg` | long distance, `SPLIT` | Same recipe, two kitchens |
 
-1. **Keep the 92px thumbnail.** The scenes have to be drawn very simply —
-   two large figures, one object, almost no background. Achievable, but it
-   pushes the set back toward pictograms, which is what we are leaving.
-2. **Give the illustration the top of the card**, full width, 4:3 or 16:9,
-   with the text beneath. This is what the style is for and what makes the
-   detail worth drawing. It makes each card taller, so fewer fit on a
-   screen — a real trade against the paging that already exists.
+The other 57 fall back to the category drawing until their file exists, so
+the app is usable throughout and they can land in any order.
 
-The brief above is written for (1), because that is what the app does
-today. If (2) is the direction, the export spec becomes 16:9 and the scenes
-can carry more.
+---
+
+## Settled: the card layout
+
+A 132-wide 4:3 thumbnail on the left, text on the right. Not a hero image
+across the top of the card: that is what the style would prefer, but it makes
+every card taller and fewer fit on a screen, and Explore is a list people
+scan. The landscape thumbnail is the compromise that buys a scene without
+buying a longer page — it costs the text about forty pixels, which is one
+extra wrap on a long title and nothing on most of them.

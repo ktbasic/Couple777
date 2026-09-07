@@ -429,7 +429,7 @@
 
 .savedShot {
   flex: none;
-  width: 54px;
+  width: 68px;
   border-radius: var(--r-sm);
   overflow: hidden;
 }

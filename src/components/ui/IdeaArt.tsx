@@ -197,7 +197,22 @@ export function IdeaArt({
 
   return (
     <div className={[s.frame, className ?? ''].filter(Boolean).join(' ')} style={{ aspectRatio: ratio }}>
-      <svg viewBox="0 0 120 120" className={s.svg} role="presentation" aria-hidden focusable="false">
+      {/*
+        `slice` rather than the default `meet`. The field is square and the
+        frame is not — a card asks for 4:3 — and letterboxing a square into it
+        painted two bare pink bars either side of a small square drawing, which
+        read as a broken image rather than a picture. Filling crops about
+        fifteen units off the top and bottom of the field, which the motifs
+        (all inside y 35–90) never use.
+      */}
+      <svg
+        viewBox="0 0 120 120"
+        preserveAspectRatio="xMidYMid slice"
+        className={s.svg}
+        role="presentation"
+        aria-hidden
+        focusable="false"
+      >
         <defs>
           <linearGradient id={`g${uid}`} gradientTransform={`rotate(${w.angle} 0.5 0.5)`}>
             <stop offset="0%" stopColor={p.from} />
