@@ -386,7 +386,32 @@ export interface SavedIdea {
 
 /* ------------------------------- Community ------------------------------- */
 
-export type CommunityTopic = 'question' | 'experience' | 'advice' | 'reflection' | 'tips';
+/**
+ * What the post is *about*. This is what someone filters by, and it is the
+ * only one of the two they are asked for.
+ *
+ * It used to be the list below — question, experience, advice, reflection —
+ * which is what a post *is*, not what it is about. That made the filter
+ * useless for the thing people actually come here to do: find someone else's
+ * long-distance thread, not someone else's question.
+ */
+export type CommunityTopic =
+  | 'communication'
+  | 'conflict'
+  | 'intimacy'
+  | 'long_distance'
+  | 'life_together'
+  | 'kids';
+
+/**
+ * What the post *is*, inferred from what was written rather than asked for.
+ *
+ * Metadata only: nothing filters by it and nothing shows it. It is here
+ * because the old selector proved the shape is worth knowing and disproved
+ * that anyone wants to fill it in — a question mark at the end of a paragraph
+ * is a better signal than a chip somebody tapped to get past the screen.
+ */
+export type CommunityPostKind = 'question' | 'experience' | 'advice' | 'reflection';
 
 export interface CommunityReply {
   id: ID;
@@ -405,11 +430,28 @@ export interface CommunityPost {
   anonymous: boolean;
   mine?: boolean;
   topic: CommunityTopic;
+  /** Inferred from the body. Never asked for, never shown. */
+  kind: CommunityPostKind;
+  /** Optional. Plenty of posts are one paragraph and want no headline. */
+  title?: string;
   body: string;
   createdAt: string;
   hearts: number;
   heartedByMe?: boolean;
   replies: CommunityReply[];
+}
+
+/**
+ * One unfinished post, kept per account so leaving the screen does not throw
+ * away what was written. One rather than many: this is a compose box someone
+ * stepped away from, not a folder.
+ */
+export interface PostDraft {
+  topic: CommunityTopic;
+  anonymous: boolean;
+  title: string;
+  body: string;
+  savedAt: string;
 }
 
 /* ------------------------------ Little Quest ------------------------------ */
@@ -450,6 +492,8 @@ export interface AppState {
   savedIdeas: SavedIdea[];
   /** The forum, local for now — see `data/community.ts`. */
   communityPosts: CommunityPost[];
+  /** An unfinished post, if one was saved. Browser-local, per account. */
+  postDraft?: PostDraft;
   /** Little Quests finished, newest last. Stars are counted from this. */
   questsDone: QuestDone[];
   /** Quests passed on, so today's pick moves along. */

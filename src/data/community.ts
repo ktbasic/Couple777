@@ -1,22 +1,40 @@
 import type { CommunityPost, CommunityTopic } from '@/lib/types';
 
+/**
+ * The six things couples actually come here to read about.
+ *
+ * These replace question / experience / advice / reflection, which described
+ * the shape of a post rather than its subject — so filtering by them answered
+ * "show me the questions" when what anyone wanted was "show me the other
+ * long-distance couples". The shape is still recorded, inferred from the text
+ * in `lib/postKind.ts`, and nobody is asked for it.
+ */
 export const TOPIC_LABEL: Record<CommunityTopic, string> = {
-  question: 'A question',
-  experience: 'An experience',
-  advice: 'Advice',
-  reflection: 'A reflection',
-  tips: 'Using Couple777',
+  communication: 'Communication',
+  conflict: 'Conflict',
+  intimacy: 'Intimacy',
+  long_distance: 'Long distance',
+  life_together: 'Life together',
+  kids: 'Kids',
 };
 
 export const TOPIC_EMOJI: Record<CommunityTopic, string> = {
-  question: '❓',
-  experience: '✨',
-  advice: '🤝',
-  reflection: '🌙',
-  tips: '💡',
+  communication: '💬',
+  conflict: '🌩️',
+  intimacy: '🤍',
+  long_distance: '✈️',
+  life_together: '🏡',
+  kids: '🧸',
 };
 
-export const TOPICS: CommunityTopic[] = ['question', 'experience', 'advice', 'reflection', 'tips'];
+export const TOPICS: CommunityTopic[] = [
+  'communication',
+  'conflict',
+  'intimacy',
+  'long_distance',
+  'life_together',
+  'kids',
+];
 
 const ago = (hours: number) => new Date(Date.now() - hours * 3600_000).toISOString();
 
@@ -32,7 +50,9 @@ export const SEED_POSTS: CommunityPost[] = [
     id: 'cp-1',
     author: 'Anonymous',
     anonymous: true,
-    topic: 'advice',
+    topic: 'communication',
+    kind: 'question',
+    title: 'We narrate our days at each other',
     body: "We have been together six years and we have started doing the thing where we tell each other about our day and neither of us is listening. Not fighting. Just... narrating. Has anyone come back from that?",
     createdAt: ago(3),
     hearts: 24,
@@ -57,7 +77,9 @@ export const SEED_POSTS: CommunityPost[] = [
     id: 'cp-2',
     author: 'Priya & Tom',
     anonymous: false,
-    topic: 'experience',
+    topic: 'long_distance',
+    kind: 'advice',
+    title: 'One reliable thing beat every special thing',
     body: 'Long distance for eight months, ends in March. The thing that saved us was picking one small thing at the same time every week — Sunday morning, coffee, both of us on video, no agenda. Not romantic. Just reliable.',
     createdAt: ago(9),
     hearts: 41,
@@ -75,7 +97,8 @@ export const SEED_POSTS: CommunityPost[] = [
     id: 'cp-3',
     author: 'Anonymous',
     anonymous: true,
-    topic: 'question',
+    topic: 'life_together',
+    kind: 'question',
     body: 'How do you plan things when one of you likes planning and the other finds it stressful? I want to book something for our anniversary and every time I bring it up it turns into a whole thing.',
     createdAt: ago(20),
     hearts: 12,
@@ -85,7 +108,9 @@ export const SEED_POSTS: CommunityPost[] = [
     id: 'cp-4',
     author: 'Marco & Lea',
     anonymous: false,
-    topic: 'reflection',
+    topic: 'life_together',
+    kind: 'reflection',
+    title: 'Nine years today',
     body: 'Nine years today. Nobody tells you the good part is not the big trips, it is that you can be in the same room for four hours saying almost nothing and it is the best part of the week.',
     createdAt: ago(30),
     hearts: 88,
@@ -103,7 +128,8 @@ export const SEED_POSTS: CommunityPost[] = [
     id: 'cp-5',
     author: 'Anonymous',
     anonymous: true,
-    topic: 'tips',
+    topic: 'life_together',
+    kind: 'advice',
     body: 'We use the 7-week one as the actual planning slot and leave the 7-day one loose. Trying to make all three special was too much. One properly planned thing a month is plenty.',
     createdAt: ago(46),
     hearts: 19,

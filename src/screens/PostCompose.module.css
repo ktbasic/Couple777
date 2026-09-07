@@ -1,4 +1,5 @@
 .label {
+  display: block;
   margin-bottom: var(--s-3);
   font-size: var(--t-micro);
   font-weight: 700;
@@ -7,10 +8,167 @@
   color: var(--c-ink-4);
 }
 
+.optional {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--c-ink-4);
+  opacity: 0.8;
+}
+
+/* ---------- The draft you came back to ---------- */
+
+/*
+ * Said out loud, because silently refilling a form is unnerving: text you did
+ * not just type, in a box you just opened, reads as a bug until something
+ * explains it. And the way out is here, next to the explanation, rather than
+ * as a third button under the two real ones.
+ */
+.resumed {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-5);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-hairline-soft);
+}
+
+.resumedText {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+}
+
+.discard {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-accent-ink);
+  cursor: pointer;
+}
+
+/* ---------- Anonymity ---------- */
+
+.anonRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  text-align: left;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-hairline);
+  background: var(--c-surface);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color var(--d-fast) var(--ease);
+}
+
+.anonRow[aria-checked='true'] {
+  border-color: var(--c-accent-edge);
+  background: var(--c-accent-wash);
+}
+
+.anonMark {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+  font-size: var(--t-small);
+  font-weight: 700;
+}
+
+.anonRow[aria-checked='true'] .anonMark {
+  background: var(--c-surface);
+}
+
+.anonText {
+  flex: 1;
+  min-width: 0;
+}
+
+.anonTitle {
+  display: block;
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.anonBody {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--t-small);
+  color: var(--c-ink-3);
+}
+
+.track {
+  flex: none;
+  width: 46px;
+  height: 27px;
+  border-radius: var(--r-full);
+  background: var(--c-hairline);
+  padding: 3px;
+  transition: background-color var(--d-fast) var(--ease);
+}
+
+.trackOn {
+  background: var(--c-accent);
+}
+
+.knob {
+  display: block;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: var(--c-surface);
+  box-shadow: var(--e-1);
+  transition: transform var(--d-fast) var(--ease);
+}
+
+.trackOn .knob {
+  transform: translateX(19px);
+}
+
+/* ---------- The writing ---------- */
+
+.input {
+  width: 100%;
+  height: 50px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-accent-edge);
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-body);
+  color: var(--c-ink);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--c-accent);
+}
+
+.areaWrap {
+  position: relative;
+}
+
 .area {
   width: 100%;
   min-height: 168px;
-  padding: var(--s-4);
+  /* Room at the bottom for the counter, which sits over the box rather than
+     under it so it never moves the buttons as the text grows. */
+  padding: var(--s-4) var(--s-4) 30px;
   border-radius: var(--r-md);
   border: 1px solid var(--c-accent-edge);
   background: var(--c-surface);
@@ -26,41 +184,26 @@
   border-color: var(--c-accent);
 }
 
-.who {
+.count {
+  position: absolute;
+  right: var(--s-4);
+  bottom: 10px;
+  font-size: var(--t-micro);
+  font-weight: 600;
+  color: var(--c-ink-4);
+  pointer-events: none;
+}
+
+.privacy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--s-3);
+  font-size: var(--t-micro);
+  color: var(--c-ink-4);
+}
+
+.actions {
   display: grid;
   gap: var(--s-3);
-}
-
-.pick {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: var(--s-4);
-  border-radius: var(--r-md);
-  border: 1px solid var(--c-hairline);
-  background: var(--c-surface);
-  font: inherit;
-  cursor: pointer;
-  transition:
-    background-color var(--d-fast) var(--ease),
-    border-color var(--d-fast) var(--ease);
-}
-
-.pickOn {
-  background: var(--c-accent-wash);
-  border-color: var(--c-accent-edge);
-}
-
-.pickTitle {
-  display: block;
-  font-size: var(--t-body);
-  font-weight: 600;
-  color: var(--c-ink);
-}
-
-.pickBody {
-  display: block;
-  margin-top: 2px;
-  font-size: var(--t-small);
-  color: var(--c-ink-3);
 }

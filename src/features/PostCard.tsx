@@ -34,11 +34,23 @@ const REPLY = (
   </svg>
 );
 
+/*
+ * How much of a post the feed shows. Long enough that a short post is never
+ * cut, short enough that one long one cannot own the screen — four or five
+ * lines on a phone, then "Read more".
+ */
+const PREVIEW = 240;
+
 export function PostCard({ post, full }: { post: CommunityPost; full?: boolean }) {
   const { dispatch } = useStore();
 
-  const body =
-    full || post.body.length <= 220 ? post.body : `${post.body.slice(0, 220).trimEnd()}…`;
+  const long = post.body.length > PREVIEW;
+  /* Cut at the last space, not mid-word: "the thing that sav…" reads as a
+     rendering fault where "the thing that…" reads as a preview. */
+  const preview = long
+    ? `${post.body.slice(0, PREVIEW).replace(/\s+\S*$/, '')}…`
+    : post.body;
+  const body = full ? post.body : preview;
 
   return (
     <article className={s.card}>
@@ -58,10 +70,17 @@ export function PostCard({ post, full }: { post: CommunityPost; full?: boolean }
       </div>
 
       {full ? (
-        <p className={s.body}>{body}</p>
-      ) : (
-        <Link to={`/community/${post.id}`} className={s.bodyLink}>
+        <>
+          {post.title ? <h2 className={s.title}>{post.title}</h2> : null}
           <p className={s.body}>{body}</p>
+        </>
+      ) : (
+        /* One link around title and preview together. Two adjacent links to
+           the same place is two tab stops and two things to read out. */
+        <Link to={`/community/${post.id}`} className={s.bodyLink}>
+          {post.title ? <h2 className={s.title}>{post.title}</h2> : null}
+          <p className={s.body}>{body}</p>
+          {long ? <span className={s.more}>Read more</span> : null}
         </Link>
       )}
 

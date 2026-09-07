@@ -10,8 +10,10 @@ import {
 } from 'react';
 import type {
   CommunityPost,
+  CommunityPostKind,
   CommunityReply,
   AppState,
+  PostDraft,
   CoupleProfile,
   DailyEntry,
   ID,
@@ -22,6 +24,7 @@ import type {
   RoomSession,
 } from '@/lib/types';
 import { completeCycle } from '@/lib/cycles';
+import { inferTopic } from '@/lib/postKind';
 import { buildSeedState } from '@/data/seed';
 import { formatShort, today } from '@/lib/dates';
 import { announceOnThisDevice } from '@/lib/deviceNotify';
@@ -45,6 +48,7 @@ const LOCAL_SLICES = [
   'destinations',
   'savedIdeas',
   'communityPosts',
+  'postDraft',
   'questsDone',
   'questsSkipped',
   'readNotificationIds',
@@ -58,10 +62,45 @@ function localKey(userId: string) {
   return `${LOCAL_KEY_PREFIX}${userId}`;
 }
 
+/**
+ * Community topics used to be question / experience / advice / reflection /
+ * tips — the shape of a post rather than its subject. Anything already in a
+ * browser still carries one of those, and left alone it would filter to
+ * nothing and render an undefined label under every author's name.
+ *
+ * So the old value becomes the post's `kind`, which is where that idea now
+ * lives, and the subject is read off the text the same way a new post's would
+ * be. It runs on read rather than as a one-off flag because there is no
+ * migration step to hang a flag on: the next write persists the result.
+ */
+const LEGACY_KIND: Record<string, CommunityPostKind> = {
+  question: 'question',
+  experience: 'experience',
+  advice: 'advice',
+  reflection: 'reflection',
+  tips: 'advice',
+};
+
+function migratePosts(posts: CommunityPost[]): CommunityPost[] {
+  return posts.map((p) => {
+    const legacy = LEGACY_KIND[p.topic as string];
+    if (!legacy) return p;
+    return {
+      ...p,
+      topic: inferTopic(`${p.title ?? ''} ${p.body}`),
+      kind: p.kind ?? legacy,
+    };
+  });
+}
+
 function readLocal(userId: string): Partial<LocalState> {
   try {
     const raw = window.localStorage.getItem(localKey(userId));
-    return raw ? (JSON.parse(raw) as Partial<LocalState>) : {};
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Partial<LocalState>;
+    return parsed.communityPosts
+      ? { ...parsed, communityPosts: migratePosts(parsed.communityPosts) }
+      : parsed;
   } catch {
     return {};
   }
@@ -126,6 +165,8 @@ type Action =
   | { type: 'markMatchSeen'; id: ID }
   | { type: 'saveRoomSession'; session: RoomSession }
   | { type: 'addPost'; post: CommunityPost }
+  | { type: 'saveDraft'; draft: PostDraft }
+  | { type: 'clearDraft' }
   | { type: 'addReply'; postId: ID; reply: CommunityReply }
   | { type: 'toggleHeart'; postId: ID }
   | { type: 'completeQuest'; questId: string }
@@ -316,7 +357,19 @@ function reducer(state: AppState, action: Action): AppState {
     }
 
     case 'addPost':
-      return { ...state, communityPosts: [action.post, ...state.communityPosts] };
+      /* Posting clears the draft: what was in the box is now on the feed, and
+         a draft left behind would reappear as a half-written duplicate. */
+      return {
+        ...state,
+        communityPosts: [action.post, ...state.communityPosts],
+        postDraft: undefined,
+      };
+
+    case 'saveDraft':
+      return { ...state, postDraft: action.draft };
+
+    case 'clearDraft':
+      return { ...state, postDraft: undefined };
 
     case 'addReply':
       return {

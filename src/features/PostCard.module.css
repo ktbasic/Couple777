@@ -61,6 +61,36 @@
   display: block;
 }
 
+/* Optional, so the body carries its own top margin and this one replaces it
+   when there is a title, rather than the two stacking into a gap. */
+.title {
+  margin-top: var(--s-3);
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--c-ink);
+  text-wrap: pretty;
+}
+
+.title + .body {
+  margin-top: 5px;
+}
+
+/*
+ * Not a button, because it is inside the link that already opens the post —
+ * a real button here would be a control inside a link, which is invalid and
+ * unpredictable to tap. It says what the tap does; the link does it.
+ */
+.more {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--c-accent-ink);
+}
+
 .body {
   margin-top: var(--s-3);
   font-size: var(--t-body);

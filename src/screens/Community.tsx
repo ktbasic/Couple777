@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Screen, ScreenHeader, Section } from '@/components/layout/Screen';
 import { ButtonLink } from '@/components/ui/Button';
-import { Chip, ChipRow } from '@/components/ui/Chip';
+import { Chip, ChipWrap } from '@/components/ui/Chip';
 import { FloatingAction } from '@/components/ui/FloatingAction';
 import { PostCard } from '@/features/PostCard';
 import { useStore } from '@/context/store';
@@ -21,22 +21,27 @@ export default function CommunityScreen() {
   const { state } = useStore();
   const [topic, setTopic] = useState<CommunityTopic | null>(null);
 
+  /* Writing while filtered to Conflict means writing about conflict — asking
+     for the topic again on the next screen is asking twice. */
+  const composeTo = topic ? `/community/new?topic=${topic}` : '/community/new';
+
   const posts = [...state.communityPosts]
     .filter((p) => !topic || p.topic === topic)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   return (
     <Screen>
-      <ScreenHeader
-        eyebrow="Community"
-        title="Other couples, working it out"
-        sub="Ask anything, with your name on it or not."
-      />
+      <ScreenHeader eyebrow="Community" title="A space for couples to ask, share, and relate" />
 
+      {/*
+        Wrapping rather than scrolling. Seven chips do not fit one line on a
+        phone, and in a scrolling row the last two are off-screen with nothing
+        saying so — a topic nobody can see is a topic nobody uses.
+      */}
       <div className={s.filters}>
-        <ChipRow>
+        <ChipWrap>
           <Chip selected={topic === null} onClick={() => setTopic(null)}>
-            Everything
+            All
           </Chip>
           {TOPICS.map((t) => (
             <Chip
@@ -48,7 +53,7 @@ export default function CommunityScreen() {
               {TOPIC_LABEL[t]}
             </Chip>
           ))}
-        </ChipRow>
+        </ChipWrap>
       </div>
 
       <Section>
@@ -62,16 +67,16 @@ export default function CommunityScreen() {
           <div className={s.empty}>
             <p className={s.emptyTitle}>Nothing here yet 🌱</p>
             <p className={s.emptyBody}>
-              No {topic ? TOPIC_LABEL[topic].toLowerCase() : 'posts'} so far. Start it off.
+              {topic ? `Nothing under ${TOPIC_LABEL[topic]} yet.` : 'No posts yet.'} Start it off.
             </p>
-            <ButtonLink to="/community/new" variant="accent" size="sm">
+            <ButtonLink to={composeTo} variant="accent" size="sm">
               Write a post
             </ButtonLink>
           </div>
         )}
       </Section>
 
-      <FloatingAction to="/community/new" label="Write a post" />
+      <FloatingAction to={composeTo} label="Write a post" />
     </Screen>
   );
 }

@@ -63,6 +63,7 @@ npm run test:ai         # the rules the memory endpoint holds whatever the model
 
 ```
 npm run test:ideas      # the promises the date recommender keeps whatever the model says
+npm run test:community  # what a community post is filed under, when nobody was asked
 npm run coverage        # where the idea corpus is thin, per filter combination
 ```
 
@@ -235,6 +236,31 @@ Two rules do not depend on the model and are enforced in the prompt, in the
 endpoint and in the client: a difficult memory defaults to private, and a
 difficult memory is never offered a date idea. Do not move either of them into
 one layer only.
+
+## The community feed
+
+Two different things used to share one field. A post's `topic` is now what it
+is **about** — Communication, Conflict, Intimacy, Long distance, Life
+together, Kids — because that is what someone scrolling is looking for. What
+it **is** (question, experience, advice, reflection) is `kind`: inferred from
+the text by `src/lib/postKind.ts`, never asked for, never rendered. It used to
+be the only field, which made the filter answer "show me the questions" when
+what anyone wanted was "show me the other long-distance couples".
+
+Posts already in a browser carry the old value, so `migratePosts` in
+`store.tsx` reads it on load: the old topic becomes `kind`, and the subject is
+inferred the same way a new post's would be. There is no migration step to
+hang a flag on — the next write persists the result.
+
+`inferTopic` and `inferKind` are keyword heuristics and are sometimes wrong.
+That is affordable because of where the answers go: `kind` renders nowhere,
+and an inferred topic only fills in for a post that never had one. Neither
+decides what a reader sees of what someone wrote. `npm run test:community` is
+sentences people plausibly write and what the rules currently do with them —
+a change that moves one is not necessarily wrong, but it has to be looked at.
+
+Community posts and the single saved draft are **browser-local per account**,
+like notes and saved ideas. There is no `posts` table and no RLS to run.
 
 ## Next: design and UX, not backend
 
