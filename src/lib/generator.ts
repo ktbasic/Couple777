@@ -53,10 +53,14 @@ function profileBoost(idea: DateIdea, profile?: CoupleProfile): number {
   for (const vibe of profile.vibes) {
     if (COUPLE_VIBE_VIBES[vibe].some((v) => idea.vibes.includes(v))) boost += 0.7;
   }
-  // Couples who are rarely in the same place get more out of going somewhere.
-  if (profile.proximity === 'long-distance' || profile.proximity === 'different-cities') {
-    if (idea.setting === 'out') boost += 0.6;
-  }
+  /*
+   * There used to be a boost here for "out" ideas when the couple live apart,
+   * on the reasoning that people who rarely share a room get more out of going
+   * somewhere. It is exactly backwards: going somewhere together is the one
+   * thing they cannot do. Whether two people can be in the same room is not a
+   * scoring nudge at all — it decides what is eligible — so it now lives in
+   * shared/ideaRank.ts, where being apart removes in-person ideas outright.
+   */
   if (profile.wishes.includes('spontaneity') && idea.spontaneity === 'spontaneous') boost += 0.8;
 
   return boost;
@@ -116,23 +120,22 @@ export function hasFilters(f: IdeaFilters): boolean {
 }
 
 /**
- * `seed` lets "regenerate" reshuffle without changing the filters — ties are
- * broken pseudo-randomly so the same filters can surface different ideas.
+ * The old generator, still used by anything that wants a quick ranked list.
+ *
+ * The random tie-break is gone. It let the same filters surface different
+ * ideas, which sounded like variety and behaved like noise: two identical
+ * requests answered differently, and no way to reproduce a bad suggestion
+ * anyone reported. Ties now break on id, so this is a pure function of its
+ * arguments. Explore gets its variety from paging through one ranking
+ * instead — see shared/ideaRank.ts.
  */
 export function generateDateIdeas(
   f: IdeaFilters,
-  seed = 0,
   count = 4,
   profile?: CoupleProfile,
   feedback: IdeaFeedback[] = [],
   exclude: string[] = [],
 ): DateIdea[] {
-  const jitter = (id: string) => {
-    let h = seed;
-    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-    return (h % 100) / 100;
-  };
-
   const pool = feedback.includes('done')
     ? DATE_IDEAS.filter((i) => !exclude.includes(i.id))
     : DATE_IDEAS;
@@ -140,13 +143,9 @@ export function generateDateIdeas(
   return (pool.length ? pool : DATE_IDEAS)
     .map((idea) => ({
       idea,
-      score:
-        scoreIdea(idea, f) +
-        profileBoost(idea, profile) -
-        feedbackPenalty(idea, feedback) +
-        jitter(idea.id),
+      score: scoreIdea(idea, f) + profileBoost(idea, profile) - feedbackPenalty(idea, feedback),
     }))
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.score - a.score || a.idea.id.localeCompare(b.idea.id))
     .slice(0, count)
     .map((r) => r.idea);
 }

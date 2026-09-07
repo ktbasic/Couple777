@@ -12,6 +12,7 @@ import { pendingOnboarding, clearPendingOnboarding } from '@/lib/pendingOnboardi
 import { today } from '@/lib/dates';
 import { createInitialCycles } from '@/lib/cycles';
 import { InviteShare } from '@/features/InviteShare';
+import type { CoupleProfile } from '@/lib/types';
 import s from './CoupleSetup.module.css';
 
 /**
@@ -139,6 +140,11 @@ export default function CoupleSetupScreen() {
         homeBase: homeBase || undefined,
         profile: {
           ...(pending?.coupleProfile ?? state.couple.profile),
+          /* Onboarding cannot know this — it asks what you want out of the app,
+             several screens before anyone says where they live. The answer is
+             the one given on this screen, and it decides whether a couple is
+             ever offered something that needs both of them in the room. */
+          ...(distance ? { proximity: distance as CoupleProfile['proximity'] } : {}),
           ...(partnerGender
             ? {
                 partnerGender,

@@ -259,8 +259,34 @@ function coupleFromRows(
     inviteCode: row.invite_code,
     currentPersonId: meId,
     partnerJoined: Boolean(row.partner_2_user_id),
-    profile: (row.profile as unknown as CoupleProfile) ?? emptyCoupleProfile(),
+    profile: coupleProfileFromRow(row),
   };
+}
+
+/**
+ * The couple's profile, with how far apart they live actually in it.
+ *
+ * `profile.proximity` was written once, at onboarding, and onboarding has
+ * always hardcoded 'together' — it asks what you want out of the app, not
+ * where you both live. The real answer is collected a few screens later on
+ * /couple and stored in its own column, where nothing ever read it. So every
+ * couple who has ever used this app looks co-located to the recommender,
+ * including the ones who told us on sign-up that they are not.
+ *
+ * The column wins where it has an answer. It is the one the user was actually
+ * asked, and its four values are already the four `Proximity` values.
+ */
+const PROXIMITY: Record<string, CoupleProfile['proximity']> = {
+  together: 'together',
+  'same-area': 'same-area',
+  'different-cities': 'different-cities',
+  'long-distance': 'long-distance',
+};
+
+function coupleProfileFromRow(row: CoupleRow): CoupleProfile {
+  const profile = (row.profile as unknown as CoupleProfile) ?? emptyCoupleProfile();
+  const stated = row.distance_setup ? PROXIMITY[row.distance_setup] : undefined;
+  return stated ? { ...profile, proximity: stated } : profile;
 }
 
 export function emptyCoupleProfile(): CoupleProfile {

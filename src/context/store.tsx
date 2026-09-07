@@ -509,6 +509,14 @@ function emptyState(userId?: string): AppState {
     destinations:
       local.destinations ??
       base.destinations.map((d) => ({ ...d, savedBy: [], matchSeen: false })),
+    /*
+     * And the same for saved ideas, which had the same bug and kept it longer.
+     * The seed puts one idea on the shared list "added by" the other person and
+     * hearts another as them — so a real couple who had saved nothing opened
+     * Explore to a list attributed to a partner who never touched it, and the
+     * recommender would have taken it as a genuine preference.
+     */
+    savedIdeas: local.savedIdeas ?? [],
   };
 }
 

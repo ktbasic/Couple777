@@ -127,14 +127,19 @@ const WHERE: { label: string; value: Setting | null }[] = [
   { label: 'Either', value: null },
 ];
 
-/* Budgets are a ceiling for two people, so the labels say what someone would
-   actually say out loud. The top one is not a floor of 80 — it means "we are
-   not counting tonight", so nothing is priced out. */
-const SPEND: { label: string; value: number }[] = [
+/*
+ * A ceiling for two people, phrased the way someone would say it out loud.
+ *
+ * "€80+" used to sit here and was a lie in both directions: it read as a floor
+ * while behaving as a ceiling of 999, and since nothing in the corpus costs
+ * more than €60 it selected exactly what "€30–80" selected. "No limit" is what
+ * that chip always meant, and null is what it always did.
+ */
+const SPEND: { label: string; value: number | null }[] = [
   { label: 'Free', value: 0 },
-  { label: 'Under €30', value: 30 },
-  { label: '€30–80', value: 80 },
-  { label: '€80+', value: 999 },
+  { label: 'Up to €30', value: 30 },
+  { label: 'Up to €80', value: 80 },
+  { label: 'No limit', value: null },
 ];
 
 /** The four moods people name. Mapped onto the axis the ideas are tagged on. */
@@ -198,6 +203,9 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
    * an untouched screen does not open with a chip already lit.
    */
   const [settingAnswered, setSettingAnswered] = useState(Boolean(cued.setting));
+  /* Same trick for Budget, for the same reason: "No limit" and "not answered"
+     are both null to the ranker and two different sentences to a person. */
+  const [budgetAnswered, setBudgetAnswered] = useState(false);
 
   useEffect(() => {
     if (!hasCue) return;
@@ -223,8 +231,8 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
   /* Three, not four: a short list is something you read, a long one is
      something you scroll past. */
   const ideas = useMemo(
-    () => generateDateIdeas(filters, seed, 3, state.couple.profile),
-    [filters, seed, state.couple.profile],
+    () => generateDateIdeas(filters, 3, state.couple.profile),
+    [filters, state.couple.profile],
   );
 
   const shared = sharedIdeas(state)
@@ -328,7 +336,16 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
             set('setting', v);
           },
         )}
-        {row('Budget for two', SPEND, filters.budget, (v) => set('budget', v))}
+        {row(
+          'Budget for two',
+          SPEND,
+          budgetAnswered ? filters.budget : undefined,
+          (v) => {
+            const same = budgetAnswered && (filters.budget ?? null) === (v ?? null);
+            setBudgetAnswered(!same);
+            set('budget', v);
+          },
+        )}
         {row('Vibe', VIBES, filters.vibe, (v) => set('vibe', v))}
 
         {/* One button carries the screen. The other is a shrug, and looks

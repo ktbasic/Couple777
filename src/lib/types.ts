@@ -177,43 +177,31 @@ export interface Trip {
 
 /* ---------------- Date ideas ---------------- */
 
-export type Vibe = 'romantic' | 'fun' | 'adventurous' | 'relaxing' | 'creative';
-export type Setting = 'home' | 'out';
-export type Energy = 'low' | 'medium' | 'high';
-export type Weather = 'any' | 'rain' | 'sun' | 'cold' | 'warm';
-export type Spontaneity = 'spontaneous' | 'planned';
+/*
+ * Defined in `shared/`, not here, and re-exported so every existing import of
+ * `@/lib/types` keeps working. The corpus and its vocabulary have to be
+ * readable by the serverless recommender as well as by the browser, and
+ * anything under `src/` is browser-only as far as a function in `api/` is
+ * concerned.
+ */
+export type {
+  Vibe,
+  Setting,
+  Energy,
+  Weather,
+  Spontaneity,
+  Daypart,
+  IdeaCategory,
+  IdeaMode,
+  BaseIdea,
+  IdeaFilters,
+} from '@shared/ideaTypes';
 
-/** When in the day an idea belongs. */
-export type Daypart = 'morning' | 'brunch' | 'afternoon' | 'evening' | 'late' | 'wholeday';
+import type { BaseIdea } from '@shared/ideaTypes';
 
-export interface DateIdea {
-  id: ID;
-  title: string;
-  emoji: string;
-  description: string;
-  /** Minutes. */
-  duration: number;
-  /** Euros. 0 means free. */
-  cost: number;
-  prep: string;
-  /** The emotional reason this might land for a couple. */
-  why: string;
-  vibes: Vibe[];
-  setting: Setting;
-  energy: Energy;
-  weather: Weather[];
-  spontaneity: Spontaneity;
-  dayparts: Daypart[];
+/** An idea as the screens use it: the shared data, plus a picture. */
+export interface DateIdea extends BaseIdea {
   image?: string;
-}
-
-export interface IdeaFilters {
-  daypart: Daypart | null;
-  duration: number | null; // minutes available
-  budget: number | null; // euro ceiling
-  setting: Setting | null;
-  vibe: Vibe | null;
-  energy: Energy | null;
 }
 
 /** Why a suggestion missed, fed back into the next round. */
