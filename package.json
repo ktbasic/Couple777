@@ -14,7 +14,9 @@
     "test:hosted": "node supabase/tests/hosted.e2e.mjs",
     "typecheck:api": "tsc -p tsconfig.api.json",
     "test:ai": "node --experimental-strip-types --no-warnings tests/memory-read.test.ts",
-    "test:memory": "esbuild src/lib/memoryRead.test.ts --bundle --platform=node --format=esm --log-level=error --outfile=node_modules/.cache/memory.test.mjs && node node_modules/.cache/memory.test.mjs"
+    "test:memory": "esbuild src/lib/memoryRead.test.ts --bundle --platform=node --format=esm --log-level=error --outfile=node_modules/.cache/memory.test.mjs && node node_modules/.cache/memory.test.mjs",
+    "coverage": "esbuild scripts/coverage.ts --bundle --platform=node --format=esm --packages=external --log-level=error --outfile=node_modules/.cache/coverage.mjs && node node_modules/.cache/coverage.mjs",
+    "test:ideas": "esbuild tests/recommend-ideas.test.ts --bundle --platform=node --format=esm --packages=external --log-level=error --outfile=node_modules/.cache/ideas.test.mjs && node node_modules/.cache/ideas.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
