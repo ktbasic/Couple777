@@ -113,9 +113,20 @@ group('An exact match is never displaced by a near one');
   const thin = F({ daypart: 'morning', budget: 0, vibe: 'relaxing' });
   const alts = localRecommendations(thin, emptyContext(), 5);
   check('a thin request still returns five', alts.length === 5, `${alts.length}`);
+  /*
+   * The compromise is carried by `missed`, which is what the card turns into
+   * "Close match · Evening instead of Morning". It is deliberately not also in
+   * the reason — saying it twice, in two registers, was the first thing that
+   * looked wrong on screen.
+   */
+  const nearMisses = alts.filter((r) => r.tier > 0);
   check(
-    'and every compromise names itself',
-    alts.filter((r) => r.tier > 0).every((r) => r.missed.length > 0 && r.reason.includes('Close match')),
+    'every compromise names itself',
+    nearMisses.length > 0 && nearMisses.every((r) => r.missed.length === r.tier),
+  );
+  check(
+    'and the reason does not repeat it',
+    nearMisses.every((r) => !/close match/i.test(r.reason)),
   );
 }
 

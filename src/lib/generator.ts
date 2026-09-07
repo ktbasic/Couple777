@@ -20,7 +20,7 @@ import type {
  * budget are treated as near-hard limits, because ignoring those is annoying.
  */
 /** Onboarding answers map onto the same vibe axis the ideas are tagged with. */
-const WISH_VIBES: Record<Wish, Vibe[]> = {
+export const WISH_VIBES: Record<Wish, Vibe[]> = {
   romance: ['romantic'],
   conversation: ['romantic', 'relaxing'],
   fun: ['fun'],
@@ -29,7 +29,7 @@ const WISH_VIBES: Record<Wish, Vibe[]> = {
   spontaneity: ['fun', 'adventurous'],
 };
 
-const COUPLE_VIBE_VIBES: Record<CoupleVibe, Vibe[]> = {
+export const COUPLE_VIBE_VIBES: Record<CoupleVibe, Vibe[]> = {
   cozy: ['relaxing'],
   romantic: ['romantic'],
   playful: ['fun'],

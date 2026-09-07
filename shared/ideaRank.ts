@@ -366,18 +366,40 @@ function tagsFor(idea: BaseIdea): string[] {
  * idea and what was asked for, which is the most it can honestly do.
  */
 function reasonFor(c: Candidate, f: IdeaFilters): string {
-  if (c.tier === 0) {
-    const asked = [
-      f.daypart ? DAYPART_WORD[f.daypart]?.toLowerCase() : null,
-      f.setting ? (f.setting === 'home' ? 'indoors' : 'outdoors') : null,
-      f.budget === 0 ? 'free' : f.budget != null ? `under €${f.budget}` : null,
-      f.vibe ? VIBE_WORD[f.vibe].toLowerCase() : null,
-    ].filter(Boolean);
-    return asked.length
-      ? `${cap(asked.join(', '))} — everything you asked for.`
-      : 'A good place to start.';
-  }
-  return `Close match — ${c.missed.map((m) => m.label.toLowerCase()).join(', ')}.`;
+  /*
+   * A near miss already carries its own line on the card, in the couple's
+   * words — "Close match · Evening instead of Morning". Repeating it here as
+   * a sentence was the first thing that looked wrong on screen: the same
+   * apology twice, in two registers, before anything had been said about the
+   * idea. So a near miss gets told what it *is* instead, and the label is
+   * left to say what it is not.
+   */
+  if (c.tier > 0) return shape(c.idea);
+
+  const asked = [
+    f.daypart ? DAYPART_WORD[f.daypart]?.toLowerCase() : null,
+    f.setting ? (f.setting === 'home' ? 'indoors' : 'outdoors') : null,
+    f.budget === 0 ? 'free' : f.budget != null ? `under €${f.budget}` : null,
+    f.vibe ? VIBE_WORD[f.vibe].toLowerCase() : null,
+  ].filter(Boolean);
+
+  return asked.length
+    ? `${cap(asked.join(', '))} — everything you asked for.`
+    : shape(c.idea);
+}
+
+/** What an idea is, in the plainest terms the rules can manage. */
+function shape(idea: BaseIdea): string {
+  const hours = idea.duration / 60;
+  const long =
+    idea.duration < 60
+      ? `${idea.duration} minutes`
+      : hours === 1
+        ? 'about an hour'
+        : `about ${Math.round(hours)} hours`;
+  const where = idea.setting === 'home' ? 'at home' : 'out';
+  const price = idea.cost === 0 ? 'free' : `around €${idea.cost}`;
+  return `${cap(long)}, ${where}, ${price}.`;
 }
 
 function cap(s: string): string {

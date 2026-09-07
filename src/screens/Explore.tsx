@@ -16,8 +16,9 @@ import {
   EMPTY_FILTERS,
   MOOD_OPTIONS,
   generateAdventures,
-  generateDateIdeas,
 } from '@/lib/generator';
+import { recommendIdeas, fallbackReason, type RecommendationSource, type Recommendations } from '@/lib/ideaAi';
+import { contextFromState } from '@/lib/ideaContext';
 import { useStore } from '@/context/store';
 import { TIER_META } from '@/lib/dates';
 import { ideaMatches, matches, newMatch, sharedIdeas } from '@/lib/selectors';
@@ -189,28 +190,58 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
 
   const hasCue = Boolean(cued.daypart || cued.setting || cued.vibe);
   const [filters, setFilters] = useState<IdeaFilters>(cued);
-  const [seed, setSeed] = useState(1);
   const [loading, setLoading] = useState(false);
   /*
-   * Whether anything has been asked for yet. It decides both what the main
-   * button says and whether there are cards under it — arriving from Talk
-   * counts as having asked, because those filters came from somewhere.
-   */
-  const [generated, setGenerated] = useState(hasCue);
-  /*
-   * "Either" and "not answered" are the same value to the generator and two
+   * "Either" and "not answered" are the same value to the ranker and two
    * different things to a person. This remembers that the row was answered, so
    * an untouched screen does not open with a chip already lit.
    */
   const [settingAnswered, setSettingAnswered] = useState(Boolean(cued.setting));
-  /* Same trick for Budget, for the same reason: "No limit" and "not answered"
-     are both null to the ranker and two different sentences to a person. */
+  /* Same for Budget: "No limit" and "not answered" are both null. */
   const [budgetAnswered, setBudgetAnswered] = useState(false);
+
+  /*
+   * One ask, one ranked list, paged through five at a time.
+   *
+   * "More ideas" moves down this list rather than asking again. Asking again
+   * would cost another model call and, worse, could answer the same question
+   * differently — a model's ordering is stable inside one response and nowhere
+   * else. Changing a filter throws the list away, because it is an answer to a
+   * question nobody is asking any more.
+   */
+  const [result, setResult] = useState<Recommendations | null>(null);
+  const [page, setPage] = useState(0);
+  const [source, setSource] = useState<RecommendationSource | null>(null);
+
+  const context = useMemo(() => contextFromState(state, me.id), [state, me.id]);
+
+  const PER_PAGE = 5;
+  const showing = result ? result.items.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE) : [];
+  const more = result ? (page + 1) * PER_PAGE < result.items.length : false;
+
+  /** Everything on screen already, so a second page is a second page. */
+  const ask = async (next: IdeaFilters, keepShown: string[] = []) => {
+    setLoading(true);
+    setPage(0);
+    try {
+      const got = await recommendIdeas(next, { ...context, shown: keepShown }, PER_PAGE);
+      setResult(got);
+      setSource(got.source);
+    } finally {
+      setLoading(false);
+      window.setTimeout(
+        () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+        60,
+      );
+    }
+  };
 
   useEffect(() => {
     if (!hasCue) return;
     setFilters(cued);
-    setGenerated(true);
+    void ask(cued);
+    // The cue is the ask; re-running it on every render would re-ask it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cued, hasCue]);
 
   /*
@@ -223,17 +254,10 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
     const next = new URLSearchParams(params);
     next.delete('surprise');
     setParams(next, { replace: true });
-    surpriseUs();
+    void surpriseUs();
     // surpriseUs is stable for this screen's lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
-
-  /* Three, not four: a short list is something you read, a long one is
-     something you scroll past. */
-  const ideas = useMemo(
-    () => generateDateIdeas(filters, 3, state.couple.profile),
-    [filters, state.couple.profile],
-  );
 
   const shared = sharedIdeas(state)
     .map((row) => ({ row, idea: DATE_IDEAS.find((i) => i.id === row.id) }))
@@ -243,29 +267,40 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
     .map((row) => ({ row, idea: DATE_IDEAS.find((i) => i.id === row.id) }))
     .filter((x): x is { row: SavedIdea; idea: DateIdea } => Boolean(x.idea));
 
-  // Selecting the value that is already set clears it, so filters stay escapable.
+  /* Selecting the value that is already set clears it, so filters stay
+     escapable — and any change makes the list on screen stale. */
   const set = <K extends keyof IdeaFilters>(key: K, value: IdeaFilters[K]) =>
-    setFilters((f) => ({ ...f, [key]: f[key] === value ? null : value }));
+    setFilters((f) => {
+      const next = { ...f, [key]: f[key] === value ? null : value };
+      setResult(null);
+      return next;
+    });
 
   const nameOf = (id: string) => (id === me.id ? 'you' : partner.name);
 
-  /** The signature action: think for a beat, then bring you to the answer. */
-  const surpriseUs = () => {
-    setLoading(true);
-    setGenerated(true);
-    window.setTimeout(() => {
-      setSeed((n) => n + 7);
-      setLoading(false);
-      window.setTimeout(
-        () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-        60,
-      );
-    }, 1000);
+  /**
+   * Surprise us: drop the taste, keep the facts.
+   *
+   * It does not randomise the four rows. Random filters produce combinations
+   * nobody asked for, and a couple who said "morning" and then tapped surprise
+   * did not thereby agree to midnight stargazing. So the two rows that are
+   * about what is *possible* stay exactly as they were — when it is, and what
+   * it may cost — and the two that are about taste are cleared, which is what
+   * "surprise us" actually means: you choose, we have no preference.
+   *
+   * Being in the same city or not is not a row at all and is never negotiable;
+   * the ranker holds that one whatever this button does.
+   */
+  const surpriseUs = async () => {
+    const next: IdeaFilters = { ...filters, setting: null, vibe: null };
+    setFilters(next);
+    setSettingAnswered(false);
+    await ask(next);
   };
 
-  const generate = () => {
-    setGenerated(true);
-    setSeed((n) => n + 1);
+  /** More of the same list, not a different answer to the same question. */
+  const showMore = () => {
+    setPage((n) => n + 1);
     window.setTimeout(
       () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
       60,
@@ -352,16 +387,21 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
             like one — two buttons of equal weight is a question, and this
             screen is meant to answer questions rather than ask another. */}
         <div className={s.genActions}>
-          <Button variant="accent" size="lg" block onClick={generate}>
-            {generated ? (
+          <Button variant="accent" size="lg" block disabled={loading} onClick={() => void ask(filters)}>
+            {result ? (
               <>
-                Refresh ideas <RefreshMark />
+                Find ideas again <RefreshMark />
               </>
             ) : (
               'Find ideas for us ✨'
             )}
           </Button>
-          <button type="button" className={s.diceCta} onClick={surpriseUs}>
+          <button
+            type="button"
+            className={s.diceCta}
+            disabled={loading}
+            onClick={() => void surpriseUs()}
+          >
             <span className={s.diceLabel}>🎲 Surprise us</span>
           </button>
         </div>
@@ -377,12 +417,53 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
             </span>
             <p className={s.loadingText}>Finding something for you two…</p>
           </div>
-        ) : generated ? (
-          <div className={s.results}>
-            {ideas.map((idea, i) => (
-              <IdeaCard key={`${seed}-${idea.id}`} idea={idea} index={i} cycleId={cycleId} />
-            ))}
-          </div>
+        ) : result ? (
+          <>
+            {debugOn() && source ? <RankerBadge source={source} /> : null}
+
+            {showing.length ? (
+              <>
+                <div className={s.results}>
+                  {showing.map((rec, i) => {
+                    const idea = DATE_IDEAS.find((x) => x.id === rec.id);
+                    return idea ? (
+                      <IdeaCard
+                        key={rec.id}
+                        idea={idea}
+                        recommendation={rec}
+                        index={i}
+                        cycleId={cycleId}
+                      />
+                    ) : null;
+                  })}
+                </div>
+
+                {/*
+                  Paging, not re-asking. When the list runs out it says so
+                  rather than quietly starting again — being shown the same
+                  five a second time is how an app admits it has nothing left
+                  without saying it.
+                */}
+                <div className={s.moreRow}>
+                  {more ? (
+                    <button type="button" className={s.moreBtn} onClick={showMore}>
+                      More ideas
+                    </button>
+                  ) : (
+                    <p className={s.moreEnd}>
+                      That’s everything that fits. Change a filter to see something else.
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              /* Nothing eligible at all — almost always a budget of zero
+                 crossed with something the corpus cannot do for free yet. */
+              <p className={s.noneFound}>
+                Nothing in the collection fits that yet. Try loosening the budget or the time.
+              </p>
+            )}
+          </>
         ) : null}
       </div>
 
@@ -415,6 +496,40 @@ function DateIdeasTab({ cycleId }: { cycleId?: string }) {
         )}
       </Section>
     </>
+  );
+}
+
+const DEBUG_KEY = 'couple777:debug';
+
+/**
+ * Which ranker answered. Only ever visible with ?debug=1, and there for one
+ * reason: "the suggestions feel off" is not something anyone can act on, while
+ * "it fell back to the phone because the key was refused" is.
+ */
+function debugOn(): boolean {
+  try {
+    const param = new URLSearchParams(window.location.search).get('debug');
+    if (param === '1') window.localStorage.setItem(DEBUG_KEY, '1');
+    if (param === '0') window.localStorage.removeItem(DEBUG_KEY);
+    return window.localStorage.getItem(DEBUG_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+const RANKER_LABEL: Record<RecommendationSource, string> = {
+  model: '● Ranked by Claude',
+  rules: '● Ranked by the rules (no model)',
+  device: '● Ranked on this device',
+};
+
+function RankerBadge({ source }: { source: RecommendationSource }) {
+  const why = source === 'device' ? fallbackReason() : null;
+  return (
+    <p className={[s.rankBadge, source === 'model' ? s.rankBadgeModel : s.rankBadgeLocal].join(' ')}>
+      <span>{RANKER_LABEL[source]}</span>
+      {why ? <span className={s.rankBadgeWhy}>why: {why}</span> : null}
+    </p>
   );
 }
 

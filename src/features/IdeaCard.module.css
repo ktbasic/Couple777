@@ -150,3 +150,44 @@
   font-weight: 600;
   color: var(--c-accent-ink);
 }
+
+/* ---------- What the recommender added ---------- */
+
+/*
+ * A near miss, named. Quiet rather than alarming — this is still a suggestion
+ * worth reading, it just is not the one that was asked for, and saying so in
+ * a warning colour would make an honest answer look like an error.
+ */
+.close {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--c-ink-3);
+}
+
+.closeMark {
+  font-size: 13px;
+  line-height: 1;
+  color: var(--c-accent-ink);
+  opacity: 0.7;
+}
+
+/*
+ * Why this one, for these two. Set apart from the description because they
+ * answer different questions — the description is what the evening is, this
+ * is why it is being offered — and running them together reads as one long
+ * paragraph nobody finishes.
+ */
+.reason {
+  margin-top: 6px;
+  padding-left: 9px;
+  border-left: 2px solid var(--c-accent-edge);
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--c-ink-2);
+  text-wrap: pretty;
+}

@@ -3,6 +3,7 @@ import { Photo } from '@/components/ui/Photo';
 import { useStore } from '@/context/store';
 import { useToast } from '@/components/ui/Toast';
 import type { DateIdea } from '@/lib/types';
+import type { Recommendation } from '@shared/ideaRank';
 import s from './IdeaCard.module.css';
 
 function duration(mins: number) {
@@ -52,10 +53,21 @@ const PLUS = (
  */
 export function IdeaCard({
   idea,
+  recommendation,
   index = 0,
   cycleId,
 }: {
   idea: DateIdea;
+  /**
+   * How the recommender chose to present this one, when it came from there.
+   *
+   * The idea underneath is unchanged — the id, the cost, what you would
+   * actually be doing — and everything that acts on it (hearting, planning,
+   * the shared list) still uses the idea. This only replaces the words, and
+   * carries the one thing the idea itself cannot know: whether it is what was
+   * asked for, or the nearest thing to it.
+   */
+  recommendation?: Recommendation;
   index?: number;
   /** The cycle this idea would fill, when one is being planned. */
   cycleId?: string;
@@ -100,7 +112,7 @@ export function IdeaCard({
 
       <div className={s.main}>
         <div className={s.head}>
-          <h3 className={s.title}>{idea.title}</h3>
+          <h3 className={s.title}>{recommendation?.title || idea.title}</h3>
           <button
             type="button"
             className={[s.heart, liked ? s.hearted : ''].filter(Boolean).join(' ')}
@@ -112,10 +124,27 @@ export function IdeaCard({
           </button>
         </div>
 
-        <p className={s.desc}>{idea.description}</p>
+        {/*
+          A near miss says so, above everything else on the card. Whoever
+          chose those filters is entitled to know which one this does not
+          meet before they read why it is nice — finding out afterwards is
+          how an app loses the benefit of the doubt.
+        */}
+        {recommendation && recommendation.tier > 0 && recommendation.missed.length ? (
+          <p className={s.close}>
+            <span className={s.closeMark} aria-hidden>
+              ≈
+            </span>
+            Close match · {recommendation.missed.join(' · ')}
+          </p>
+        ) : null}
+
+        <p className={s.desc}>{recommendation?.description || idea.description}</p>
+
+        {recommendation?.reason ? <p className={s.reason}>{recommendation.reason}</p> : null}
 
         <div className={s.tags}>
-          {tagsFor(idea).map((t) => (
+          {(recommendation?.tags.length ? recommendation.tags : tagsFor(idea)).map((t) => (
             <span key={t} className={s.tag}>
               {t}
             </span>

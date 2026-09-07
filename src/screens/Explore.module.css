@@ -467,3 +467,72 @@
   line-height: 1;
   color: var(--c-ink-4);
 }
+
+/* ---------- Paging through one ranking ---------- */
+
+.moreRow {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--s-4);
+}
+
+.moreBtn {
+  padding: 10px var(--s-5);
+  border-radius: var(--r-full);
+  border: 1px solid var(--c-accent-edge);
+  background: var(--c-surface);
+  color: var(--c-accent-ink);
+  font-size: var(--t-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.moreBtn:active {
+  transform: translateY(1px);
+}
+
+/* Running out is a real answer and gets said plainly, rather than the button
+   quietly starting the same five again. */
+.moreEnd,
+.noneFound {
+  margin: 0;
+  padding: 0 var(--s-4);
+  text-align: center;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--c-ink-3);
+  text-wrap: balance;
+}
+
+.noneFound {
+  margin-top: var(--s-4);
+}
+
+/* ---------- Which ranker answered (?debug=1 only) ---------- */
+
+.rankBadge {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0 0 var(--s-3);
+  padding: 7px 11px;
+  border-radius: var(--r-md);
+  font-size: var(--t-micro);
+  font-weight: 600;
+}
+
+.rankBadgeModel {
+  background: var(--c-accent-wash);
+  color: var(--c-accent-ink);
+}
+
+.rankBadgeLocal {
+  background: var(--c-surface-2);
+  color: var(--c-ink-3);
+}
+
+.rankBadgeWhy {
+  font-weight: 500;
+  opacity: 0.85;
+  word-break: break-word;
+}
