@@ -60,6 +60,11 @@ npm run test:memory     # how a written memory is read when no model is configur
 npm run test:ai         # the rules the memory endpoint holds whatever the model says
 ```
 
+```
+npm run test:ideas      # the promises the date recommender keeps whatever the model says
+npm run coverage        # where the idea corpus is thin, per filter combination
+```
+
 `npm run test:rls` is the one that matters most: each check is a privacy
 promise the app makes. Run it after touching anything in `supabase/`.
 
@@ -98,6 +103,41 @@ Two things in it matter. `outputDirectory` is the Vite build; the `rewrites`
 entry sends everything *except* `/api/...` to index.html, so the serverless
 functions stay reachable. Rewrites are applied after the filesystem check, so
 a real function already wins — but the exclusion says the intent out loud.
+
+## Recommending a date
+
+The Dates tab is ranked by Claude, in three layers, and only the third is the
+model's:
+
+- **eligible** — hard facts. Over budget, or needs a room the couple do not
+  share. Long distance makes `in_person` ideas ineligible; living together
+  makes `remote` ones ineligible. Not near misses, simply not on the list.
+- **tier** — how many of the three taste rows (time, setting, vibe) an idea
+  misses. Slots fill in tier order and a tier 1 is never promoted above a
+  tier 0, enforced in code after the model answers. Near misses say what they
+  give up, on the card: "Close match · Evening instead of Morning".
+- **score** — ordering *within* a tier, where history lives. Hearting
+  something means more of its kind and not that card again; already-shown is
+  excluded for that run only. Freshness never crosses tiers.
+
+`shared/` exists for this: `dateIdeas.ts` and `ideaRank.ts` are imported by
+both the browser and `api/recommend-ideas.ts`, so the server decides what may
+be recommended instead of trusting a list the browser sent. Nothing in
+`shared/` may import React, the `@/` alias, or anything browser-only.
+
+The endpoint requires a signed-in Supabase user before it calls Anthropic —
+it spends money, and an unauthenticated one is a bill with a public URL. It
+uses the anon key, never the service-role key. Persistent per-user quotas are
+deliberately not built yet; they belong before public beta.
+
+One request per ask returns the whole ranked list and the screen pages through
+it. Model output is **not** deterministic and nothing claims it is —
+eligibility, tiering and the device fallback are; the model's ordering is
+stable within one response, which is why paging never re-asks.
+
+Add ideas by running `npm run coverage` first and writing against what it
+says. Both couples-together and couples-apart currently sit at zero uncovered
+combinations; keep them there.
 
 ## Reading a memory
 
